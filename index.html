@@ -5567,7 +5567,6 @@ const boxOf=i=>P.w[i]?P.w[i].b:0;
 const setMastery=s=>{const ws=setWords(s);return ws.reduce((a,w)=>a+boxOf(w.i),0)/(4*ws.length);};
 const isSolid=w=>boxOf(w.i)>=3;
 function grade(i,ok,cap){
-  try{window.IQG&&IQG.word(FOLDERS[CUR].id,i,ok,!!P.w[i],W[i]&&W[i].w);}catch(e){}
   const r=P.w[i]||{b:0};
   const b=ok?Math.min(cap||4,r.b+1):0;
   P.w[i]={b,due:dayNum()+(ok?INTERVAL[b]:0),t:Date.now()};
@@ -5757,7 +5756,7 @@ function quizGuard(to){
   if(sc==='breview'){
     const W=BD[S.bw-1],R=W.rv,pick=S.bpick||{},got=R.items.filter((t,i)=>pick[i]).length;
     if(S.bscore!=null||!got)return null;
-    return{left:R.items.length-got,fin:()=>{let sc2=0;R.items.forEach((t,i)=>{if(pick[i]===R.ans[i])sc2++;});S.bscore=sc2;bN()['br:'+W.n]={s:sc2,t:Date.now()};P.xp+=sc2;persist();try{window.IQG&&IQG.test(BID,'br:'+W.n,sc2,R.items.length,null);}catch(e){}if(sc2>=19)setTimeout(confetti,150);render();window.scrollTo(0,0);}};
+    return{left:R.items.length-got,fin:()=>{let sc2=0;R.items.forEach((t,i)=>{if(pick[i]===R.ans[i])sc2++;});S.bscore=sc2;bN()['br:'+W.n]={s:sc2,t:Date.now()};P.xp+=sc2;persist();if(sc2>=19)setTimeout(confetti,150);render();window.scrollTo(0,0);}};
   }
   return null;
 }
@@ -6924,7 +6923,7 @@ function exFinish(){
   const N=EX.qs.length;EX.right=EX.qs.filter(q=>q.sel===q.ans).length;
   const H=store.get(EXH)||[];if(!EX.master){H.unshift({t:Date.now(),n:N,r:EX.right,s:EX.cfg.sets.length});
   store.set(EXH,H.slice(0,20));}
-  try{window.IQG&&!EX.qs.some(function(q){return q.unreached;})&&IQG.test(EX.master?EX.master.fid:FOLDERS[CUR].id,EX.master?'m'+EX.master.k:'ex:'+EX.cfg.sets.slice().sort(function(a,b){return a-b;}).join(','),EX.right,N,EX);}catch(e){}const pct=EX.right/N;tone(pct>=.6);if(pct>=.8)confetti();
+  const pct=EX.right/N;tone(pct>=.6);if(pct>=.8)confetti();
   go('examres');
 }
 function exCaret(R){
@@ -7832,7 +7831,7 @@ function checkQuiz(){
   const score=q.it.filter((_,i)=>isCorrect(q,i,Z.assign)).length;
   Z.score=score;P.best[q.n]=Math.max(P.best[q.n]||0,score);
   q.it.forEach((it,i)=>{if(it.v>=0&&isCorrect(q,i,Z.assign)&&boxOf(it.v)<3)grade(it.v,true,3);});
-  P.xp+=score*2;touchDay();persist();try{window.IQG&&IQG.quiz(FOLDERS[CUR].id,'t'+q.n,score,q.it.length,Z);}catch(e){}render();
+  P.xp+=score*2;touchDay();persist();render();
   if(score===q.it.length)setTimeout(confetti,150);
   const r=document.getElementById('qresult');if(r)r.scrollIntoView({block:'start',behavior:'smooth'});
 }
@@ -8394,7 +8393,7 @@ function bApply(W,D){
   if(!S.bsc)S.bsc={s:0,m:0};
   if(q>=10){
     const sc=S.bsc,tot=sc.s+sc.m,pct=tot*10,C2=2*Math.PI*58;
-    if(!S.bsaved){S.bsaved=true;bN()['bl:'+W.n+'-'+S.bd]={s:sc.s,m:sc.m,t:Date.now()};persist();try{window.IQG&&IQG.lesson(BID,'bl:'+W.n+'-'+S.bd,sc.s+sc.m,10,sc,words.map(function(x){return x.w;}));}catch(e){}if(tot>=8)setTimeout(confetti,150);}
+    if(!S.bsaved){S.bsaved=true;bN()['bl:'+W.n+'-'+S.bd]={s:sc.s,m:sc.m,t:Date.now()};persist();if(tot>=8)setTimeout(confetti,150);}
     return h('main',{class:'wrap'},bTrack(W,D,words.length+12,'Lesson complete',true),h('section',{class:'card sum'},
       h('div',{class:'donut'},h('span',{html:`<svg viewBox="0 0 140 140" aria-hidden="true"><circle cx="70" cy="70" r="58" fill="none" stroke="var(--surface-2)" stroke-width="14"/><circle cx="70" cy="70" r="58" fill="none" stroke="var(--brand)" stroke-width="14" stroke-linecap="round" stroke-dasharray="${(C2*pct/100).toFixed(1)} ${C2.toFixed(1)}"/></svg>`}),h('div',{class:'c'},h('div',null,pct+'%',h('small',null,`${tot} of 10`)))),
       h('div',{class:'stack',style:'gap:12px'},h('span',{class:'eyebrow'},`${bwl(W.n)} \u00b7 Day ${S.bd}`),
@@ -8565,7 +8564,7 @@ function bHub(){
 function bSS(){
  const W=BD[S.bw-1],SD=BSS()[W.n];if(!SD)return h('main',{class:'wrap'},h('p',null,'No Sensible Sentences for this week.'),h('button',{class:'btn',onclick:()=>go('brhub')},'Review'));
  const hue=bHue(W.n),T=(S.bss&&S.bss.w===W.n)?S.bss:(S.bss={w:W.n,pick:{},chk:{}});const N=SD.q.length,done=Object.keys(T.chk).length,sc=Object.values(T.chk).filter(x=>x).length,fin=done===N,pct=Math.round(done/N*100);
- if(fin&&!T.saved){T.saved=true;const o=bN()['bs:'+W.n];if(!o||sc>o.s)bN()['bs:'+W.n]={s:sc,t:Date.now()};P.xp+=sc;persist();try{window.IQG&&IQG.test(BID,'bs:'+W.n,sc,N,T);}catch(e){}if(sc>=N-1)setTimeout(confetti,150);}
+ if(fin&&!T.saved){T.saved=true;const o=bN()['bs:'+W.n];if(!o||sc>o.s)bN()['bs:'+W.n]={s:sc,t:Date.now()};P.xp+=sc;persist();if(sc>=N-1)setTimeout(confetti,150);}
  const card=(q,i)=>{const pk=T.pick[i],ck=i in T.chk,ok=T.chk[i],right=q.a;let body,opts,fb=null;
   const cls=(k,v)=>'opt'+(ck?(v===right?' ok':v===pk?' no':' rvzdim'):(pk===v?' rvzsel':''));
   if(q.t==='c'){const w=ck?q.o[right].w:(pk!=null?q.o[pk].w:'\u00a0');
@@ -8593,7 +8592,7 @@ function bWS(){
  const parts=D.x.split('\0'),N=D.a.length,filled=()=>Object.values(T.v).filter(x=>bwNorm(x)).length,right=()=>D.a.filter((a,i)=>bwNorm(T.v[i])===bwNorm(a)).length;
  const ord=n=>n+(n===1?'st':n===2?'nd':n===3?'rd':'th');
  const chk1=i=>{if(!bwNorm(T.v[i]))return;T.c[i]=bwNorm(T.v[i])===bwNorm(D.a[i])?'ok':'no';tone(T.c[i]==='ok');render();};
- const submit=()=>{D.a.forEach((a,i)=>{T.c[i]=bwNorm(T.v[i])===bwNorm(a)?'ok':'no';});T.done=true;const s=right(),o=bN()['bw:'+W.n];if(!o||s>o.s)bN()['bw:'+W.n]={s,t:Date.now()};P.xp+=s;persist();try{window.IQG&&IQG.test(BID,'bw:'+W.n,s,N,T);}catch(e){}if(s===N)setTimeout(confetti,150);render();window.scrollTo(0,0);};
+ const submit=()=>{D.a.forEach((a,i)=>{T.c[i]=bwNorm(T.v[i])===bwNorm(a)?'ok':'no';});T.done=true;const s=right(),o=bN()['bw:'+W.n];if(!o||s>o.s)bN()['bw:'+W.n]={s,t:Date.now()};P.xp+=s;persist();if(s===N)setTimeout(confetti,150);render();window.scrollTo(0,0);};
  const openWord=a=>{const f=bHintFind(a);if(f)bPop(bInfoDay(f.x));};
  let story=h('p',{class:'rvz-ws gw'});
  parts.forEach((pt,i)=>{story.append(h('span',{html:bGl(pt)}));if(i>=N)return;
@@ -8623,7 +8622,7 @@ function bWS(){
 function bReview(){
   const W=BD[S.bw-1],R=W.rv,L=Object.keys(R.dx).sort(),pick=S.bpick||(S.bpick={}),fin=S.bscore!=null,N=R.items.length;
   const got=R.items.filter((t,i)=>pick[i]).length,pct=fin?Math.round(S.bscore/N*100):Math.round(got/N*100);
-  const chk=()=>{let s=0;R.items.forEach((t,i)=>{if(pick[i]===R.ans[i])s++;});S.bscore=s;bN()['br:'+W.n]={s,t:Date.now()};P.xp+=s;persist();try{window.IQG&&IQG.test(BID,'br:'+W.n,s,N,null);}catch(e){}if(s>=19)setTimeout(confetti,150);render();window.scrollTo(0,0);};
+  const chk=()=>{let s=0;R.items.forEach((t,i)=>{if(pick[i]===R.ans[i])s++;});S.bscore=s;bN()['br:'+W.n]={s,t:Date.now()};P.xp+=s;persist();if(s>=19)setTimeout(confetti,150);render();window.scrollTo(0,0);};
   const card=(t,i)=>{const p=pick[i],ok=fin&&p===R.ans[i];
     const open=()=>bSheet(R,L,pick,i,l=>{pick[i]=l;render();});
     return h('div',{class:'rvc'+(p&&!fin?' set':'')+(fin?(ok?' ok fin':' no fin'):'')},
@@ -13693,13 +13692,62 @@ body.vfl-on .wpv.vfv,body.vfl-on .vfv{z-index:3400}
 .vfl-genpanel .vfl-acc.ans-acc{scroll-margin-top:12px}
 
 .vfl-btn.vfl-fab{position:fixed;right:14px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:900;box-shadow:0 12px 28px -10px rgba(10,20,50,.5)}
+
+/* ---- Vocab Flow on the Magoosh folder row: its own line on a phone ---- */
+@media (max-width:560px){.mtrow.vfl-wrap{flex-wrap:wrap}.mtrow.vfl-wrap .vfl-btn.vfl-nl{order:9;flex:1 1 100%;max-width:none;justify-content:center}}
+/* ---- Vocab Flow inside a set, below the certificate button ---- */
+.iqc-rhs .vfl-btn.vfl-sbtn{display:flex;width:100%;max-width:none;justify-content:center;margin-top:8px;box-sizing:border-box}
+/* ---- small Vocab Flow button beside the main word of a lesson card ---- */
+.vfl-wb{display:inline-grid;place-items:center;vertical-align:middle;width:28px;height:28px;min-width:28px;margin:0 0 .2em .55rem;padding:0;border:0;border-radius:50%;cursor:pointer;color:#fff;
+  font:400 14px/1 var(--f-ui,system-ui);letter-spacing:0;white-space:normal;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  background:linear-gradient(160deg,var(--act-hi,#22D08A),var(--act-deep,#09A263));box-shadow:0 4px 10px -4px var(--act,#0DBE76);transition:transform .15s}
+.vfl-wb svg{width:15px;height:15px;display:block}
+.vfl-wb:active{transform:scale(.9)}
+.vfl-wb:focus-visible{outline:2px solid var(--brand,#2338C9);outline-offset:2px}
 </style>
 <script id="iq-vflow-cfg">
+/* The sidebar's "Change Font" list, read-only copy of the app's own VF_STACK (same ids, names and font families,
+   so the fonts already loaded by the app are reused), plus any font file added there (read from the same IndexedDB). */
+(function(){
+  var NOTE='Previous default \u00b7 the original IQRA look',D={id:'',name:'App default',note:NOTE,fam:null};
+  var STACK={
+    bn:[D,
+      {id:'nsb',name:'Noto Serif Bengali',note:'Classic book serif',fam:'"VF Noto Serif Bengali"'},
+      {id:'subha',name:'Li Subha Letterpress',note:'Classic typewriter font',fam:'"VF Li Subha Letterpress"'},
+      {id:'hasan',name:'Hasan Uttaradhikar',note:'Bold hand-lettered style \u00b7 Default',fam:'"VF Hasan Uttaradhikar"'}],
+    word:[D,
+      {id:'boov',name:'Boovela',note:'Playful retro display',fam:'"VF Boovela"',ls:'0'},
+      {id:'blone',name:'Blone',note:'Heavy, rounded display',fam:'"VF Blone"',ls:'0'},
+      {id:'ragnar',name:'Ragnar Gothic',note:'Blackletter-style headline \u00b7 Default',fam:'"VF Ragnar Gothic"',ls:'0'},
+      {id:'aglafe',name:'Aglafe',note:'Bold high-contrast display',fam:'"VF Aglafe"',ls:'0'},
+      {id:'subha',name:'Li Subha Letterpress',note:'Classic typewriter font',fam:'"VF Li Subha Letterpress"'}],
+    sent:[D,
+      {id:'stone',name:'Stoneforge',note:'Carved, old-style serif',fam:'"VF Stoneforge"'},
+      {id:'tnr',name:'Times New Roman',note:'Familiar newspaper and book serif',fam:'"VF Times New Roman"'},
+      {id:'lit',name:'Literata',note:'Made for e-book reading \u00b7 Default',fam:'"VF Literata"'},
+      {id:'ebg',name:'EB Garamond',note:'Classic book Garamond',fam:'"VF EB Garamond"'},
+      {id:'subha',name:'Li Subha Letterpress',note:'Classic typewriter font',fam:'"VF Li Subha Letterpress"'}]};
+  var loaded=false,wrapped=null;
+  function addCustom(){
+    if(loaded)return;loaded=true;
+    try{var r=indexedDB.open('iqra-vf-fonts',1);
+      r.onupgradeneeded=function(){try{r.transaction.abort();}catch(e){}};   /* never create the store here: the app owns it */
+      r.onsuccess=function(){try{var db=r.result;if(!db.objectStoreNames.contains('f')){db.close();return;}
+        var q=db.transaction('f','readonly').objectStore('f').getAll();
+        q.onsuccess=function(){(q.result||[]).forEach(function(rec){var g=STACK[rec.g]?rec.g:'bn';
+          if(!STACK[g].some(function(f){return f.id===rec.id;}))STACK[g].push({id:rec.id,name:rec.name,note:'Added by you',fam:'"VF Custom '+rec.id+'"'});});db.close();};}catch(e){}};
+    }catch(e){}}
+  window.vfApi=function(){
+    var base=window.__IQAPP;if(!base)return null;
+    if(!wrapped||Object.getPrototypeOf(wrapped)!==base){addCustom();
+      wrapped=Object.create(base,{vf:{value:{stack:function(){return STACK;}}}});}
+    return wrapped;};
+})();
 /* VFLOW adapter. Only change a value here if the target app differs from the reference app.
    Any key left out keeps its default. A function can be given for "api".            */
 window.IQVFLOW_CFG=Object.assign({
   /* returns the app's public hook: { FOLDERS, CUR, S:{screen}, go(screen,a,b), MK?, P?, vf?, quiz? } */
-  api:null,                      /* null = use window.__IQAPP */
+  api:function(){return vfApi();},   /* the app's hook + the sidebar's "Change Font" list (see vfApi below) */
   root:'#app',                   /* element the app renders into (watched to place the button) */
   screen:'folder',               /* value of api.S.screen while a folder page is open */
   mount:'#app .mtrow',           /* where the Vocab Flow button goes on a folder page */
@@ -13741,7 +13789,7 @@ var SVG={
  film:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7 4v16M17 4v16M3 9h4M3 15h4M17 9h4M17 15h4"/></svg>'
 };
 /* adapter: every host-specific name lives in window.IQVFLOW_CFG (see vflow.config.js) */
-var HX=Object.assign({api:null,root:'#app',screen:'folder',mount:'#app .mtrow',mountBarrons:'#app .sec-title .pdfh',barronsId:'barrons-1100',barronsData:'bdata',fab:true},window.IQVFLOW_CFG||{});
+var HX=Object.assign({api:null,root:'#app',screen:'folder',mount:'#app .mtrow',mountBarrons:'#app .sec-title .pdfh',barronsId:'barrons-1100',barronsData:'bdata',fab:true,mountSet:'#app .iqc-rhs',setScreen:'set',wrapWhen:'.mcw-open-btn',weekScreen:'bweek',weekKey:'bw',wordScreens:['study','blesson'],wordSel:'#app .wcard .head .word'},window.IQVFLOW_CFG||{});
 function A(){try{return (typeof HX.api==='function'?HX.api():window.__IQAPP)||null;}catch(e){return null;}}
 function h(tag,a){var e=document.createElement(tag);for(var k in(a||{})){var v=a[k];if(v==null||v===false)continue;
   if(k==='class')e.className=v;else if(k==='html')e.innerHTML=v;else if(k.slice(0,2)==='on')e.addEventListener(k.slice(2),v);else e.setAttribute(k,v===true?'':v);}
@@ -13832,20 +13880,49 @@ window.addEventListener('popstate',function(){
 var raf0=0;
 function mountBtn(){
  var a=A();if(!a||!a.S)return;
- var ex=document.querySelector('.vfl-btn');
+ var ex=document.querySelector('.vfl-btn[data-vfl="folder"]');
  var f=a.FOLDERS[a.CUR],isB=!!(f&&f.id===HX.barronsId);
  var on=a.S.screen===HX.screen&&f&&((f.words&&f.words.length>0)||isB);
  var row=on?document.querySelector(isB?HX.mountBarrons:HX.mount):null,fab=false;
  if(on&&!row&&HX.fab){row=document.body;fab=true;}   /* no known button row on this folder screen: float the button instead */
  if(!row){if(ex)ex.remove();return;}
- if(ex&&ex.parentNode===row)return;
+ /* a row that already holds another button (Magoosh: Table matching + Confusing words) sends Vocab Flow to its own line on a phone */
+ var nl=!isB&&!fab&&!!(HX.wrapWhen&&row.querySelector(HX.wrapWhen));
+ if(ex&&ex.parentNode===row){ex.classList.toggle('vfl-nl',nl);row.classList.toggle('vfl-wrap',nl);return;}
  if(ex)ex.remove();
- var b=h('button',{type:'button',class:'vfl-btn'+(isB?' vfl-bbtn':'')+(fab?' vfl-fab':''),'aria-label':'Vocab Flow: animated vocabulary slideshow',title:'Vocab Flow',onclick:function(){CUR_FI=a.CUR;openSheet();}},
+ var b=h('button',{type:'button','data-vfl':'folder',class:'vfl-btn'+(isB?' vfl-bbtn':'')+(fab?' vfl-fab':'')+(nl?' vfl-nl':''),'aria-label':'Vocab Flow: animated vocabulary slideshow',title:'Vocab Flow',onclick:function(){CUR_FI=a.CUR;openSheet({});}},
    h('span',{class:'vfl-ico',html:SVG.vid}),'Vocab Flow');
- row.append(b);
+ row.append(b);row.classList.toggle('vfl-wrap',nl);
 }
+/* inside a set: a Vocab Flow button below the certificate button, for that set only */
+function mountSetBtn(){
+ var a=A();if(!a||!a.S)return;
+ var ex=document.querySelector('.vfl-btn[data-vfl="set"]');
+ var f=a.FOLDERS[a.CUR],si=a.S.set,isB=!!(f&&f.id===HX.barronsId);
+ if(isB&&a.S.screen===HX.weekScreen&&a.S[HX.weekKey]!=null)si=a.S[HX.weekKey]-1;   /* Barron's: a week is its set */
+ var on=((a.S.screen===HX.setScreen&&!isB)||(isB&&a.S.screen===HX.weekScreen))&&si!=null&&si>=0&&f&&((f.words&&f.words.length>0)||isB);
+ var host=on?document.querySelector(HX.mountSet):null;
+ if(!host){if(ex)ex.remove();return;}
+ if(ex&&ex.parentNode===host&&ex._fi===a.CUR&&ex._si===si)return;
+ if(ex)ex.remove();
+ var b=h('button',{type:'button','data-vfl':'set',class:'vfl-btn vfl-sbtn','aria-label':'Vocab Flow for this set',title:'Vocab Flow for this set',onclick:function(){CUR_FI=a.CUR;openSheet({set:si});}},
+   h('span',{class:'vfl-ico',html:SVG.vid}),'Vocab Flow');
+ b._fi=a.CUR;b._si=si;host.append(b);
+}
+/* a small Vocab Flow button beside the main word of every lesson card */
+function mountWordBtns(){
+ var a=A();if(!a||!a.S)return;
+ if((HX.wordScreens||[]).indexOf(a.S.screen)<0)return;
+ document.querySelectorAll(HX.wordSel).forEach(function(el){
+  if(el.querySelector(':scope>.vfl-wb'))return;
+  var b=h('button',{type:'button',class:'vfl-wb','aria-label':'Vocab Flow for this word',title:'Vocab Flow for this word',html:SVG.vid,
+    onclick:function(e){e.stopPropagation();e.preventDefault();openWordFlow(el);}});
+  ['pointerdown','mousedown','touchstart'].forEach(function(ev){b.addEventListener(ev,function(e){e.stopPropagation();},{passive:true});});
+  el.append(b);});
+}
+function mountAll(){mountBtn();mountSetBtn();mountWordBtns();}
 function boot(){vsLoad();var root=document.querySelector(HX.root);if(!root||!A()){setTimeout(boot,250);return;}
- new MutationObserver(function(){cancelAnimationFrame(raf0);raf0=requestAnimationFrame(mountBtn);}).observe(root,{childList:true,subtree:true});mountBtn();}
+ new MutationObserver(function(){cancelAnimationFrame(raf0);raf0=requestAnimationFrame(mountAll);}).observe(root,{childList:true,subtree:true});mountAll();}
 
 /* =====================================================================
    2. SET PICKER (same button + list pattern as Quiz / Worksheet, one set only)
@@ -13969,9 +14046,12 @@ function makeDesign(ctx){
    var psl=makeSlider('Part of speech size',SIZE_MIN,SIZE_MAX,5,function(){return VS.sizes.pos;},function(v){VS.sizes.pos=v;},function(v){return v+'%';},function(){fonts.setSub(fontSub());change('sizes');});
    var prs=h('button',{type:'button',class:'vfl-mini',onclick:function(){VS.sizes.pos=100;psl.set(100);fonts.setSub(fontSub());change('sizes');}},'100%');
    fbox.append(h('div',{class:'vfl-frole'},h('p',{class:'vc-note',style:'margin:2px 0 6px'},'Part of speech \u00b7 the small noun / verb / adjective tag'),h('div',{class:'vfl-szrow'},psl,prs)));
+   var rsl=makeSlider('Pronunciation size',SIZE_MIN,SIZE_MAX,5,function(){return VS.sizes.pron||100;},function(v){VS.sizes.pron=v;},function(v){return v+'%';},function(){fonts.setSub(fontSub());change('sizes');});
+   var rrs=h('button',{type:'button',class:'vfl-mini',onclick:function(){VS.sizes.pron=100;rsl.set(100);fonts.setSub(fontSub());change('sizes');}},'100%');
+   fbox.append(h('div',{class:'vfl-frole'},h('p',{class:'vc-note',style:'margin:2px 0 6px'},'Pronunciation \u00b7 the / respelling / under the word'),h('div',{class:'vfl-szrow'},rsl,rrs)));
   })();
   fbox.append(h('button',{type:'button',class:'vfl-mini wide',onclick:function(){vsReset('fonts');render();change('fonts');}},'Reset fonts and sizes'));
-  function fontSub(){var F=fontCfg();return F.names.word+' \u00b7 '+F.pct.w+'% / '+F.pct.e+'% / '+F.pct.b+'% / '+F.pct.s+'% \u00b7 POS '+F.pct.p+'%';}
+  function fontSub(){var F=fontCfg();return F.names.word+' \u00b7 '+F.pct.w+'% / '+F.pct.e+'% / '+F.pct.b+'% / '+F.pct.s+'% \u00b7 POS '+F.pct.p+'% \u00b7 Pron '+F.pct.r+'%';}
   var fonts=makeAcc('Fonts and sizes',fontSub(),h('div',null,fbox,h('p',{class:'vc-note'},'These choices belong to Vocab Flow only. They never change your lesson cards. Sizes go from '+SIZE_MIN+'% to '+SIZE_MAX+'%; a meaning that would run off the screen is shrunk just enough to stay readable.')),openMap.fonts);
   /* 3 sentence */
   var sBody=h('div',{class:'vfl-sw'},
@@ -14049,11 +14129,14 @@ function makePreview(getInfo){
 /* =====================================================================
    THE SETTINGS PANEL (opens first, before the slideshow starts)
    ===================================================================== */
-function openSheet(){
+function openSheet(opt){
  if(SHEET||STAGE)return;
+ if(opt!==undefined)SEL.only=(opt&&opt.set!=null)?opt.set:null;
  var a=A(),f=folder();
  if(!a||!f||!f.words||!f.words.length){toast('This folder has no vocabulary list yet');return;}
  if(SEL.fi!==CUR_FI){SEL.set=null;SEL.fi=CUR_FI;}
+ var only=SEL.only;
+ if(only!=null&&setLocked(only)){SEL.only=null;toast(unitOf()+' '+(only+1)+' is locked. Unlock it in the app to use it here.');return;}
  pushH();lockBody(true);document.body.classList.add('vfl-on');
  var nSets=setCountOf(f);
  var note=h('p',{class:'vfl-note'},'Choose a set to begin.');
@@ -14098,17 +14181,18 @@ function openSheet(){
  var pv=makePreview(function(){if(SEL.set==null)return null;var r=selectedRange();return {list:r.list,off:r.a};});
  var design=makeDesign({mode:'show',onChange:function(k){updSum();pv.redraw();}});
   pv.onStudio=function(){design.openStudio();};
- var wordsAcc=makeAcc('Words',folderName(),h('div',null,setBtn,listWrap,note,wrap),true);
+ var wordsAcc=makeAcc('Words',only!=null?unitOf()+' '+(only+1):folderName(),h('div',null,only!=null?null:setBtn,only!=null?null:listWrap,note,wrap),true);
  var x=h('button',{type:'button',class:'vfl-x','aria-label':'Close',onclick:function(){closeSheet();},html:SVG.x});
  var dock=h('div',{class:'vfl-dock'},h('div',{class:'vfl-dsum'},sumB,sumS),gen,go);
  var sheet=h('div',{class:'vfl-sheet',role:'dialog','aria-modal':'true','aria-label':'Vocab Flow settings'},
-   h('div',{class:'vfl-head'},h('span',{class:'vfl-ico',html:SVG.vid}),h('div',null,h('h3',null,'Vocab Flow'),h('small',null,folderName()+' \u00b7 set it up, then press Start')),x),
+   h('div',{class:'vfl-head'},h('span',{class:'vfl-ico',html:SVG.vid}),h('div',null,h('h3',null,'Vocab Flow'),h('small',null,folderName()+(only!=null?' \u00b7 '+unitOf()+' '+(only+1):'')+' \u00b7 set it up, then press Start')),x),
    pv.el,
    h('div',{class:'qz vfl-body'},wordsAcc,design.el),
    dock);
  var ov=h('div',{class:'vfl-ov',onclick:function(e){if(e.target===ov)closeSheet();}},sheet);
  overlayHost().append(ov);SHEET={ov:ov,sync:sync,pv:pv};
- if(SEL.set!=null&&!setLocked(SEL.set))useSet(SEL.set,true);else{SEL.set=null;sync();}
+ if(only!=null)useSet(only,SEL.set===only);
+ else if(SEL.set!=null&&!setLocked(SEL.set))useSet(SEL.set,true);else{SEL.set=null;sync();}
  document.addEventListener('keydown',escSheet,true);
  function escSheet(e){if(!SHEET){document.removeEventListener('keydown',escSheet,true);return;}if(e.key==='Escape'&&!STAGE&&!GEN){e.stopPropagation();closeSheet();}}
 }
@@ -14128,6 +14212,60 @@ function openDesign(){
  var ov=h('div',{class:'vfl-ov live',onclick:function(e){if(e.target===ov)close();}},sheet);
  STAGE.append(ov);ST.design={ov:ov};
  function close(){if(!ST||!ST.design)return;clearTimeout(timer);ST.design.ov.remove();ST.design=null;ST.prm=prmFromVS();rebuildHere(true);}
+}
+
+/* =====================================================================
+   VOCAB FLOW FOR ONE WORD (the small button beside a lesson card's main word).
+   Uses the current Vocab Flow settings. One screen for the word with its first example,
+   then one screen for every other example, then one for every context the card has.
+   When the last screen ends the show closes by itself and the lesson card is there again.
+   ===================================================================== */
+function ctxSegs(text,word){
+ text=String(text||'').replace(/\s+/g,' ').trim();if(!text)return [];
+ var k=String(word||'').trim().toLowerCase(),esc=function(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');},pat;
+ if(!k)return [['t',text]];
+ if(/[\s-]/.test(k))pat=k.split(/[\s-]+/).map(esc).join('[\\s-]');else pat=esc(k.slice(0,Math.max(4,k.length-3)));
+ var re=new RegExp('\\b('+pat+')[\\w\\u00C0-\\u024F]*','gi'),segs=[],last=0,m;
+ while((m=re.exec(text))){if(m.index>last)segs.push(['t',text.slice(last,m.index)]);segs.push(['h',m[0]]);last=m.index+m[0].length;if(m[0].length===0)re.lastIndex++;}
+ if(last<text.length)segs.push(['t',text.slice(last)]);
+ return segs;}
+function wordOfCard(el){
+ var a=A(),card=el.closest('.wcard')||el.closest('article')||document,z=card.querySelector('.ztgl[data-fi][data-w]'),fi=null,w=null,f,list,nm;
+ function find(F,nm){var ws=(F&&F.words)||[],i;for(i=0;i<ws.length;i++)if(lc(ws[i])===nm)return ws[i];return null;}
+ function fold(i){var F=folderAt(i);if(F&&F.custom&&F.id===HX.barronsId)return barronsFolder()||F;return F;}
+ if(z){fi=+z.getAttribute('data-fi');nm=String(z.getAttribute('data-w')||'').toLowerCase();w=find(fold(fi),nm);}
+ if(!w){var st=a.S&&a.S.study;fi=a.CUR;f=fold(fi);
+  if(st&&st.list&&f&&f.words&&el.closest('.lw')){var cand=f.words[st.list[st.idx]];
+   var shown=String(el.firstChild&&el.firstChild.nodeValue||el.textContent||'').trim().toLowerCase();
+   if(cand&&(!shown||lc(cand)===shown))w=cand;}}
+ if(!w){fi=a.CUR;var shown2=String(el.firstChild&&el.firstChild.nodeValue||el.textContent||'').trim().toLowerCase();w=find(fold(fi),shown2);}
+ return w?{w:w,fi:fi,card:card}:null;}
+function setIdxOf(w,fi){
+ var F=folderAt(fi);if(F&&F.custom&&F.id===HX.barronsId)F=barronsFolder()||F;
+ if(F&&F.groups){for(var g=0;g<F.groups.length;g++)if(F.groups[g].some(function(x){return x===w||lc(x)===lc(w);}))return g;return 0;}
+ return Math.max(0,Math.floor((w.i|0)/CFG.setSize));}
+function wordEntries(w,card){
+ var out=[],head=lc(w),xs=(w.x||[]).filter(function(x){return x&&x.s&&x.s.length;});
+ xs.forEach(function(x,i){out.push(Object.assign({},w,{x:[Object.assign({},x,{n:1,l:0})],_lbl:xs.length>1?'Example '+(i+1)+' of '+xs.length:'Example'}));});
+ if(!out.length)out.push(Object.assign({},w,{x:[],_lbl:'Meaning'}));
+ var info=null,items=[];
+ try{var cw=card&&card.querySelector('.iqx-cw');info=cw&&cw.__info;}catch(e){}
+ try{if(info&&window.IQCTX&&IQCTX.items)items=IQCTX.items(info.w,info.b)||[];}catch(e){items=[];}
+ var segsOf=function(it){if(!it)return [];if(Array.isArray(it.segs)&&it.segs.length)return it.segs;if(Array.isArray(it.s)&&it.s.length)return it.s;return ctxSegs(it.text||it.t||'',head);};
+ var ctx=items.map(segsOf).filter(function(s){return s.length;});
+ ctx.forEach(function(s,i){out.push(Object.assign({},w,{x:[{s:s,n:1,l:0}],_lbl:'Context '+(i+1)+(ctx.length>1?' of '+ctx.length:'')}));});
+ return out;}
+function openWordFlow(el){
+ if(SHEET||STAGE||GEN)return;
+ var a=A();if(!a)return;
+ var r=wordOfCard(el);if(!r){toast('This word could not be opened in Vocab Flow');return;}
+ CUR_FI=r.fi;
+ var list=wordEntries(r.w,r.card);if(!list.length)return;
+ VS.seed=1+Math.floor(Math.random()*997);vsSave();
+ sndInit();
+ openStage(list,0,{single:true,setIdx:setIdxOf(r.w,r.fi)});
+ if(VS.fsStart)toggleFs();
+ if(VS.landStart)toggleLand();
 }
 function selectedRange(){
  var words=setWords(SEL.set),B=bounds(words.length);
@@ -14153,7 +14291,7 @@ function startFlow(){
    ===================================================================== */
 var VS_DEF={theme:'classic',
  fonts:{word:'ragnar',en:'lit',bn:'hasan',sent:'lit'},
- sizes:{word:100,en:100,bn:100,sent:100,pos:100},
+ sizes:{word:100,en:100,bn:100,sent:100,pos:100,pron:100},
  ghost:{en:true,bn:true},snd:{key:'bubble',hl:'glide',motion:'airy'},anim:{mode:'off',picks:[],pack:'calm',shuffle:false},hl:true,type:1,hold:1,trans:true,speed:1,seed:1,sound:true,volume:70,
  keep:{pron:true,pos:true,no:true,en:true,bn:true,ex:true,ref:true},
  fsStart:false,landStart:false,logoPos:'br'};
@@ -14199,9 +14337,9 @@ function fontFam(g,id){var f=fontFind(g,id);return (f.fam?f.fam+',':'')+VF_TAIL_
 function fontCfg(){
  var F=VS.fonts,S=VS.sizes,w=fontFind('word',F.word);
  return {word:fontFam('word',F.word),ls:w&&w.fam?(w.ls||'-.02em'):'-.03em',en:fontFam('sent',F.en),bn:fontFam('bn',F.bn),sent:fontFam('sent',F.sent),
-  zw:S.word/100,ze:S.en/100,zb:S.bn/100,zs:S.sent/100,zp:(S.pos||100)/100,
+  zw:S.word/100,ze:S.en/100,zb:S.bn/100,zs:S.sent/100,zp:(S.pos||100)/100,zpr:(S.pron||100)/100,
   names:{word:fontFind('word',F.word).name,en:fontFind('sent',F.en).name,bn:fontFind('bn',F.bn).name,sent:fontFind('sent',F.sent).name},
-  pct:{w:S.word,e:S.en,b:S.bn,s:S.sent,p:S.pos||100}};}
+  pct:{w:S.word,e:S.en,b:S.bn,s:S.sent,p:S.pos||100,r:S.pron||100}};}
 function applyFontVars(el,F){F=F||fontCfg();
  el.style.setProperty('--f-bn',F.bn);el.style.setProperty('--f-read',F.sent);
  el.style.setProperty('--vfl-word',F.word);el.style.setProperty('--vfl-ls',F.ls);el.style.setProperty('--vfl-en',F.en);el.style.setProperty('--vfl-sent',F.sent);}
@@ -14293,7 +14431,8 @@ var WM_P={rays:'M407 65V90M298 114L316 132M516 114L498 132M258 212H282M556 212H5
    ===================================================================== */
 var STAGE=null,ST=null,GEN=null;
 var KEEP_ALL={pron:true,pos:true,no:true,en:true,bn:true,ex:true,ref:true,ghost:true};
-function prmFromVS(){return {hold:VS.hold,type:VS.type,keep:Object.assign({},VS.keep),fonts:fontCfg(),theme:VS.theme,
+function prmFromVS(){var o=prmBase();if(ST&&ST.single)o.keep.no=false;return o;}
+function prmBase(){return {hold:VS.hold,type:VS.type,keep:Object.assign({},VS.keep),fonts:fontCfg(),theme:VS.theme,
  ghost:{ar:true,en:VS.ghost.en!==false,bn:VS.ghost.bn!==false},wm:true,hl:VS.hl,trans:VS.trans,anim:animCfg(),seed:VS.seed||1};}
 function newState(list,offset){
  return {list:list,off:offset,idx:0,t:0,dur:1,playing:false,speed:VS.speed||1,anims:[],reg:[],ticks:[],ready:false,tok:0,raf:0,last:0,els:{},ro:null,done:false,cw:0,ch:0,
@@ -14307,9 +14446,10 @@ function setTitles(a,b){if(!ST)return;ST.els.title.textContent=a;ST.els.sub.text
 function ctlPrev(){if(!ST)return;if(ST.phase==='show'){snd('nav',{dir:-1});go(ST.idx-1);}}
 function ctlNext(){if(!ST)return;if(ST.phase==='show'){snd('nav',{dir:1});go(ST.idx+1);}else qNext();}
 function ctlRestart(){if(!ST)return;snd('tick');if(ST.phase==='show')go(ST.idx);else qReplay();}
-function openStage(list,offset){
+function openStage(list,offset,opt){
  pushH();lockBody(true);document.body.classList.add('vfl-on');
  ST=newState(list,offset);
+ if(opt&&opt.single){ST.single=true;ST.setIdx=opt.setIdx||0;ST.prm.keep.no=false;}
  var title=h('b'),sub=h('small');
  var btnPlay=h('button',{type:'button',class:'vfl-cb main','aria-label':'Pause',onclick:function(){fsoKick();toggle();},html:SVG.pause});
  var btnPrev=h('button',{type:'button',class:'vfl-cb','aria-label':'Previous word',onclick:function(){fsoKick();ctlPrev();},html:SVG.prev});
@@ -14395,10 +14535,10 @@ function loop(now){
  ST.raf=requestAnimationFrame(loop);
 }
 function wordEnded(){
- if(ST.idx<ST.list.length-1){go(ST.idx+1,false,true);}else startAsk();
+ if(ST.idx<ST.list.length-1){go(ST.idx+1,false,true);}else if(ST.single){exitStage();}else startAsk();
 }
 function finish(){
- setPlaying(false);ST.done=true;try{window.IQG&&IQG.flow(ST);}catch(e){}
+ setPlaying(false);ST.done=true;
  ST.els.seg.forEach(function(s){s.classList.add('done');});
  var n=ST.list.length;
  var card=h('div',{class:'vfl-donecard'},
@@ -14418,7 +14558,7 @@ function teardownAnims(){
 function go(i,first,auto){
  if(!ST)return;
  if(i<0)i=0;
- if(i>=ST.list.length){finish();return;}
+ if(i>=ST.list.length){if(ST.single){exitStage();return;}finish();return;}
  if(ST.els.doneEl){ST.els.doneEl.remove();ST.els.doneEl=null;}
  if(ST.phase!=='show')qLeave();
  ST.done=false;ST.idx=i;ST.t=0;ST.ready=false;
@@ -14439,6 +14579,8 @@ function rebuildHere(keepPaused){
 }
 function updateUI(){
  var n=ST.list.length,w=ST.list[ST.idx];
+ if(ST.single){setTitles(lc(w),(w._lbl||'Details')+(n>1?' \u00b7 '+(ST.idx+1)+'/'+n:''));
+  ST.els.seg.forEach(function(s,i){s.classList.toggle('done',i<ST.idx);if(i>ST.idx)s.firstChild.style.width='0';});return;}
  setTitles('Word '+(ST.idx+1)+' / '+n,'#'+(ST.off+ST.idx+1)+' of '+unitOf()+' '+((ST.setIdx||0)+1)+' \u00b7 '+lc(w));
  ST.els.seg.forEach(function(s,i){s.classList.toggle('done',i<ST.idx);if(i>ST.idx)s.firstChild.style.width='0';});
 }
@@ -14454,6 +14596,7 @@ function apply(){
 }
 function exitStage(fromBack){
  if(!ST)return;
+ var wasSingle=!!ST.single;
  cancelAnimationFrame(ST.raf);ST.tok++;teardownAnims();qCleanup();sndStopAll();clearTimeout(ST.fsoTimer);
  if(ST.ro)ST.ro.disconnect();
  leaveLand();
@@ -14461,6 +14604,7 @@ function exitStage(fromBack){
  closePop();
  document.removeEventListener('keydown',stageKeys,true);document.removeEventListener('visibilitychange',onVis);window.removeEventListener('resize',onWinResize);
  STAGE.remove();STAGE=null;ST=null;
+ if(wasSingle){lockBody(false);document.body.classList.remove('vfl-on');if(!fromBack)popH();return;}   /* one word: straight back to the lesson card */
  /* back to the previous screen: the set / range selector */
  openSheet();
 }
@@ -14483,6 +14627,7 @@ function paintPop(){
     h('span',{class:'ri',html:SVG.rot}),h('span',{class:'rt'},h('b',null,ST.land?'Back to portrait':'Landscape view'),h('small',null,'Uses the phone\u2019s own rotation when it can')),h('span',{class:'rc',html:SVG.chev})),
   h('button',{type:'button',class:'vfl-prow',onclick:function(){closePop();setPlaying(false);openGen({from:'stage'});}},
     h('span',{class:'ri',html:SVG.film}),h('span',{class:'rt'},h('b',null,'Generate video'),h('small',null,'Save these words as a real video file')),h('span',{class:'rc',html:SVG.chev})));
+ if(ST.single&&p.lastElementChild)p.lastElementChild.remove();
 }
 
 /* ---------------- full screen ---------------- */
@@ -14951,7 +15096,7 @@ async function build(i,tok){
  var fsA=clamp(Math.min(u*.15*zw,62*zw,fit*Math.max(1,zw*.9),fitW),18,300);
  wi.style.fontSize=fsA+'px';
  var wordW=textW(wi);
- var pronFs=clamp(u*.042*zs,11,28);if(pron)pron.style.fontSize=pronFs+'px';
+ var pronFs=clamp(u*.042*zs,11,28)*(F.zpr||1);if(pron)pron.style.fontSize=pronFs+'px';
  var yo=Math.max(0,Math.round((ch-u*1.5)*.5));
  var topA=Math.round(ch*.15)+yo,gapA=Math.round(clamp(u*.045,10,20));
  wordEl.style.top=topA+'px';
@@ -14987,7 +15132,7 @@ async function build(i,tok){
  var fsC=clamp(Math.min(u*.2*zw,84*zw,(inner*.92)/(fb100/100)*Math.max(1,zw*.9),inner*.97/(fb100/100)),22,320);
  var fsEnC=clamp(u*.05*ze,12,64),fsBnC=clamp(u*.062*zb,13,76);
  var fy=Math.round(ch*.1)+yo;
- var cpFs=clamp(u*.045*zs,11,30);if(cpron)cpron.style.fontSize=cpFs+'px';
+ var cpFs=clamp(u*.045*zs,11,30)*(F.zpr||1);if(cpron)cpron.style.fontSize=cpFs+'px';
  function layoutC(kc,kw){
    var fs=fsC*kw;fb.style.fontSize=fs+'px';
    if(cen){cen.style.fontSize=(fsEnC*kc)+'px';cen.style.lineHeight='1.4';}
@@ -24295,384 +24440,5 @@ function start(){root=document.getElementById('app')||document.body;mo=new Mutat
  ['popstate','pageshow','visibilitychange'].forEach(function(n){window.addEventListener(n,sched);});
  document.addEventListener('click',function(){setTimeout(sched,80);},true);}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
-})();
-</script>
-<style id="iq-gami-css">
-/* ============ IQRA VOCAB · GAMIFICATION css (additive; reuses the app's theme variables) ============ */
-.iqg-card{display:flex;align-items:center;gap:9px;width:100%;box-sizing:border-box;min-height:36px;margin:0;padding:4px 10px;border-radius:12px;background:var(--surface,#fff);border:1px solid var(--line,#DCE1EF);color:var(--ink,#111A36);font:500 .8rem/1.2 var(--f-ui,system-ui,sans-serif);text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.iqg-card.in-wrap{margin-top:8px}
-.iqg-card.in-today{grid-column:1/-1;width:auto;min-height:0;margin:0;padding:8px 0 0;border:0;border-top:1px solid var(--line,#DCE1EF);border-radius:0;background:transparent}
-.iqg-m .chiprow{display:none}
-.iqg-card:focus-visible,.iqg-x:focus-visible{outline:2px solid var(--act,#0DBE76);outline-offset:2px}
-.iqg-svg{width:26px;height:26px;display:block}
-.iqg-pi{width:15px;height:15px;flex:none}
-.iqg-lv{flex:none;display:inline-flex;align-items:baseline;gap:3px;padding:3px 8px;border-radius:9px;background:var(--act-soft,#E0F8EC);color:var(--act-text,#08894F);font:800 .95rem/1 var(--f-display,var(--f-ui,system-ui))}
-.iqg-lv small{font:700 .52rem/1 var(--f-ui,system-ui);letter-spacing:.08em;opacity:.8}
-.iqg-lv.big{display:grid;place-items:center;align-content:center;gap:0;width:56px;height:56px;padding:0;border-radius:16px;font-size:1.6rem}
-.iqg-lv.big small{font-size:.55rem;margin-bottom:2px}
-.iqg-mid{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
-.iqg-xp{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;min-width:0}
-.iqg-xp b{font:700 .8rem/1.1 var(--f-ui,system-ui)}
-.iqg-xp i{font:500 .66rem/1.2 var(--f-ui,system-ui);font-style:normal;color:var(--ink-3,#76809F);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.iqg-bar{display:block;height:4px;border-radius:99px;background:var(--surface-2,#E9EDF7);overflow:hidden}
-.iqg-bar>i{display:block;height:100%;border-radius:99px;background:var(--act,#0DBE76);transition:width .45s ease}
-.iqg-st,.iqg-ac{flex:none;display:flex;align-items:center;gap:3px;font:700 .76rem/1 var(--f-ui,system-ui)}
-.iqg-st{color:var(--amber,#E89B00)}
-.iqg-st b{color:var(--ink,#111A36)}
-.iqg-ac{color:#8a6a22}
-.iqg-ac b{color:var(--ink-2,#47537A)}
-@media(max-width:340px){.iqg-ac{display:none}}
-
-/* achievements panel */
-.iqg-ov{position:fixed;inset:0;z-index:2000;display:flex;align-items:flex-end;justify-content:center;animation:iqgf .18s ease}
-.iqg-scrim{position:absolute;inset:0;background:rgba(8,12,28,.5)}
-.iqg-sheet{position:relative;display:flex;flex-direction:column;width:min(720px,100%);max-height:92%;background:var(--bg,#F3F5FB);color:var(--ink,#111A36);border-radius:22px 22px 0 0;box-shadow:0 -18px 60px -20px rgba(0,0,0,.5);animation:iqgs .26s cubic-bezier(.2,.9,.3,1);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media(min-width:700px){.iqg-ov{align-items:center}.iqg-sheet{border-radius:22px;max-height:88%}}
-.iqg-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px;font:800 1.15rem/1.2 var(--f-display,var(--f-ui,system-ui))}
-.iqg-x{width:40px;height:40px;border:0;border-radius:12px;display:grid;place-items:center;background:var(--surface-2,#E9EDF7);color:var(--ink-2,#47537A);font:700 1rem/1 var(--f-ui,system-ui);cursor:pointer}
-.iqg-body{overflow:auto;overscroll-behavior:contain;padding:4px 14px 18px;display:flex;flex-direction:column;gap:14px}
-.iqg-sum{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:18px;background:var(--surface,#fff);border:1px solid var(--line,#DCE1EF)}
-.iqg-sl{display:flex;align-items:center;gap:12px}
-.iqg-sx{display:flex;flex-direction:column;gap:2px;min-width:0}
-.iqg-sx b{font:800 1.2rem/1.1 var(--f-display,var(--f-ui,system-ui))}
-.iqg-sx span{font:500 .78rem/1.3 var(--f-ui,system-ui);color:var(--ink-3,#76809F)}
-.iqg-sum .iqg-bar{height:8px}
-.iqg-sr{display:flex;flex-wrap:wrap;gap:6px 16px;font:500 .8rem/1.2 var(--f-ui,system-ui);color:var(--ink-2,#47537A)}
-.iqg-sr span{display:inline-flex;align-items:center;gap:5px}
-.iqg-sr b{color:var(--ink,#111A36)}
-.iqg-cat h3{display:flex;align-items:baseline;justify-content:space-between;margin:2px 2px 8px;font:700 .95rem/1.2 var(--f-ui,system-ui)}
-.iqg-cat h3 em{font:600 .75rem/1 var(--f-ui,system-ui);font-style:normal;color:var(--ink-3,#76809F)}
-.iqg-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-@media(min-width:560px){.iqg-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
-.iqg-b{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0;padding:11px 11px 10px;border-radius:16px;background:var(--surface,#fff);border:1px solid var(--line,#DCE1EF)}
-.iqg-b b{font:700 .84rem/1.2 var(--f-ui,system-ui);overflow-wrap:anywhere}
-.iqg-bd{font:500 .72rem/1.3 var(--f-ui,system-ui);color:var(--ink-3,#76809F);overflow-wrap:anywhere}
-.iqg-b .iqg-bar{width:100%;height:5px;margin-top:2px}
-.iqg-bt{font:600 .7rem/1.2 var(--f-ui,system-ui);color:var(--ink-2,#47537A)}
-.iqg-bs{font:600 .66rem/1.25 var(--f-ui,system-ui);color:var(--ink-3,#76809F)}
-.iqg-bi{display:grid;place-items:center;margin-bottom:2px;line-height:0}
-.iqg-md{display:block}
-.iqg-md.on{filter:drop-shadow(0 4px 6px rgba(50,35,10,.3))}
-.iqg-b.off{background:transparent;border-style:dashed}
-.iqg-b.off .iqg-md{opacity:.85}
-.iqg-b.off b,.iqg-b.off .iqg-bd{opacity:.72}
-.iqg-b.off .iqg-bar>i{background:var(--ink-3,#76809F)}
-.iqg-b.on{border-color:hsl(var(--bh) 55% 78%);background:linear-gradient(180deg,hsl(var(--bh) 85% 97%),var(--surface,#fff) 70%);box-shadow:0 10px 20px -16px hsl(var(--bh) 70% 35%)}
-.iqg-b.on .iqg-bar>i{background:linear-gradient(90deg,hsl(var(--bh) 80% 58%),hsl(calc(var(--bh) + 28) 75% 42%))}
-.iqg-b.on .iqg-bs{color:hsl(var(--bh) 60% 30%)}
-
-/* feedback pills: top of the screen, never take a tap, never move the page */
-#iqg-fb{position:fixed;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 8px);z-index:2100;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
-.iqg-pill{display:flex;align-items:center;gap:8px;max-width:min(92vw,360px);padding:7px 14px;border-radius:99px;background:var(--surface,#fff);color:var(--ink,#111A36);border:1px solid var(--line,#DCE1EF);box-shadow:0 10px 26px -14px rgba(0,0,0,.45);font:600 .82rem/1.2 var(--f-ui,system-ui);animation:iqgp .26s cubic-bezier(.2,.9,.3,1);pointer-events:none}
-.iqg-pill b{font-weight:700}
-.iqg-pill small{font:500 .7rem/1.2 var(--f-ui,system-ui);color:var(--ink-3,#76809F)}
-.iqg-pill.out{opacity:0;transform:translateY(-6px);transition:opacity .2s,transform .2s}
-.iqg-pill.iqg-k-xp{color:var(--act-text,#08894F)}
-.iqg-pill.iqg-k-streak svg{color:var(--amber,#E89B00)}
-.iqg-pill.iqg-k-level,.iqg-pill.iqg-k-badge{border-color:rgba(176,138,62,.55)}
-.iqg-pill.iqg-k-level svg.iqg-pi{color:#8a6a22;width:20px;height:20px}
-.iqg-pill .iqg-md{flex:none;width:28px;height:28px;filter:none}
-.iqg-pill.iqg-k-badge,.iqg-pill.iqg-k-level{flex-wrap:wrap}
-@keyframes iqgf{from{opacity:0}to{opacity:1}}
-@keyframes iqgs{from{transform:translateY(24px);opacity:.4}to{transform:none;opacity:1}}
-@keyframes iqgp{from{opacity:0;transform:translateY(-8px) scale(.97)}to{opacity:1;transform:none}}
-@media(prefers-reduced-motion:reduce){.iqg-ov,.iqg-sheet,.iqg-pill,.iqg-pill.out{animation:none!important;transition:none!important}.iqg-bar>i{transition:none!important}}
-</style>
-<script id="iq-gami">
-/* ============ IQRA VOCAB · GAMIFICATION (additive: XP, levels 1-50, streaks, 25 badges) ============
-   Own storage key: 'iqg.v1'. Never touches the legacy P.xp / shobdo.v3 data (it only reads from it once, to
-   recognise existing verifiable progress). Fed by tiny guarded hooks: window.IQG&&IQG.word|lesson|quiz|test|flow(...).
-   Public API: IQG.openPanel(), IQG.levelOf(xp), IQG.need(level), IQG.state(), IQG.metrics(), IQG.REWARDS
-   ======================================================================================================= */
-(function(){'use strict';
-if(window.IQG)return;
-
-/* ---------- 1 · central reward values (the only place numbers live) ---------- */
-var REWARDS={newWord:5,review:2,quiz:5,quizCorrect:2,test80:10,test100:5};
-var MAXL=50,KEY='iqg.v1';
-
-/* ---------- 2 · levels: cumulative XP for level L = 50(L-1)+10(L-1)^2 ---------- */
-function need(L){var n=Math.max(1,Math.min(MAXL,L|0))-1;return 50*n+10*n*n;}
-function levelOf(xp){xp=Math.max(0,+xp||0);var L=1;while(L<MAXL&&xp>=need(L+1))L++;return L;}
-function lvInfo(xp){xp=Math.max(0,+xp||0);var L=levelOf(xp),cur=need(L),nx=L<MAXL?need(L+1):null;
- return{level:L,cur:cur,next:nx,into:xp-cur,left:nx==null?0:nx-xp,pct:nx==null?100:Math.min(100,Math.floor((xp-cur)/(nx-cur)*100)),max:L>=MAXL};}
-
-/* ---------- 3 · local calendar dates and streaks ---------- */
-var NOW=function(){return new Date();};
-function pad(n){return n<10?'0'+n:''+n;}
-function ymd(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
-function dayAdd(s,n){var p=s.split('-');return ymd(new Date(+p[0],+p[1]-1,+p[2]+n,12,0,0));}
-function streakOf(days,today){var set={};days.forEach(function(d){set[d]=1;});var x=set[today]?today:dayAdd(today,-1),c=0;while(set[x]){c++;x=dayAdd(x,-1);}return c;}
-function longestOf(days){var a=days.slice().sort(),best=0,run=0,prev=null;a.forEach(function(d){if(d===prev)return;run=(prev&&dayAdd(prev,1)===d)?run+1:1;if(run>best)best=run;prev=d;});return best;}
-
-/* ---------- 4 · persistent state (one key; unknown fields are preserved) ---------- */
-function blank(){return{v:1,xp:0,ids:{},ord:[],today:{d:'',r:{},c:{}},learned:{},revWords:{},reviews:0,correct:0,quizzes:0,qcorrect:0,perfectQ:0,tests:{},testsDone:0,perfect:0,flows:0,bm:{},days:[],longest:0,unlocked:{},lastLevel:1,seeded:false,created:Date.now()};}
-var S=null;
-function load(){
- var raw=null,o=null;try{raw=localStorage.getItem(KEY);}catch(e){}
- if(raw){try{o=JSON.parse(raw);}catch(e){try{localStorage.setItem(KEY+'.corrupt',raw);}catch(e2){}}}
- var b=blank();S=(o&&typeof o==='object'&&!Array.isArray(o))?Object.assign(b,o):b;
- ['ids','learned','revWords','tests','bm','unlocked'].forEach(function(k){if(!S[k]||typeof S[k]!=='object'||Array.isArray(S[k]))S[k]={};});
- if(!Array.isArray(S.days))S.days=[];if(!Array.isArray(S.ord))S.ord=[];
- if(!S.today||typeof S.today!=='object')S.today={d:'',r:{},c:{}};
- S.xp=Math.max(0,+S.xp||0);return S;}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S));return true;}catch(e){return false;}}
-function once(id){if(S.ids[id])return false;S.ids[id]=1;S.ord.push(id);if(S.ord.length>600){S.ord.splice(0,S.ord.length-450).forEach(function(k){delete S.ids[k];});}return true;}
-
-/* ---------- 5 · 25 badges in six categories ---------- */
-var CATS=[{id:'A',t:'Vocabulary mastery'},{id:'B',t:'Consistency & streaks'},{id:'C',t:'Revision & retention'},{id:'D',t:'Quiz & test performance'},{id:'E',t:'Learning excellence'},{id:'F',t:'Exploring IQRA Vocab'}];
-var BADGES=[
- {id:'first-step',c:'A',t:'First Step',d:'Learn 1 unique word.',n:1,m:'words',u:'word',i:'book'},
- {id:'word-explorer',c:'A',t:'Word Explorer',d:'Learn 50 unique words.',n:50,m:'words',u:'words',i:'compass'},
- {id:'word-collector',c:'A',t:'Word Collector',d:'Learn 100 unique words.',n:100,m:'words',u:'words',i:'bookmark'},
- {id:'vocab-builder',c:'A',t:'Vocabulary Builder',d:'Learn 250 unique words.',n:250,m:'words',u:'words',i:'stack'},
- {id:'word-master',c:'A',t:'Word Master',d:'Learn 500 unique words.',n:500,m:'words',u:'words',i:'goldbook'},
- {id:'lexicon-legend',c:'A',t:'Lexicon Legend',d:'Learn 1,000 unique words.',n:1000,m:'words',u:'words',i:'crownbook'},
- {id:'grand-lexicographer',c:'A',t:'Grand Lexicographer',d:'Learn 2,000 unique words.',n:2000,m:'words',u:'words',i:'gem'},
- {id:'spark',c:'B',t:'Spark',d:'Reach a 3-day streak.',n:3,m:'streakBest',u:'days',i:'sparkle'},
- {id:'getting-started',c:'B',t:'Getting Started',d:'Learn on 3 distinct days.',n:3,m:'activeDays',u:'days',i:'cal'},
- {id:'consistent-learner',c:'B',t:'Consistent Learner',d:'Reach a 7-day streak.',n:7,m:'streakBest',u:'days',i:'flame'},
- {id:'dedicated-scholar',c:'B',t:'Dedicated Scholar',d:'Reach a 14-day streak.',n:14,m:'streakBest',u:'days',i:'glowflame'},
- {id:'monthly-regular',c:'B',t:'Monthly Regular',d:'Learn on 30 distinct days.',n:30,m:'activeDays',u:'days',i:'cal'},
- {id:'unstoppable',c:'B',t:'Unstoppable',d:'Reach a 30-day streak.',n:30,m:'streakBest',u:'days',i:'goldcal'},
- {id:'century-of-days',c:'B',t:'Century of Days',d:'Learn on 100 distinct days.',n:100,m:'activeDays',u:'days',i:'starcal'},
- {id:'habit-champion',c:'B',t:'Habit Champion',d:'Reach a 100-day streak.',n:100,m:'streakBest',u:'days',i:'starcal'},
- {id:'first-review',c:'C',t:'First Review',d:'Complete meaningful reviews of 10 words.',n:10,m:'revWords',u:'words',i:'cycle'},
- {id:'revision-rookie',c:'C',t:'Revision Rookie',d:'Complete 100 meaningful word reviews.',n:100,m:'reviews',u:'reviews',i:'refresh'},
- {id:'recall-champion',c:'C',t:'Recall Champion',d:'Correctly answer 100 review questions.',n:100,m:'correct',u:'answers',i:'brainstar'},
- {id:'sharp-memory',c:'C',t:'Sharp Memory',d:'Complete 250 meaningful word reviews.',n:250,m:'reviews',u:'reviews',i:'bulb'},
- {id:'memory-keeper',c:'C',t:'Memory Keeper',d:'Complete 500 meaningful word reviews.',n:500,m:'reviews',u:'reviews',i:'brainbook'},
- {id:'recall-expert',c:'C',t:'Recall Expert',d:'Correctly answer 500 review questions.',n:500,m:'correct',u:'answers',i:'brainstar'},
- {id:'quiz-starter',c:'D',t:'Quiz Starter',d:'Complete 1 quiz.',n:1,m:'quizzes',u:'quiz',i:'check'},
- {id:'flawless-quiz',c:'D',t:'Flawless Quiz',d:'Answer every question correctly in a quiz.',n:1,m:'perfectQ',u:'quiz',i:'starcheck'},
- {id:'test-taker',c:'D',t:'Test Taker',d:'Complete 5 tests.',n:5,m:'testsDone',u:'tests',i:'check'},
- {id:'quiz-achiever',c:'D',t:'Quiz Achiever',d:'Complete 10 quizzes.',n:10,m:'quizzes',u:'quizzes',i:'target'},
- {id:'perfect-score',c:'D',t:'Perfect Score',d:'Score 100% on a completed test.',n:1,m:'perfect',u:'test',i:'starcheck'},
- {id:'quiz-veteran',c:'D',t:'Quiz Veteran',d:'Complete 50 quizzes.',n:50,m:'quizzes',u:'quizzes',i:'medal'},
- {id:'quiz-master',c:'D',t:'Quiz Master',d:'Complete 100 quizzes.',n:100,m:'quizzes',u:'quizzes',i:'crown'},
- {id:'accuracy-expert',c:'D',t:'Accuracy Expert',d:'Score at least 90% on 10 distinct completed tests.',n:10,m:'acc90',u:'tests',i:'precision'},
- {id:'rising-scholar',c:'E',t:'Rising Scholar',d:'Reach Level 5.',n:5,m:'level',u:'level',i:'cap',lv:1},
- {id:'knowledge-seeker',c:'E',t:'Knowledge Seeker',d:'Reach Level 10.',n:10,m:'level',u:'level',i:'bulb',lv:1},
- {id:'seasoned-scholar',c:'E',t:'Seasoned Scholar',d:'Reach Level 15.',n:15,m:'level',u:'level',i:'cap',lv:1},
- {id:'vocabulary-expert',c:'E',t:'Vocabulary Expert',d:'Reach Level 25.',n:25,m:'level',u:'level',i:'goldmedal',lv:1},
- {id:'xp-collector',c:'E',t:'XP Collector',d:'Earn 5,000 XP in total.',n:5000,m:'xp',u:'XP',i:'sparkle'},
- {id:'lexicon-adept',c:'E',t:'Lexicon Adept',d:'Reach Level 35.',n:35,m:'level',u:'level',i:'gem',lv:1},
- {id:'iqra-master',c:'E',t:'IQRA Master',d:'Reach Level 50.',n:50,m:'level',u:'level',i:'emblem',lv:1},
- {id:'flow-learner',c:'F',t:'Flow Learner',d:'Complete 5 Vocab Flow presentations.',n:5,m:'flows',u:'flows',i:'flow'},
- {id:'card-enthusiast',c:'F',t:'Card Enthusiast',d:'Bookmark 25 distinct words.',n:25,m:'bm',u:'words',i:'starmark'},
- {id:'flow-enthusiast',c:'F',t:'Flow Enthusiast',d:'Complete 25 Vocab Flow presentations.',n:25,m:'flows',u:'flows',i:'rocket'},
- {id:'curator',c:'F',t:'Curator',d:'Bookmark 100 distinct words.',n:100,m:'bm',u:'words',i:'starmark'}
-];
-/* tier (bronze / silver / gold rim) = how far along its category a badge sits */
-CATS.forEach(function(c){var l=BADGES.filter(function(b){return b.c===c.id;});l.forEach(function(b,i){var f=l.length>1?i/(l.length-1):1;b.tier=f<.34?'bronze':f<.67?'silver':'gold';});});
-var ST_='<path d="m12 7.2 1.3 2.7 3 .4-2.2 2.1.5 3-2.6-1.4-2.6 1.4.5-3L7.7 10.3l3-.4z" fill="currentColor" stroke="none"/>';
-var ICONS={
- book:'<path d="M2.5 5.5h6.2a3.3 3.3 0 0 1 3.3 3.3V20a2.4 2.4 0 0 0-2.4-2.4H2.5zM21.5 5.5h-6.2A3.3 3.3 0 0 0 12 8.8V20a2.4 2.4 0 0 1 2.4-2.4h7.1z"/>',
- bookmark:'<path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"/>',
- stack:'<rect x="4" y="3.5" width="16" height="4.5" rx="1"/><rect x="3" y="9.8" width="18" height="4.5" rx="1"/><rect x="5" y="16.1" width="14" height="4.4" rx="1"/>',
- goldbook:'<path d="M6 3h11.5a1.5 1.5 0 0 1 1.5 1.5V20H7.5A1.5 1.5 0 0 1 6 18.5zM6 18.5A1.5 1.5 0 0 1 7.5 17H19"/><path d="m12.5 6.6.9 1.9 2.1.3-1.5 1.5.4 2.1-1.9-1-1.9 1 .4-2.1-1.5-1.5 2.1-.3z" stroke-width="1.2"/>',
- crownbook:'<path d="M5 9h14v11H6.5A1.5 1.5 0 0 1 5 18.5zM5 18.5A1.5 1.5 0 0 1 6.5 17H19"/><path d="M6 7 7 3.5l3.2 2.2L12 3l1.8 2.7L17 3.5 18 7z" stroke-width="1.6"/>',
- cal:'<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
- flame:'<path d="M12 3c.6 3.6 5 5.2 5 10a5 5 0 0 1-10 0c0-2.2 1.2-3.5 2.3-4.6.2 1.6 1 2.6 2 2.9C10.6 8.2 10.8 5.6 12 3z"/>',
- glowflame:'<path d="M12 5c.5 3 4 4.4 4 8.2a4 4 0 0 1-8 0c0-1.800.9-2.800 1.800-3.700.2 1.300.8 2.100 1.600 2.400C11 9.500 11.100 7.100 12 5z"/><path d="M3 11h2M19 11h2M5.500 4.800l1.400 1.400M18.500 4.800l-1.400 1.400M12 20.500v.5"/>',
- goldcal:'<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4m-6.500 8 2 2 3.500-3.500"/>',
- starcal:'<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="m12 11.500 1.100 2.300 2.500.3-1.800 1.700.5 2.500L12 17.100l-2.300 1.200.5-2.500-1.800-1.700 2.500-.3z" fill="currentColor" stroke="none"/>',
- cycle:'<path d="M20 12a8 8 0 1 1-2.800-6.100M20 4v5h-5"/>',
- refresh:'<path d="M3 12a9 9 0 0 1 15-6.700L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.700L3 16M3 21v-5h5"/>',
- brainbook:'<path d="M9 3.500a2.800 2.800 0 0 0-2.800 2.800A2.800 2.800 0 0 0 5 11.200a2.800 2.800 0 0 0 1.500 4.100H12V5.200A2 2 0 0 0 9 3.500zM15 3.500a2.800 2.800 0 0 1 2.800 2.800 2.800 2.800 0 0 1 1.200 4.900 2.800 2.800 0 0 1-1.500 4.100H12V5.200A2 2 0 0 1 15 3.500z"/><path d="M4.500 18.500h15M4.500 21h15"/>',
- brainstar:'<path d="M9 3.500a2.800 2.800 0 0 0-2.800 2.800A2.800 2.800 0 0 0 5 11.200a2.800 2.800 0 0 0 1.200 4.900 2.800 2.800 0 0 0 4.800 1.900V5.200A2 2 0 0 0 9 3.500zM15 3.500a2.800 2.800 0 0 1 2.800 2.800 2.800 2.800 0 0 1 1.200 4.900 2.800 2.800 0 0 1-1.200 4.900A2.800 2.800 0 0 1 13 18V5.200A2 2 0 0 1 15 3.500z"/><path d="m12 8.800 1 2 2.200.3-1.600 1.500.4 2.200-2-1.100-2 1.100.4-2.200L8.800 11.100 11 10.800z" fill="currentColor" stroke="none"/>',
- check:'<path d="M9 6.500h11M9 12h11M9 17.500h11M3.500 6.500l1.200 1.200 2.100-2.400M3.500 12l1.200 1.200 2.100-2.400M3.500 17.500l1.200 1.200 2.100-2.400"/>',
- target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.200" fill="currentColor"/>',
- medal:'<circle cx="12" cy="15" r="5.500"/><path d="M8.500 10.500 6 3h4l2 4.500L14 3h4l-2.500 7.500M12 12.500v5"/>',
- starcheck:'<path d="m12 2.800 2.800 5.800 6.300.9-4.600 4.400 1.100 6.300L12 17.200 6.400 20.200l1.100-6.300L2.900 9.500l6.300-.9z"/><path d="m8.800 11.800 2.200 2.200 4.200-4.200"/>',
- precision:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.500"/><path d="M12 1.500v4M12 18.500v4M1.500 12h4M18.500 12h4"/>',
- cap:'<path d="m2 9 10-5 10 5-10 5zM6 11.500V16c0 1.600 2.700 3 6 3s6-1.400 6-3v-4.500M22 9v6"/>',
- bulb:'<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.800 10.600c.8.700 1.300 1.500 1.300 2.400h5c0-.9.500-1.700 1.300-2.400A6 6 0 0 0 12 3z"/>',
- goldmedal:'<circle cx="12" cy="15" r="5.500"/><path d="M8.500 10.500 6 3h4l2 4.500L14 3h4l-2.500 7.500"/><path d="m12 12.200.9 1.900 2 .3-1.500 1.400.4 2-1.800-1-1.800 1 .4-2-1.500-1.400 2-.3z" fill="currentColor" stroke="none"/>',
- emblem:'<path d="M12 2.500 20 5.500v6c0 4.800-3.300 8.500-8 10-4.700-1.500-8-5.200-8-10v-6z"/><path d="M7.800 9.500h3.700a1 1 0 0 1 .5 1v5.700a1.700 1.700 0 0 0-1.400-.7H7.800zM16.200 9.500h-3.700a1 1 0 0 0-.5 1v5.700a1.700 1.700 0 0 1 1.400-.7h2.800z"/>',
- flow:'<path d="M2.500 5.500h6.200a3.300 3.300 0 0 1 3.300 3.300V20a2.400 2.400 0 0 0-2.400-2.400H2.500zM21.500 5.500h-6.200A3.300 3.300 0 0 0 12 8.800V20a2.400 2.400 0 0 1 2.400-2.400h7.100z"/><path d="m15 9.500 3 1.800-3 1.800z" fill="currentColor"/>',
- starmark:'<path d="M6.500 3.500h11v17l-5.500-4-5.500 4z"/><path d="m12 7.300 1.200 2.400 2.600.4-1.900 1.800.5 2.600-2.400-1.300-2.400 1.300.5-2.600-1.900-1.800 2.600-.4z" fill="currentColor" stroke="none"/>',
- compass:'<circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/>',
- sparkle:'<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.500 2.500M15.500 15.500 18 18M18 6l-2.500 2.500M8.500 15.500 6 18"/>',
- rocket:'<path d="M12 3c3 2 4.500 5.500 4 9l-2 2.500h-4L8 12c-.5-3.500 1-7 4-9zM9.500 14.500 7 17l-1 4 4-1 2.500-2.500M14.500 14.500 17 17l1 4-4-1"/><circle cx="12" cy="9.500" r="1.500"/>',
- crown:'<path d="M3.500 8 7 12l5-7 5 7 3.500-4-1.500 11h-14z"/>',
- gem:'<path d="M6 4h12l3.500 5L12 21 2.500 9z"/><path d="M2.500 9h19M9 4 7.500 9 12 21M15 4l1.500 5L12 21"/>',
- flame2:'<path d="M12 3c.6 3.6 5 5.2 5 10a5 5 0 0 1-10 0c0-2.200 1.200-3.500 2.300-4.600.2 1.600 1 2.600 2 2.900C10.600 8.200 10.800 5.600 12 3z"/>',
- trophy:'<path d="M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v1.500A3 3 0 0 0 7 10.500M17 6h3v1.500a3 3 0 0 1-3 3M12 14v4M8.500 20.500h7"/>'
-};
-var TIER={bronze:['#f0b87c','#a8672d'],silver:['#f1f4fa','#8f9bb3'],gold:['#fbe08a','#c2902a']};
-var CATHUE={A:158,B:22,C:268,D:212,E:42,F:332},mid=0,HEX='M32 3 56.5 17v30L32 61 7.5 47V17z';
-function medal(b,px,on){
- var h=CATHUE[b.c]||200,g='<g transform="translate(16 16) scale(1.3333)" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" ';
- if(!on)return '<svg class="iqg-md off" width="'+px+'" height="'+px+'" viewBox="0 0 64 64" aria-hidden="true"><path d="'+HEX+'" fill="var(--surface-2,#E9EDF7)" stroke="var(--line,#DCE1EF)" stroke-width="2.5" stroke-linejoin="round"/>'+g+'stroke="var(--ink-3,#76809F)" opacity=".7">'+ICONS[b.i]+'</g></svg>';
- var id='iqm'+(++mid),t=TIER[b.tier]||TIER.bronze;
- return '<svg class="iqg-md on" width="'+px+'" height="'+px+'" viewBox="0 0 64 64" aria-hidden="true"><defs>'
-  +'<linearGradient id="'+id+'" x1=".1" y1="0" x2=".9" y2="1"><stop offset="0" stop-color="hsl('+h+',88%,66%)"/><stop offset=".55" stop-color="hsl('+(h+10)+',80%,48%)"/><stop offset="1" stop-color="hsl('+(h+30)+',74%,30%)"/></linearGradient>'
-  +'<linearGradient id="'+id+'r" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+t[0]+'"/><stop offset="1" stop-color="'+t[1]+'"/></linearGradient>'
-  +'<linearGradient id="'+id+'s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".55" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>'
-  +'<path d="'+HEX+'" fill="url(#'+id+')" stroke="url(#'+id+'r)" stroke-width="4" stroke-linejoin="round"/>'
-  +'<path d="M32 7.5 52.5 19.5V33H11.5V19.5z" fill="url(#'+id+'s)"/>'
-  +g+'stroke="#fff" color="#fff" style="filter:drop-shadow(0 1px 1px rgba(0,0,0,.35))">'+ICONS[b.i]+'</g></svg>';}
-function svg(k,cls){return '<svg class="'+(cls||'iqg-svg')+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICONS[k]+'</svg>';}
-
-/* ---------- 6 · metrics and badge evaluation ---------- */
-function metrics(s){s=s||load();var acc=0;for(var k in s.tests)if(s.tests[k]>=0.9)acc++;
- var cur=streakOf(s.days,ymd(NOW()));
- return{words:Object.keys(s.learned).length,activeDays:s.days.length,streakBest:Math.max(s.longest|0,longestOf(s.days),cur),streakNow:cur,
-  revWords:Object.keys(s.revWords).length,reviews:s.reviews|0,correct:s.correct|0,quizzes:s.quizzes|0,qcorrect:s.qcorrect|0,perfectQ:s.perfectQ|0,testsDone:s.testsDone|0,xp:s.xp|0,perfect:s.perfect|0,acc90:acc,
-  level:levelOf(s.xp),flows:s.flows|0,bm:Object.keys(s.bm).length};}
-function evalBadges(quiet){var m=metrics(S),out=[];BADGES.forEach(function(b){if(S.unlocked[b.id])return;if(m[b.m]>=b.n){S.unlocked[b.id]={t:NOW().getTime(),up:quiet?1:0};out.push(b);}});return out;}
-
-/* ---------- 7 · one batch per learning event: update, evaluate, save, give feedback ---------- */
-var B=null;
-function begin(){load();B={xp:0,newDay:false};var d=ymd(NOW());if(S.today.d!==d)S.today={d:d,r:{},c:{}};}
-function addXP(n){S.xp+=n;B.xp+=n;}
-function markDay(){var t=ymd(NOW());if(S.days.indexOf(t)<0){S.days.push(t);S.days.sort();if(S.days.length>4000)S.days=S.days.slice(-4000);B.newDay=true;}}
-function end(){
- var cur=streakOf(S.days,ymd(NOW()));S.longest=Math.max(S.longest|0,longestOf(S.days),cur);
- var oldL=levelOf(S.xp-B.xp),newL=levelOf(S.xp),nb=evalBadges(false);S.lastLevel=newL;save();
- var items=[];
- if(B.xp>0)items.push({k:'xp',x:B.xp,ms:1300});
- if(B.newDay)items.push({k:'streak',n:cur,ms:1900});
- if(newL>oldL)items.push({k:'level',n:newL,ms:2100});
- if(nb.length)items.push({k:'badge',b:nb,ms:nb.length>1?3300:2700});
- B=null;feed(items);refreshUI();}
-var seen=(typeof WeakSet==='function')?new WeakSet():null,lastAt={};
-function fresh(key,obj,gap){
- if(obj&&typeof obj==='object'&&seen){if(seen.has(obj))return false;seen.add(obj);return true;}
- var t=Date.now();if(lastAt[key]&&t-lastAt[key]<(gap||5000))return false;lastAt[key]=t;return true;}
-var lc=function(w){return String(w==null?'':w).trim().toLowerCase();};
-
-/* a word met for the first time earns 5 XP once, ever; a word already known counts as one meaningful review per day */
-function word(fid,i,ok,existed,text){try{
- seed();begin();var k=lc(text)||(fid+':'+i),ls=S.learned[k],isToday=ls&&ymd(new Date(ls))===S.today.d;
- if(!existed&&!ls){S.learned[k]=NOW().getTime();addXP(REWARDS.newWord);markDay();}
- else if(existed){
-  if(!ls)S.learned[k]=NOW().getTime();
-  else if(!isToday&&!S.today.r[k]){S.today.r[k]=1;S.reviews++;S.revWords[k]=1;addXP(REWARDS.review);markDay();
-   if(ok&&!S.today.c[k]){S.today.c[k]=1;S.correct++;}}
- }
- end();}catch(e){B=null;}}
-function doQuiz(score,total){S.quizzes++;S.qcorrect=(S.qcorrect|0)+Math.max(0,Math.min(total,score|0));if(score>=total)S.perfectQ=(S.perfectQ|0)+1;addXP(REWARDS.quiz+REWARDS.quizCorrect*Math.max(0,Math.min(total,score|0)));markDay();}
-function doTest(fid,key,right,total){var id=fid+'|'+key;S.testsDone++;S.tests[id]=Math.max(S.tests[id]||0,right/total);
- if(right>=total)S.perfect++;if(right*5>=total*4)addXP(REWARDS.test80);if(right>=total)addXP(REWARDS.test100);markDay();}
-function quiz(fid,key,score,total,obj){try{if(!(total>0)||!fresh('q'+fid+key,obj))return;seed();begin();doQuiz(score,total);end();}catch(e){B=null;}}
-function lesson(fid,key,score,total,obj,words){try{if(!(total>0)||!fresh('l'+fid+key,obj))return;seed();begin();
- (words||[]).forEach(function(w){var k=lc(w);if(k&&!S.learned[k]){S.learned[k]=NOW().getTime();addXP(REWARDS.newWord);}});doQuiz(score,total);end();}catch(e){B=null;}}
-function test(fid,key,right,total,obj){try{if(!(total>0)||!fresh('t'+fid+key,obj))return;seed();begin();doTest(fid,key,right,total);end();}catch(e){B=null;}}
-function flow(obj){try{if(!fresh('f',obj,5000))return;seed();begin();S.flows++;markDay();end();}catch(e){B=null;}}
-
-/* ---------- 8 · bookmarks: seen through the app's own 'iqb.fav' write, counted per distinct word, never reduced ---------- */
-function bmRead(raw){var out={};try{var F=JSON.parse(raw||'{}'),L=(window.IQB&&IQB.list&&IQB.list())||[],nm={};
- L.forEach(function(e){if(e&&e.d&&e.d.w)nm[e.b+'|'+e.i]=lc(e.d.w);});
- for(var b in F)for(var i in F[b])out[nm[b+'|'+i]||(b+'|'+i)]=1;}catch(e){}return out;}
-function bmSync(raw){try{load();var cur=bmRead(raw),ch=false;for(var k in cur)if(!S.bm[k]){S.bm[k]=1;ch=true;}
- if(ch){B={xp:0,newDay:false};end();}}catch(e){B=null;}}
-try{var _si=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){var r=_si.apply(this,arguments);
- if(k==='iqb.fav'){try{if(this===window.localStorage)setTimeout(function(){bmSync(v);},0);}catch(e){}}return r;};}catch(e){}
-
-/* ---------- 9 · upgrade: recognise only verifiable existing progress (no invented history, no retro XP) ---------- */
-function seed(){
- try{var A=window.__IQAPP;if(!A||!A.P||!A.FOLDERS)return false;load();if(S.seeded)return true;
- var P=A.P,F0=P.f||{};
- /* the app also touches its own day list on every launch, so only real activity timestamps are used for days */
- var dayOf=function(t){if(t>1e12){var s=ymd(new Date(t));if(S.days.indexOf(s)<0)S.days.push(s);}};
- A.FOLDERS.forEach(function(f){var F=F0[f.id];if(!F||!F.w||!f.words)return;
-  Object.keys(F.w).forEach(function(i){var w=f.words[+i];if(!w)return;var k=lc(w.w);if(k&&!S.learned[k])S.learned[k]=(F.w[i]&&F.w[i].t)||1;dayOf(F.w[i]&&F.w[i].t);});
-  if(F.best)S.quizzes+=Object.keys(F.best).length;});
- try{var bf=F0['barrons-1100'],nt=bf&&bf.notes,bd=JSON.parse(document.getElementById('bdata').textContent);
-  if(nt)Object.keys(nt).forEach(function(k){var m=/^bl:(\d+)-(\d+)$/.exec(k);
-   if(m){S.quizzes++;dayOf(nt[k]&&nt[k].t);var W=bd.filter(function(x){return x.n==+m[1];})[0],D=W&&W.days[+m[2]-1];
-    if(D)D.words.forEach(function(x){var wk=lc(x.w);if(wk&&!S.learned[wk])S.learned[wk]=(nt[k]&&nt[k].t)||1;});}
-   var r=/^br:(\d+)$/.exec(k);if(r&&nt[k]&&nt[k].s!=null){S.testsDone++;dayOf(nt[k].t);S.tests['barrons-1100|'+k]=nt[k].s/24;if(nt[k].s>=24)S.perfect++;}});}catch(e){}
- try{var H=JSON.parse(localStorage.getItem('shobdo.exams')||'[]');if(Array.isArray(H))H.forEach(function(h){if(h&&h.n>0){S.testsDone++;dayOf(h.t);S.tests['exam|'+h.t]=h.r/h.n;if(h.r>=h.n)S.perfect++;}});}catch(e){}
- try{var raw=localStorage.getItem('iqb.fav');if(raw){var bk=bmRead(raw);for(var k in bk)S.bm[k]=1;}}catch(e){}
- S.days.sort();S.longest=Math.max(S.longest|0,longestOf(S.days));S.seeded=true;S.seedAt=Date.now();
- var nb=evalBadges(true);S.lastLevel=levelOf(S.xp);save();
- if(nb.length)feed([{k:'badge',b:nb,ms:3300,up:1}]);refreshUI();return true;}catch(e){return false;}}
-
-/* ---------- 10 · feedback: one quiet pill at a time, top of the screen, never takes a tap ---------- */
-var Q=[],showing=false,host=null;
-function reduced(){try{return window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){return false;}}
-function busyNow(){try{return document.hidden||!!document.querySelector('.vfl-stage');}catch(e){return false;}}
-function feed(items){items.forEach(function(it){var l=Q[Q.length-1];if(it.k==='xp'&&l&&l.k==='xp'){l.x+=it.x;return;}Q.push(it);});if(Q.length>7)Q.splice(1,Q.length-7);next();}
-function pillHTML(it){
- if(it.k==='xp')return svg('flame2','iqg-pi')+'<b>+'+it.x+' XP</b>';
- if(it.k==='streak')return svg('flame','iqg-pi')+'<b>'+(it.n>1?it.n+'-day streak':'Streak started')+'</b>';
- if(it.k==='level')return svg('trophy','iqg-pi')+'<b>Level '+it.n+'</b><small>Level up</small>';
- if(it.k==='badge'){var b=it.b;return medal(b[0],28,true)+(b.length===1?'<b>'+b[0].t+'</b><small>'+(it.up?'Recognised from your progress':'Badge unlocked')+'</small>':'<b>'+b.length+' badges '+(it.up?'recognised':'unlocked')+'</b><small>'+b.slice(0,2).map(function(x){return x.t;}).join(', ')+(b.length>2?' +'+(b.length-2):'')+'</small>');}
- return '';}
-function topPx(){var y=0;try{['.wb','.iqx-toast','.toast'].forEach(function(s){var e=document.querySelector(s);if(e){var r=e.getBoundingClientRect();if(r.height>0&&r.top<140&&r.bottom>y)y=r.bottom;}});}catch(e){}return y;}
-function next(){
- if(showing||!Q.length)return;if(typeof document==='undefined'||!document.body)return;
- if(busyNow()){setTimeout(next,900);return;}
- showing=true;var it=Q.shift();
- if(!host||!host.parentNode){host=document.createElement('div');host.id='iqg-fb';host.setAttribute('aria-live','polite');host.setAttribute('role','status');document.body.appendChild(host);}
- var ty=topPx();host.style.top=ty?(ty+6)+'px':'';
- var p=document.createElement('div');p.className='iqg-pill iqg-k-'+it.k;p.innerHTML=pillHTML(it);host.appendChild(p);
- if((it.k==='level'||it.k==='badge')&&!reduced()){try{navigator.vibrate&&navigator.vibrate(12);}catch(e){}}
- setTimeout(function(){p.classList.add('out');setTimeout(function(){if(p.parentNode)p.parentNode.removeChild(p);showing=false;next();},reduced()?0:220);},it.ms);}
-
-/* ---------- 11 · compact indicator + achievements panel ---------- */
-function fmt(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
-function dateStr(t){try{return new Date(t).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'});}catch(e){return ymd(new Date(t));}}
-function cardNode(){
- var s=load(),L=lvInfo(s.xp),m=metrics(s),un=Object.keys(s.unlocked).length;
- var b=document.createElement('button');b.type='button';b.className='iqg-card';
- b.setAttribute('aria-label','Achievements. Level '+L.level+', '+fmt(s.xp)+' XP, '+m.streakNow+' day streak, '+un+' of '+BADGES.length+' badges');
- b.innerHTML='<span class="iqg-lv"><small>LV</small>'+L.level+'</span>'
-  +'<span class="iqg-mid"><span class="iqg-xp"><b>'+fmt(s.xp)+' XP</b><i>'+(L.max?'Max level':fmt(L.left)+' to Lv '+(L.level+1))+'</i></span>'
-  +'<span class="iqg-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+L.pct+'"><i style="width:'+L.pct+'%"></i></span></span>'
-  +'<span class="iqg-st" title="Current streak (best '+m.streakBest+')">'+svg('flame','iqg-pi')+'<b>'+m.streakNow+'</b></span>'
-  +'<span class="iqg-ac">'+svg('trophy','iqg-pi')+'<b>'+un+'/'+BADGES.length+'</b></span>';
- b.addEventListener('click',openPanel);return b;}
-/* merged into the bars that are already there: inside the Home "today" card (replacing its old level/streak chips) and at the foot of the Progress-report box */
-function inject(){try{
- var ws=document.querySelectorAll('.iqc-wrap');
- for(var i=0;i<ws.length;i++){if(!ws[i].querySelector(':scope > .iqg-card')){var c=cardNode();c.classList.add('in-wrap');ws[i].appendChild(c);}}
- var ts=document.querySelectorAll('.hero-home .card.today:not(.fcard)');
- for(var j=0;j<ts.length;j++){var t=ts[j];if(!t.querySelector(':scope > .iqg-card')){var d=cardNode();d.classList.add('in-today');t.appendChild(d);t.classList.add('iqg-m');}}}catch(e){}}
-var PN=null,lastFocus=null;
-function badgeNode(b,s,m){
- var u=s.unlocked[b.id],v=Math.min(m[b.m]||0,b.n),pc=Math.floor(v/b.n*100);
- var d=document.createElement('div');d.className='iqg-b '+(u?'on':'off');d.style.setProperty('--bh',CATHUE[b.c]);d.setAttribute('role','listitem');
- d.innerHTML='<span class="iqg-bi">'+medal(b,56,!!u)+'</span><b>'+b.t+'</b><span class="iqg-bd">'+b.d+'</span>'
-  +'<span class="iqg-bar" role="progressbar" aria-valuemin="0" aria-valuemax="'+b.n+'" aria-valuenow="'+v+'"><i style="width:'+pc+'%"></i></span>'
-  +'<span class="iqg-bt">'+(b.lv?'Level '+v+'/'+b.n:fmt(v)+'/'+fmt(b.n)+' '+b.u)+'</span>'
-  +'<span class="iqg-bs">'+(u?'Unlocked \u00b7 '+dateStr(u.t)+(u.up?' (from your existing progress)':''):'Locked')+'</span>';
- return d;}
-function paintPanel(){
- if(!PN)return;var s=load(),L=lvInfo(s.xp),m=metrics(s),un=Object.keys(s.unlocked).length,body=PN.querySelector('.iqg-body');
- body.innerHTML='';
- var sum=document.createElement('div');sum.className='iqg-sum';
- sum.innerHTML='<div class="iqg-sl"><span class="iqg-lv big"><small>LEVEL</small>'+L.level+'</span><div class="iqg-sx"><b>'+fmt(s.xp)+' XP</b><span>'+(L.max?'Maximum level reached. XP keeps counting.':'Next level at '+fmt(L.next)+' XP \u00b7 '+fmt(L.left)+' to go')+'</span></div></div>'
-  +'<span class="iqg-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+L.pct+'"><i style="width:'+L.pct+'%"></i></span>'
-  +'<div class="iqg-sr"><span>'+svg('flame','iqg-pi')+'<b>'+m.streakNow+'</b> day streak</span><span>Best <b>'+m.streakBest+'</b></span><span>'+svg('trophy','iqg-pi')+'<b>'+un+'/'+BADGES.length+'</b> badges</span></div>';
- body.appendChild(sum);
- CATS.forEach(function(c){var list=BADGES.filter(function(b){return b.c===c.id;}),n=list.filter(function(b){return s.unlocked[b.id];}).length;
-  var sec=document.createElement('section');sec.className='iqg-cat';
-  var h=document.createElement('h3');h.innerHTML=c.t+'<em>'+n+'/'+list.length+'</em>';sec.appendChild(h);
-  var g=document.createElement('div');g.className='iqg-grid';g.setAttribute('role','list');list.forEach(function(b){g.appendChild(badgeNode(b,s,m));});sec.appendChild(g);body.appendChild(sec);});}
-function closePanel(){if(!PN)return;document.removeEventListener('keydown',onKey,true);PN.remove();PN=null;try{lastFocus&&lastFocus.focus&&lastFocus.focus();}catch(e){}}
-function onKey(e){if(e.key==='Escape'){e.stopPropagation();closePanel();}}
-function openPanel(){
- if(PN)return;lastFocus=document.activeElement;seed();
- PN=document.createElement('div');PN.className='iqg-ov';PN.setAttribute('role','dialog');PN.setAttribute('aria-modal','true');PN.setAttribute('aria-label','Achievements');
- PN.innerHTML='<div class="iqg-scrim"></div><div class="iqg-sheet"><div class="iqg-hd"><b>Achievements</b><button type="button" class="iqg-x" aria-label="Close">\u2715</button></div><div class="iqg-body"></div></div>';
- PN.querySelector('.iqg-scrim').addEventListener('click',closePanel);PN.querySelector('.iqg-x').addEventListener('click',closePanel);
- document.body.appendChild(PN);document.addEventListener('keydown',onKey,true);paintPanel();try{PN.querySelector('.iqg-x').focus();}catch(e){}}
-function refreshUI(){try{var cs=document.querySelectorAll('.iqg-card');for(var i=0;i<cs.length;i++){var n=cardNode();n.className=cs[i].className;cs[i].replaceWith(n);}paintPanel();}catch(e){}}
-
-/* ---------- 12 · boot ---------- */
-var ra=0;
-function boot(){try{new MutationObserver(function(){if(ra)return;ra=requestAnimationFrame(function(){ra=0;inject();});}).observe(document.body,{childList:true,subtree:true});}catch(e){}
- var tries=0;(function wait(){if(seed()||++tries>40){catchup();inject();return;}setTimeout(wait,250);})();}
-function catchup(){try{load();if(!S.seeded)return;var nb=evalBadges(true);if(nb.length){save();feed([{k:'badge',b:nb,ms:3300,up:1}]);refreshUI();}}catch(e){}}
-if(typeof document!=='undefined'){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();}
-
-window.IQG={word:word,lesson:lesson,quiz:quiz,test:test,flow:flow,openPanel:openPanel,levelOf:levelOf,need:need,lvInfo:lvInfo,streakOf:streakOf,longestOf:longestOf,
- metrics:function(){return metrics(load());},state:function(){return JSON.parse(JSON.stringify(load()));},badges:BADGES,cats:CATS,REWARDS:REWARDS,seed:seed,
- _eval:function(){load();var r=evalBadges(false).map(function(b){return b.id;});save();return r;},
- _clock:function(f){NOW=f||function(){return new Date();};}};
 })();
 </script>
