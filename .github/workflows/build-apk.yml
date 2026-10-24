@@ -29,6 +29,7 @@ jobs:
       - name: Install and create Android project
         run: |
           npm install
+          npm install @capacitor/app@$(node -p "require('@capacitor/core/package.json').version.split('.')[0]")
           npx cap add android
           npx cap sync android
 
