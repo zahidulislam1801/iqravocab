@@ -35,6 +35,8 @@ jobs:
       - name: Apply IQRA Vocab name and logo
         run: |
           set -e
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq imagemagick
           RES=android/app/src/main/res
           NAME="IQRA Vocab"
           sed -i "s|<string name=\"app_name\">[^<]*</string>|<string name=\"app_name\">$NAME</string>|; s|<string name=\"title_activity_main\">[^<]*</string>|<string name=\"title_activity_main\">$NAME</string>|" $RES/values/strings.xml
