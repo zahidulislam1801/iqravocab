@@ -28305,4 +28305,25 @@ if(document.readyState==='complete')bootAsk();else window.addEventListener('load
 window.IQPUSH={supported:supported,permission:perm,allow:allow,setPref:setPref,prefs:prefs};
 })();
 </script>
+<script id="iq-native-back">
+/* Android app (Capacitor): the phone's Back button used to close the app straight away.
+   Now it behaves like the website: go back page by page, and on the home screen show the exit notice first.
+   (The website needs none of this: the browser's own Back already reaches the app's history logic.) */
+(function(){
+'use strict';
+var C=window.Capacitor;if(!C||!C.isNativePlatform||!C.isNativePlatform())return;
+var App=C.Plugins&&C.Plugins.App;if(!App||!App.addListener)return;
+function leave(){try{App.exitApp();}catch(e){}}
+var t=0;
+App.addListener('backButton',function(){
+  if(document.querySelector('.tm-exit')){leave();return;}            /* exit notice already showing: a second Back leaves */
+  var got=0,f=function(){got=1;};
+  window.addEventListener('popstate',f,{once:true});
+  try{history.back();}catch(e){}
+  clearTimeout(t);t=setTimeout(function(){window.removeEventListener('popstate',f);
+    if(!got){try{window.dispatchEvent(new PopStateEvent('popstate',{state:null}));}catch(e){}}},280);   /* no history entry left: run the app's own back logic anyway */
+});
+document.addEventListener('click',function(e){var b=e.target&&e.target.closest&&e.target.closest('.tm-exit .tm-act .btn:not(.primary)');if(b)setTimeout(leave,350);},true);   /* the "Exit app" button really closes the app */
+})();
+</script>
 <script id="iq-boot-done">/* show the home page only when its own look (fonts + ghost letter decoration) is fully ready */(function(){var D=document,R=D.documentElement,B=D.getElementById("iq-boot"),fin=0,t0=Date.now(),AR="\u0625\u0642\u0631\u0623";function out(){if(fin)return;fin=1;requestAnimationFrame(function(){R.classList.remove("iq-boot");var s=R.style;s.removeProperty("--iqb-bg");s.removeProperty("--iqb-ink");s.removeProperty("--iqb-ac");if(!B)return;B.classList.add("out");setTimeout(function(){if(B.parentNode)B.remove();},520);});}function frames(n,f){if(n<=0)return f();requestAnimationFrame(function(){frames(n-1,f);});}function poll(){var T=Date.now()-t0,deco=R.hasAttribute("data-iq35")||T>3200;if(deco&&T>=900)setTimeout(function(){frames(3,out);},380);else setTimeout(poll,60);}function deco(){var d=0,f=function(){if(d)return;d=1;poll();};try{Promise.all([D.fonts.load('700 120px "Noorehira"',AR),D.fonts.ready]).then(f,f);}catch(x){f();}setTimeout(f,1600);}function settle(){frames(2,function(){var g=0,f=function(){if(!g){g=1;deco();}};if(D.fonts&&D.fonts.ready)D.fonts.ready.then(f,f);setTimeout(f,500);});}function go(){var t1=Date.now();(function chk(){var L=D.querySelectorAll('link[rel=stylesheet][href*="fonts.googleapis.com"]'),ok=true,i;for(i=0;i<L.length;i++)if(!L[i].dataset.d)ok=false;if(ok||Date.now()-t1>1400)settle();else setTimeout(chk,50);})();}if(D.readyState==="loading")D.addEventListener("DOMContentLoaded",go);else go();setTimeout(out,7000);})();</script>
