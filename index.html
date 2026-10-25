@@ -4483,7 +4483,7 @@ function noticeModal(mode){
   function paintAcct(){
     acct.replaceChildren();
     N.who().then(function(em){
-      if(em){acct.append('Signed in to the cloud as '+em+'. Only the master Google account is allowed to send.');}
+      if(em){acct.append('Signed in to the cloud as '+em+'. Only the master Google account is allowed to send. ',H('button',{class:'adm-btn sm',type:'button',style:'margin-top:6px',onclick:function(){N.signOut().then(paintAcct).catch(function(){});}},'Sign out'));}
       else{acct.append('To send, sign in once with the master Google account (the same one named in the Firestore rules). ',H('button',{class:'adm-btn sm',type:'button',style:'margin-top:6px',onclick:function(){
         err.textContent='';N.signIn().then(paintAcct).catch(function(e){explain(e);});}},'Sign in with Google'));}
     }).catch(function(){acct.textContent='Could not reach the cloud service. Check your internet connection.';});
@@ -10373,7 +10373,7 @@ function connect(){
   uiMsg='';
   return loadFb().then(function(){
     var prov=new fb.auth.GoogleAuthProvider();prov.setCustomParameters({prompt:'select_account'});
-    return fb.auth.signInWithPopup(fb.a,prov);
+    return window.IQAUTH.signIn(fb.auth,fb.a);
   }).then(function(r){setUser(r.user);return sync({manual:true});})
   .catch(function(e){var x=explain(e);uiMsg=x[1];uiCls='err';setState(ON?state:'local',ON?msg:'');});
 }
@@ -10441,6 +10441,103 @@ document.addEventListener('visibilitychange',function(){
   if(document.visibilityState==='visible'&&ON&&uid()&&Date.now()-lastBg>60000){lastBg=Date.now();sync({bg:true});}
 });
 window.addEventListener('online',function(){if(ON&&uid()&&Date.now()-lastBg>15000){lastBg=Date.now();sync({bg:true});}});
+})();
+</script>
+<script id="iq-auth">
+/* ============================================================================================
+   IQRA sign-in bridge (window.IQAUTH): one Google sign-in for sync, notices and Users & access.
+   · normal browser ........ the usual Google pop-up
+   · installed Android app . Google refuses pop-ups inside an app's built-in browser, so the app opens the
+                             phone's real browser on the web copy of this app, you sign in there, and the
+                             app picks the sign-in up by itself (relay through Firestore: authlink/{code}).
+                             If the Capacitor "FirebaseAuthentication" plugin is built into the app, it is used instead.
+   ============================================================================================ */
+(function(){'use strict';
+if(window.IQAUTH)return;
+var CFG={apiKey:"AIzaSyDNgKIh4CYkbCMbbvsyhb0aCPG4fsSAixs",authDomain:"iqravocab-c3e63.firebaseapp.com",projectId:"iqravocab-c3e63",storageBucket:"iqravocab-c3e63.firebasestorage.app",messagingSenderId:"1058920337301",appId:"1:1058920337301:web:b60a671fedd24fa041309c"};
+var BASE='https://www.gstatic.com/firebasejs/10.12.2/';
+/* the address of the hosted web copy of this app (GitHub Pages), e.g. https://yourname.github.io/yourrepo/ */
+var WEB_URL='';
+var TTL=4*60*1000;
+function native(){try{return !!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());}catch(e){return false;}}
+function embedded(){return native()||/; wv\)|\bwv\b|FBAN|FBAV|Instagram/i.test(navigator.userAgent||'');}
+function plug(n){try{return(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins[n])||null;}catch(e){return null;}}
+function err(c,m){var e=new Error(m||c);e.code=c;return e;}
+function webUrl(){return WEB_URL||(native()?'':location.origin+location.pathname);}
+function rnd(){var a=new Uint8Array(16);(window.crypto||window.msCrypto).getRandomValues(a);return Array.prototype.map.call(a,function(x){return('0'+x.toString(16)).slice(-2);}).join('');}
+function el(tag,st,txt){var e=document.createElement(tag);if(st)e.setAttribute('style',st);if(txt!=null)e.textContent=txt;return e;}
+var BTN='font:600 15px system-ui,sans-serif;padding:11px 18px;border-radius:12px;border:1px solid #c9d0e6;background:#fff;color:#16204a;cursor:pointer;margin:6px 6px 0 0';
+var BTNP='font:700 15px system-ui,sans-serif;padding:11px 18px;border-radius:12px;border:0;background:#2338c9;color:#fff;cursor:pointer;margin:6px 6px 0 0';
+function sheet(title,text){
+  var ov=el('div','position:fixed;inset:0;z-index:2147483647;background:rgba(10,16,40,.62);display:flex;align-items:center;justify-content:center;padding:18px;font-family:system-ui,sans-serif');
+  var c=el('div','background:#fff;color:#16204a;border-radius:18px;max-width:420px;width:100%;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.35)');
+  var h=el('div','font:800 19px system-ui,sans-serif;margin-bottom:8px',title),p=el('div','font:500 15px/1.5 system-ui,sans-serif;color:#33406b',text),row=el('div','margin-top:14px');
+  c.append(h,p,row);ov.append(c);document.body.append(ov);
+  return{row:row,text:function(t){p.textContent=t;},title:function(t){h.textContent=t;},close:function(){try{ov.remove();}catch(e){}},btn:function(label,fn,primary){var b=el('button',primary?BTNP:BTN,label);b.type='button';b.addEventListener('click',fn);row.append(b);return b;}};}
+
+/* ---- installed app: sign in with the phone's own browser, then pick the sign-in up here ---- */
+function viaPlugin(au,auth,P){
+  return P.signInWithGoogle({skipNativeAuth:true}).then(function(r){
+    var c=(r&&r.credential)||{};if(!c.idToken&&!c.accessToken)throw err('iq/no-token','Google did not return a sign-in token.');
+    return au.signInWithCredential(auth,au.GoogleAuthProvider.credential(c.idToken||null,c.accessToken||null));});}
+function relay(au,auth){
+  var base=webUrl();
+  if(!base){return new Promise(function(res,rej){var s=sheet('One setting is missing','This app needs the address of its web copy to sign in with Google from inside the app. Please ask the app owner to set it (WEB_URL in the iq-auth script).');s.btn('OK',function(){s.close();rej(err('auth/popup-closed-by-user'));},true);});}
+  var code=rnd(),url=base+(base.indexOf('?')<0?'?':'&')+'iqlink='+code;
+  return import(BASE+'firebase-firestore.js').then(function(fs){
+    var ref=fs.doc(fs.getFirestore(auth.app),'authlink',code);
+    return new Promise(function(res,rej){
+      var done=false,tm=0,t0=Date.now();
+      var ui=sheet('Sign in with Google','Your browser is opening. Sign in there, then come back to this app. It will continue by itself.');
+      function end(fn,v){if(done)return;done=true;clearTimeout(tm);ui.close();fn(v);}
+      function open(){var B=plug('Browser');try{if(B&&B.open){B.open({url:url});return;}}catch(e){}try{window.open(url,'_blank');}catch(e){}}
+      ui.btn('Open browser again',open,true);
+      ui.btn('Cancel',function(){end(rej,err('auth/popup-closed-by-user'));});
+      open();
+      (function poll(){
+        if(done)return;
+        if(Date.now()-t0>TTL){end(rej,err('auth/popup-closed-by-user','Sign-in timed out.'));return;}
+        fs.getDoc(ref).then(function(s){
+          if(done)return;
+          var d=s.exists()?(s.data()||{}):null;
+          if(d&&d.idToken){
+            fs.deleteDoc(ref).catch(function(){});
+            var B=plug('Browser');try{if(B&&B.close)B.close();}catch(e){}
+            au.signInWithCredential(auth,au.GoogleAuthProvider.credential(d.idToken)).then(function(r){end(res,r);},function(e){end(rej,e);});
+            return;}
+          tm=setTimeout(poll,2000);
+        }).catch(function(){tm=setTimeout(poll,3000);});
+      })();
+    });});}
+
+function signIn(au,auth){
+  var P=plug('FirebaseAuthentication');
+  if(native()&&P&&P.signInWithGoogle)return viaPlugin(au,auth,P);
+  if(embedded())return relay(au,auth);
+  var p=new au.GoogleAuthProvider();p.setCustomParameters({prompt:'select_account'});
+  return au.signInWithPopup(auth,p);}
+function signOut(au,auth){
+  var P=plug('FirebaseAuthentication');try{if(native()&&P&&P.signOut)P.signOut().catch(function(){});}catch(e){}
+  return au.signOut(auth);}
+
+/* ---- the web copy, opened by the app with ?iqlink=code: sign in here and hand the sign-in back ---- */
+function linkMode(){
+  var m=/[?&]iqlink=([0-9a-f]{16,64})(?:&|$)/.exec(location.search);if(!m||native())return;
+  var code=m[1],s=sheet('Link your app','Tap the button, choose your Google account, then return to the IQRA VOCAB app.');
+  s.btn('Sign in with Google',function(){
+    s.text('Signing in\u2026');
+    Promise.all([import(BASE+'firebase-app.js'),import(BASE+'firebase-auth.js'),import(BASE+'firebase-firestore.js')]).then(function(a){
+      var app=a[0].getApps().length?a[0].getApp():a[0].initializeApp(CFG),au=a[1],fs=a[2],auth=au.getAuth(app),p=new au.GoogleAuthProvider();
+      p.setCustomParameters({prompt:'select_account'});
+      return au.signInWithPopup(auth,p).then(function(r){
+        var c=au.GoogleAuthProvider.credentialFromResult(r);if(!c||!c.idToken)throw err('iq/no-token');
+        return fs.setDoc(fs.doc(fs.getFirestore(app),'authlink',code),{idToken:c.idToken,t:Date.now()});});
+    }).then(function(){s.title('Done');s.text('You are signed in. Go back to the IQRA VOCAB app now; it continues by itself.');s.row.replaceChildren();})
+    .catch(function(e){s.title('Could not sign in');s.text((e&&e.code==='permission-denied')?'The cloud rules do not allow this yet. The app owner must publish the authlink rule.':'Please try again ('+((e&&e.code)||'error')+').');});
+  },true);
+}
+window.IQAUTH={signIn:signIn,signOut:signOut,native:native,embedded:embedded};
+if(document.body)linkMode();else document.addEventListener('DOMContentLoaded',linkMode);
 })();
 </script>
 <script id="iq-uq">
@@ -27847,7 +27944,7 @@ function who(){
   });});
 }
 function signIn(){
-  return load().then(function(f){return f.au.signInWithPopup(f.auth,new f.au.GoogleAuthProvider());}).then(function(r){return r.user&&r.user.email||null;});
+  return load().then(function(f){return window.IQAUTH.signIn(f.au,f.auth);}).then(function(r){return r.user&&r.user.email||null;});
 }
 function send(o){
   return load().then(function(f){
@@ -27863,7 +27960,7 @@ function clear(){
     return f.fs.setDoc(ref(f),{on:false,id:String(Date.now()),t:Date.now(),by:f.auth.currentUser.email||''});
   });
 }
-window.IQNOTICE={who:who,signIn:signIn,send:send,clear:clear,current:function(){return CUR;},preview:function(n){show(n,true);},stopPreview:function(){show(CUR);},rules:RULES};
+window.IQNOTICE={who:who,signIn:signIn,signOut:function(){return load().then(function(f){return window.IQAUTH.signOut(f.au,f.auth);});},send:send,clear:clear,current:function(){return CUR;},preview:function(n){show(n,true);},stopPreview:function(){show(CUR);},rules:RULES};
 })();
 </script>
 <style id="iq-inbox-css">
@@ -28099,7 +28196,7 @@ function adminModal(X){X.mode==='article'?articleModal(X):noticeModal(X);return 
 function tools(X,S,repaint){var H=X.H;
   function seg(opts,get,set){var w=H('div',{class:'iqi-seg'});function p(){w.replaceChildren.apply(w,opts.map(function(o){return H('button',{type:'button',class:get()===o[0]?'on':'',onclick:function(){set(o[0]);p();repaint();}},o[1]);}));}p();return w;}
   function sws(){var w=H('div',{class:'iqi-sws'}),pk=H('input',{type:'color',value:S.color,'aria-label':'Custom colour',oninput:function(){S.color=pk.value;p();repaint();}});function p(){w.replaceChildren.apply(w,COLS.map(function(c){return H('button',{type:'button','aria-label':c,class:S.color===c?'on':'',style:'background:'+c,onclick:function(){S.color=c;pk.value=c;p();repaint();}});}).concat([pk]));}p();return w;}
-  function acct(err){var a=H('div',{class:'adm-note',role:'status'},'Checking your cloud sign-in\u2026');function p(){a.replaceChildren();IQNOTICE.who().then(function(em){if(em)a.append('Signed in to the cloud as '+em+'. Only the master Google account can send.');else a.append('To send, sign in once with the master Google account. ',H('button',{class:'adm-btn sm',type:'button',style:'margin-top:6px',onclick:function(){err.textContent='';IQNOTICE.signIn().then(p).catch(function(e){explain(X,err,e);});}},'Sign in with Google'));}).catch(function(){a.textContent='Could not reach the cloud service. Check your internet connection.';});}p();return a;}
+  function acct(err){var a=H('div',{class:'adm-note',role:'status'},'Checking your cloud sign-in\u2026');function p(){a.replaceChildren();IQNOTICE.who().then(function(em){if(em)a.append('Signed in to the cloud as '+em+'. Only the master Google account can send. ',H('button',{class:'adm-btn sm',type:'button',style:'margin-top:6px',onclick:function(){IQNOTICE.signOut().then(p).catch(function(){});}},'Sign out'));else a.append('To send, sign in once with the master Google account. ',H('button',{class:'adm-btn sm',type:'button',style:'margin-top:6px',onclick:function(){err.textContent='';IQNOTICE.signIn().then(p).catch(function(e){explain(X,err,e);});}},'Sign in with Google'));}).catch(function(){a.textContent='Could not reach the cloud service. Check your internet connection.';});}p();return a;}
   return{seg:seg,sws:sws,acct:acct};}
 function explain(X,err,e){var c=(e&&e.code)||'';err.replaceChildren();
   if(c==='not-signed-in'){err.textContent='Sign in with the master Google account first.';return;}
@@ -28788,7 +28885,8 @@ function load(){
   }).catch(function(e){fbP=null;throw e;});
   return fbP;}
 function who(){return load().then(function(f){return new Promise(function(res){var un=f.au.onAuthStateChanged(f.auth,function(u){try{un();}catch(e){}res(u&&u.email?u:null);});});});}
-function signIn(){return load().then(function(f){var p=new f.au.GoogleAuthProvider();p.setCustomParameters({prompt:'select_account'});return f.au.signInWithPopup(f.auth,p);}).then(function(r){return r.user;});}
+function signOut(){return load().then(function(f){return window.IQAUTH.signOut(f.au,f.auth);});}
+function signIn(){return load().then(function(f){var p=new f.au.GoogleAuthProvider();p.setCustomParameters({prompt:'select_account'});return window.IQAUTH.signIn(f.au,f.auth);}).then(function(r){return r.user;});}
 
 /* ============================================================================================
    PART 1 · every user: register in the list, receive grants
@@ -29011,7 +29109,7 @@ function listView(P){
     mk('div',{class:'adm-note'},'People appear here after they sign in with Google inside the app. Tap a person to unlock sets for them, send them a message or leave a private note. Changes reach their app within seconds.'),
     acct,mk('div',{class:'iqua-tools'},q,sort,ref),cnt,list,mk('div',{class:'iqua-add'},addIn,addB),err);
   function status(){return who().then(function(u){acct.replaceChildren();
-    if(u){acct.append('Signed in to the cloud as '+u.email+'.');return u;}
+    if(u){acct.append('Signed in to the cloud as '+u.email+'. ',mk('button',{class:'adm-btn sm',type:'button',onclick:function(){err.textContent='';signOut().then(function(){go();}).catch(function(){});}},'Sign out'));return u;}
     acct.append('Sign in once with the master Google account to see the list. ',mk('button',{class:'adm-btn sm',type:'button',style:'margin-top:6px',onclick:function(){err.textContent='';signIn().then(function(){go();}).catch(function(e){explain(err,e);});}},'Sign in with Google'));return null;
   }).catch(function(){acct.textContent='Could not reach the cloud service. Check your internet connection.';return null;});}
   function paint(){
