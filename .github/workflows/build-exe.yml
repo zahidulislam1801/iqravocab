@@ -29,4 +29,4 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: IQRA Vocab Windows
-          path: desktop/dist/IQRA Vocab.exe
+          path: desktop/dist/IQRA-Vocab-Setup.exe
