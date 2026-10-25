@@ -10532,7 +10532,7 @@ function linkMode(){
       return au.signInWithPopup(auth,p).then(function(r){
         var c=au.GoogleAuthProvider.credentialFromResult(r);if(!c||!c.idToken)throw err('iq/no-token');
         return fs.setDoc(fs.doc(fs.getFirestore(app),'authlink',code),{idToken:c.idToken,t:Date.now()});});
-    }).then(function(){s.title('Done');s.text('You are signed in. Go back to the IQRA VOCAB app now; it continues by itself.');s.row.replaceChildren();})
+    }).then(function(){s.title('Done');s.text('You are signed in. Go back to the IQRA VOCAB app now; it continues by itself.');s.row.replaceChildren();if(/Android/i.test(navigator.userAgent||'')){var bk='intent://signin#Intent;scheme=iqravocab;end';s.btn('Open IQRA VOCAB app',function(){location.href=bk;},true);try{location.href=bk;}catch(e){}}})
     .catch(function(e){s.title('Could not sign in');s.text((e&&e.code==='permission-denied')?'The cloud rules do not allow this yet. The app owner must publish the authlink rule.':'Please try again ('+((e&&e.code)||'error')+').');});
   },true);
 }
