@@ -1,0 +1,32 @@
+name: Build Windows EXE
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Copy web files and logo
+        run: |
+          Copy-Item index.html, manifest.webmanifest, logo.svg, privacy.html, terms.html desktop\
+          Copy-Item icon-512.png desktop\icon.png
+
+      - name: Build
+        working-directory: desktop
+        run: |
+          npm install
+          npm run dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: IQRA Vocab Windows
+          path: desktop/dist/IQRA Vocab.exe
