@@ -4242,7 +4242,7 @@ function adminModal(){
   }
   function drawAdmins(){
     host.append(H('div',{class:'adm-sec'},'Give someone else admin access'));
-    var e=H('input',{type:'email',placeholder:'Their email',autocapitalize:'off'}),p=H('input',{type:'text',placeholder:'A password for them',autocomplete:'off'});
+    var e=H('input',{type:'email',placeholder:'Their email',autocapitalize:'off'}),p=H('input',{type:'text',placeholder:'A password for them',autocomplete:'on'});
     var ck={};[['text','Edit text'],['progress','Change progress'],['add','Add new content'],['unlock','Everything unlocked'],['cert','Certificates'],['design','Look & rules']].forEach(function(x){ck[x[0]]=H('input',{type:'checkbox',checked:true});});
     host.append(H('div',{class:'adm-g2'},field('Email',e),field('Password',p)),
       H('div',{class:'adm-f'},'Allowed to:',H('div',{class:'adm-row'},[['text','Edit text'],['progress','Change progress'],['add','Add new content'],['unlock','Everything unlocked'],['cert','Certificates'],['design','Look & rules']].map(function(x){return H('label',{class:'adm-ck'},ck[x[0]],x[1]);}))),
@@ -7713,7 +7713,7 @@ const TG=(()=>{
   }
   function edit(fi,w){
     const body=h('div',{class:'tgbody'});
-    const inp=h('input',{type:'text',class:'tgin',maxlength:'30',placeholder:'New tag, e.g. GRE, SAT, BCS, Daily',autocomplete:'off',enterkeyhint:'done','aria-label':'New tag'});
+    const inp=h('input',{type:'text',class:'tgin',maxlength:'30',placeholder:'New tag, e.g. GRE, SAT, BCS, Daily',autocomplete:'on',enterkeyhint:'done','aria-label':'New tag'});
     const add=()=>{const t=norm(inp.value);if(!t)return;const cur=get(fi,w).slice();const ex=all().find(x=>x.toLowerCase()===t.toLowerCase())||t;if(!cur.some(x=>x.toLowerCase()===ex.toLowerCase()))cur.push(ex);put(fi,w,cur);inp.value='';draw();inp.focus();};
     inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();add();}});
     const draw=()=>{
@@ -8534,7 +8534,7 @@ function openWord(fi,i){
   go('study');
 }
 function initSearch(){
-  const input=h('input',{type:'search',class:'sinput',placeholder:'Search a word, English or \u09ac\u09be\u0982\u09b2\u09be meaning',autocomplete:'off',autocapitalize:'off',autocorrect:'off',spellcheck:'false',enterkeyhint:'search',role:'combobox','aria-label':`Search all ${ALLN()} words in all three folders by spelling, English meaning or Bangla meaning`,'aria-expanded':'false','aria-controls':'sresults','aria-autocomplete':'list'});
+  const input=h('input',{type:'search',class:'sinput',placeholder:'Search a word, English or \u09ac\u09be\u0982\u09b2\u09be meaning',autocomplete:'on',autocapitalize:'off',autocorrect:'off',spellcheck:'false',enterkeyhint:'search',role:'combobox','aria-label':`Search all ${ALLN()} words in all three folders by spelling, English meaning or Bangla meaning`,'aria-expanded':'false','aria-controls':'sresults','aria-autocomplete':'list'});
   const sico=h('button',{class:'sico','aria-label':'Search a word with English or Bangla meaning',type:'button',onclick:()=>{if(!SB.open)openSearch();input.focus();}},icon('search'));
   const clear=h('button',{class:'sclear','aria-label':'Clear search',type:'button',onclick:()=>{if(input.value){input.value='';input.focus();updateSearch();}else closeSearch(true);}},icon('x'));
   const wrap=h('div',{class:'sbox',role:'search'},sico,input,clear,h('kbd',{class:'skbd','aria-hidden':'true'},'/'));
@@ -8858,7 +8858,7 @@ function bSheet(R,L,pick,i,onPick){
         h('span',{class:'lt'},l),h('span',{class:'tx',html:bGl(R.dx[l])}),u&&pick[i]!==l?h('span',{class:'used',title:'Already chosen for '+u},'used: '+u):(pick[i]===l?icon('check'):null));
     }):[h('div',{class:'bsh-e'},'No meaning matches “'+q+'”.')]));
   };
-  const inp=h('input',{type:'search',placeholder:'Filter the meanings…','aria-label':'Filter the meanings',autocomplete:'off',spellcheck:'false',oninput:e=>draw(e.target.value)});
+  const inp=h('input',{type:'search',placeholder:'Filter the meanings…','aria-label':'Filter the meanings',autocomplete:'on',spellcheck:'false',oninput:e=>draw(e.target.value)});
   const card=h('div',{class:'bsheet',role:'dialog','aria-modal':'true','aria-label':'Choose a meaning'},
     h('div',{class:'bsh-h'},h('div',null,h('span',{class:'ey'},`Item ${i+1} of ${R.items.length} · choose the meaning`),h('h3',{html:bGl(R.items[i])})),
       h('button',{class:'wpx','aria-label':'Close',onclick:bCloseSheet},icon('x'))),
@@ -10128,7 +10128,7 @@ function bypassNow(P,tc){
 /* the Master Admin sets the score percentage the certificate will show, then every question is bypassed */
 function bypassAsk(){
  if(!isMA()||!EX||EX.done)return;
- const tc=Date.now(),f=floatCard('iqc-ms'),inp=E('input',{type:'number',inputmode:'decimal',min:'0',max:'100',step:'0.1',value:'100',id:'iqbp',autocomplete:'off'}),
+ const tc=Date.now(),f=floatCard('iqc-ms'),inp=E('input',{type:'number',inputmode:'decimal',min:'0',max:'100',step:'0.1',value:'100',id:'iqbp',autocomplete:'on'}),
   msg=E('div',{class:'iqc-sm',style:'color:#b02828;min-height:1em',role:'alert'}),
   go=()=>{const v=parseFloat(String(inp.value).replace(',','.'));if(!(v>=0&&v<=100)){msg.textContent='Enter a percentage from 0 to 100.';return}f.close();if(EX&&!EX.done)bypassNow(Math.round(v*10)/10,tc)};
  f.body.replaceChildren(cdHead('crown','Score for the certificate',f),
@@ -22005,7 +22005,7 @@ function strength(p){
   let s=1;if(p.length>=6&&c>=2)s=2;if(p.length>=8&&c>=3)s=3;if(p.length>=10&&c>=3||p.length>=8&&c===4)s=4;return s;
 }
 function pwField(label,note,ac,meter){
-  const inp=el('input',{type:'password',autocomplete:ac||'off',maxlength:MAX+8,spellcheck:'false',autocapitalize:'off','aria-label':label,placeholder:'••••'});
+  const inp=el('input',{type:'password',autocomplete:ac||'on',maxlength:MAX+8,spellcheck:'false',autocapitalize:'off','aria-label':label,placeholder:'••••'});
   const eye=el('button',{class:'iqpin-eye',type:'button',onclick:()=>{const s=inp.type==='password';inp.type=s?'text':'password';eye.textContent=s?'Hide':'Show';}},'Show');
   let mt=null,ml=null;
   if(meter){ml=el('b',null,'');mt=el('div',{class:'iqpin-meter'},el('i'),el('i'),el('i'),el('i'),ml);
@@ -22468,7 +22468,7 @@ function build(card,row,pill,word){
  S.root.firstChild.style.cssText='display:flex;flex-direction:column;gap:3px;min-width:0';
  S.list=el('ul',{class:'bx-list'});
  S.empty=el('div',{class:'bx-empty',hidden:true},'No other forms for this word yet \u2014 tap + to add one.');
- S.inp=el('input',{class:'bx-inp',type:'text',maxlength:'40',placeholder:'New form, e.g. abstemiously',autocomplete:'off',autocapitalize:'none',spellcheck:'false','aria-label':'New form of '+word});
+ S.inp=el('input',{class:'bx-inp',type:'text',maxlength:'40',placeholder:'New form, e.g. abstemiously',autocomplete:'on',autocapitalize:'none',spellcheck:'false','aria-label':'New form of '+word});
  S.pos=null;S.msg=el('div',{class:'bx-msg',role:'status'});
  var chips=B.POS.map(function(p){var c=el('button',{type:'button',class:'bx-chip',role:'radio','aria-checked':'false',onclick:function(){S.pos=p;chips.forEach(function(x){x.setAttribute('aria-checked',x===c?'true':'false');});S.msg.textContent='';}},p);return c;});
  function openForm(on){S.fw.classList.toggle('on',on);S.fw.inert=!on;S.add.setAttribute('aria-expanded',on?'true':'false');S.add.setAttribute('aria-label',on?'Cancel adding a form':'Add a new form');
@@ -29559,5 +29559,215 @@ window.IQWELCOME={
   nick:smartNick,state:st
 };
 if(document.readyState==='complete')schedule(3000);else window.addEventListener('load',function(){schedule(3000);});
+})();
+</script>
+<style id="iq-pfmsg-css">
+/* ============================================================================================
+   PROFILE MESSAGE SCREEN (additive block: nothing above this line is edited)
+   · in the side-menu profile card, the single line "A fresh morning is a great time for new words."
+     becomes a small living screen that re-uses the homepage review bar's own classes and animation
+     (.rvpm .rxfx / .rxa1 / .rxa2 / .rxsh, .rxrow, .rxk, .rxm, .rxln, .rxt, .rxw, .rxc, .rxdots, .rxprog):
+     aurora, sheen, kicker that tightens in, token-by-token entrance, word underline, progress hairline.
+     No book icons this time: it only shows words, app features and encouragement that uses the learner's name.
+   · the profile card is made shorter and its three stat tiles smaller
+   ============================================================================================ */
+.pfm-scr{position:relative;overflow:hidden;display:block;box-sizing:border-box;width:100%;height:55px;margin:8px 0 0;border-radius:13px;background:color-mix(in srgb,var(--pf-a,#d9a441) 9%,var(--surface));border:1px solid color-mix(in srgb,var(--pf-a,#d9a441) 20%,transparent);--rvh:36;--h:36;transition:--rvh .95s cubic-bezier(.3,.7,.2,1);cursor:default;-webkit-tap-highlight-color:transparent}
+.pfm-scr .rxrow{padding:4px 10px 5px 12px;gap:8px}
+.pfm-scr .rxcol{gap:2px}
+.pfm-scr .rxk{height:11px;font-size:9px;line-height:11px}
+.pfm-scr .rxside{min-width:0;gap:0}
+.pfm-scr .rxdots{height:5px}
+.pfm-scr .rxdots:empty{display:none}
+.pfm-scr .rxprog{height:2px}
+.pfm-scr .rxfx::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;box-shadow:inset 0 0 0 1px hsl(var(--rvh) 80% 62%/.14),inset 0 -22px 34px -28px hsl(var(--rvh) 86% 58%/.22)}
+.pfm-scr .rxln.sr{text-shadow:0 0 16px hsl(var(--rvh) 90% 60%/.3)}
+.pf-card .pf-ins[data-pfm]{display:none}
+@media(prefers-reduced-motion:reduce){.pfm-scr{transition:none}}
+
+/* ---- a shorter profile card ---- */
+.pf-card.pf-v2{padding:10px 12px 10px;border-radius:20px}
+.pf-card.pf-v2 .pf-ghost{font-size:104px;bottom:-24px}
+.pf-card.pf-v2 .pf-row{gap:10px}
+.pf-card.pf-v2 .pf-ringwrap{width:58px;height:58px}
+.pf-card.pf-v2 .pf-ringwrap .pf-av{inset:6px;font-size:1.1rem;box-shadow:0 0 0 2px var(--surface)}
+.pf-card.pf-v2 .pf-lv{min-width:21px;height:21px;padding:0 5px;font-size:.66rem;right:-3px;bottom:-3px;box-shadow:0 0 0 2px var(--surface),0 4px 8px -3px rgba(0,0,0,.5)}
+.pf-card.pf-v2 .pf-eye{font-size:.55rem}
+.pf-card.pf-v2 .pf-name{margin-top:3px;font-size:1.14rem;line-height:1.1}
+.pf-card.pf-v2 .pf-inst{margin-top:2px;font-size:.7rem;line-height:1.2}
+.pf-card.pf-v2 .pf-id{padding-right:22px}
+.pf-card.pf-v2 .pf-edit{top:7px;right:7px;width:28px;height:28px}
+.pf-card.pf-v2 .pf-edit svg{width:14px;height:14px}
+.pf-card.pf-v2 .pf-chips{gap:5px;margin-top:7px}
+.pf-card.pf-v2 .pf-chip{padding:3px 8px 3px 6px;font-size:.62rem;gap:4px}
+.pf-card.pf-v2 .pf-chip svg{width:11px;height:11px}
+.pf-card.pf-v2 .pf-xp{margin-top:8px}
+.pf-card.pf-v2 .pf-bar{height:6px}
+.pf-card.pf-v2 .pf-xpt{margin-top:4px;font-size:.66rem}
+
+/* ---- the three tiles under the card: smaller ---- */
+.pf-card.pf-v2 .pf-stats{gap:5px;margin-top:7px}
+.pf-card.pf-v2 .pf-st{padding:4px 4px 4px;border-radius:10px}
+.pf-card.pf-v2 .pf-st b{font-size:.86rem}
+.pf-card.pf-v2 .pf-st small{margin-top:2px;font-size:.48rem;letter-spacing:.1em;white-space:nowrap}
+</style>
+<script id="iq-pfmsg">
+/* ============================================================================================
+   PROFILE MESSAGE SCREEN (window.IQPFM) · the review bar's engine (token entrance, kicker, sheen,
+   hue drift, progress hairline, dots), pointed at short messages for the profile card.
+   It writes nothing to the app's data and never touches the card's own code: each time the card is
+   drawn it hides the one-line tip and puts the animated screen in the same place.
+   ============================================================================================ */
+(function(){'use strict';
+if(window.IQPFM)return;
+var RED=function(){try{return matchMedia('(prefers-reduced-motion:reduce)').matches;}catch(e){return false;}};
+var sleep=function(ms){return new Promise(function(r){setTimeout(r,ms);});};
+var rnd=Math.random,pickT=function(a){return a[Math.floor(rnd()*a.length)];};
+var h=function(tag,a){var e=document.createElement(tag);for(var k in(a||{})){var v=a[k];if(v==null||v===false)continue;if(k==='class')e.className=v;else e.setAttribute(k,v===true?'':v);}
+  for(var i=2;i<arguments.length;i++){var c=arguments[i];if(c==null||c===false)continue;e.append(c.nodeType?c:document.createTextNode(c));}
+  return e;};
+var clip=function(t,n){t=String(t||'');return t.length>n?t.slice(0,n-1)+'…':t;};
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(rnd()*(i+1)),t=a[i];a[i]=a[j];a[j]=t;}return a;}
+
+/* ---------- the review bar's text pieces ---------- */
+function toks(parts){
+ var f=document.createDocumentFragment(),i=0;
+ var mk=function(cls,txt){var e=h('span',{class:cls},txt);e.style.setProperty('--i',i++);return e;};
+ parts.forEach(function(p,pi){
+  var nx;if(p==null||p==='')return;
+  if(typeof p==='string'){p.split(/(\s+)/).forEach(function(s){if(!s)return;if(/^\s+$/.test(s))f.append(' ');else f.append(mk('rxt',s));});}
+  else if(p.w!=null){var wd=h('span',{class:'rxw'}),L=Array.from(p.w);wd.style.setProperty('--n',L.length);var q1=mk('rxq','❝');f.append(q1);L.forEach(function(ch,j){var c=h('span',{class:'rxc'},ch===' '?' ':ch);c.style.setProperty('--j',j);wd.append(c);});f.append(wd);i+=2;var q2=mk('rxq','❞');f.append(q2);}
+  else if(p.em!=null){String(p.em).split(/(\s+)/).forEach(function(s){if(!s)return;if(/^\s+$/.test(s))f.append(' ');else f.append(mk('rxt rxem',s));});}
+  else if(p.bn!=null){String(p.bn).split(/(\s+)/).forEach(function(s){if(!s)return;if(/^\s+$/.test(s))f.append(' ');else f.append(mk('rxt rxbnw',s));});}
+  else if(p.pr!=null){f.append(mk('rxt rxpr',p.pr));}
+  nx=parts[pi+1];if(nx!=null&&nx!==''&&!(typeof nx==='string'&&/^[\s.,;:!?)’”]/.test(nx))&&!(typeof p==='string'&&/\s$/.test(p)))f.append(' ');});
+ return f;}
+function fit(line,main,mx){var f=mx;line.style.setProperty('--fs',f+'px');var lim=main.clientHeight+1,g=0;while(f>10&&line.offsetHeight>lim&&g++<40){f-=.5;line.style.setProperty('--fs',f+'px');}}
+
+/* ---------- what the card already knows about the learner (read from the card itself) ---------- */
+function who(card){
+ var nm=((card.querySelector('.pf-name')||{}).textContent||'').trim(),parts=nm.split(/\s+/).filter(Boolean),f=parts[0]||'';
+ if(/^(md\.?|mohammad|mohammed|muhammad|mr\.?|mrs\.?|ms\.?|dr\.?)$/i.test(f)&&parts[1])f=parts[1];
+ var st=Array.from(card.querySelectorAll('.pf-st b')).map(function(b){return parseInt(String(b.textContent).replace(/[^\d]/g,''),10)||0;});
+ var into=parseInt(((card.querySelector('.pf-xpt b')||{}).textContent||'0').replace(/[^\d]/g,''),10)||0;
+ var ins=card.querySelector('.pf-ins');
+ return{n:f,lv:st[0]||1,xp:st[1]||0,streak:st[2]||0,into:into,left:250-into,insight:ins?(ins.textContent||'').trim():'',unsynced:!!card.querySelector('.pf-chip.warn')};}
+
+/* ---------- scenes: kicker + one to three beats, all with the learner's name ---------- */
+function bt(cls,parts,x){return Object.assign({cls:cls,parts:parts},x||{});}
+function sc(k,hue,beats,x){return Object.assign({k:k,hue:hue,beats:beats},x||{});}
+function part(){var hr=new Date().getHours();return hr<5?'night':hr<12?'morning':hr<17?'afternoon':hr<21?'evening':'night';}
+function nmC(c){return c.n?', '+c.n:'';}
+function motivation(c){
+ var n=c.n,L=[];
+ L.push(sc('you can do this',36,[bt('',['Believe it'+nmC(c)+'.',{em:'One word at a time.'}])]));
+ L.push(sc('small steps',28,[bt('',['Five minutes a day beats five hours once'+nmC(c)+'.'])]));
+ L.push(sc('keep going',44,[bt('',['Every word you learn is yours for life'+nmC(c)+'.'])]));
+ L.push(sc('proud of you',340,[bt('',['Look how far you have come'+nmC(c)+'. Level '+c.lv+' already!'])]));
+ L.push(sc('your future self',262,[bt('',['Your future self will thank you'+nmC(c)+'.'])]));
+ if(c.streak>=2)L.push(sc('streak',14,[bt('',[{em:c.streak+' days in a row'},nmC(c)?c.n+'!':'!']),bt('',['Do not break the chain. One word keeps it alive.'])]));
+ else L.push(sc('start a streak',14,[bt('',['Start a streak today'+nmC(c)+'.']),bt('',['Learning just one word counts.'])]));
+ if(c.left>0&&c.left<=120)L.push(sc('next level',160,[bt('',[{em:c.left+' XP'},'to Level '+(c.lv+1)+'. You are close'+nmC(c)+'!'])]));
+ else L.push(sc('next level',160,[bt('',['Level '+(c.lv+1)+' is waiting for you'+nmC(c)+'.'])]));
+ var p=part();
+ L.push(p==='morning'?sc('good morning',44,[bt('',['A fresh mind learns fast'+nmC(c)+'. Begin with one word.'])])
+  :p==='afternoon'?sc('good afternoon',30,[bt('',['A short break, a few new words'+nmC(c)+'. Perfect.'])])
+  :p==='evening'?sc('good evening',270,[bt('',['A quick review tonight helps it stick'+nmC(c)+'.'])])
+  :sc('good night',250,[bt('',['One last word before sleep'+nmC(c)+'? Memory loves it.'])]));
+ return L;}
+function tricks(c){
+ var K='memory trick',T='study technique',L=[
+  sc(K,262,[bt('',['Say each new word in your own sentence'+nmC(c)+'. You remember what you use.'])]),
+  sc(K,262,[bt('',['Picture the word as a funny scene. Strange images are easy to recall.'])]),
+  sc(K,262,[bt('',['Link a word to a similar-sounding \u09ac\u09be\u0982\u09b2\u09be word, then imagine them together.'])]),
+  sc(K,262,[bt('',['Learn the ',{em:'root'},'once and you unlock a whole family of words.'])]),
+  sc(K,262,[bt('',['Group words by theme: feelings, people, places. Related words hold each other up.'])]),
+  sc(K,262,[bt('',['Say the word aloud three times. Your ears and mouth help your memory.'])]),
+  sc(T,200,[bt('',[{em:'Spaced review'}]),bt('',['See a word after 1 day, 3 days, then a week. Spacing beats cramming.'])]),
+  sc(T,200,[bt('',[{em:'Active recall'}]),bt('',['Cover the meaning and try to remember it first. The effort builds memory.'])]),
+  sc(T,200,[bt('',[{em:'Small chunks'}]),bt('',['Learn 5 to 7 words at a time. Small groups stick better than long lists.'])]),
+  sc(T,200,[bt('',['Teach a word to a friend'+nmC(c)+'. Explaining it locks it in.'])]),
+  sc(T,200,[bt('',['Review before sleep. Your brain sorts new words overnight.'])]),
+  sc(T,200,[bt('',['Mistakes are part of learning. Review the ones you missed and they become strengths.'])])];
+ return L;}
+function greetings(c){
+ var p=part(),g=p==='morning'?'Good morning':p==='afternoon'?'Good afternoon':p==='evening'?'Good evening':'Good night';
+ return[sc('hello',44,[bt('',[g+(c.n?', ':'.')].concat(c.n?[{em:c.n+'.'}]:[]),{}),bt('',['Great to see you again.'])]),
+  sc('welcome back',36,[bt('',['Welcome back'+nmC(c)+'. Your words missed you.'])])];}
+function features(c){
+ var K='app feature',L=[
+  sc(K,160,[bt('',[{em:'Vocab Flow'}]),bt('',['Turns a set into a slideshow or a video with soft sound.'])]),
+  sc(K,160,[bt('',[{em:'Certificates'}]),bt('',['Pass a set\u2019s mastery exam to earn yours.'])]),
+  sc(K,160,[bt('',[{em:'Mistake notebook'}]),bt('',['Keeps the words you missed, ready to practise again.'])]),
+  sc(K,160,[bt('',[{em:'Search'}]),bt('',['Find any word by its English or \u09ac\u09be\u0982\u09b2\u09be meaning.'])]),
+  sc(K,160,[bt('',[{em:'Tags'}]),bt('',['Group words your way: GRE, SAT, BCS, Daily.'])]),
+  sc(K,160,[bt('',[{em:'Review bar'}]),bt('',['On the home page, it revises your words as you go.'])]),
+  sc(K,160,[bt('',[{em:'Flash cards'}]),bt('',['Each word has its picture, sound and meaning.'])]),
+  sc(K,160,[bt('',[{em:'Progress report'}]),bt('',['See how every set is going, at a glance.'])]),
+  sc(K,160,[bt('',[{em:'XP and levels'}]),bt('',['Every word you learn earns XP and moves you up a level.'])])];
+ if(c.unsynced)L.push(sc('keep it safe',200,[bt('',[{em:'Sign in with Google'}]),bt('',['Keep your progress on every device'+nmC(c)+'.'])]));
+ return L;}
+
+/* ---------- the shared queue (so a redraw of the card does not restart the story) ---------- */
+var Q={n:0,first:true,list:[]};
+function nextScene(c){
+ if(Q.first){Q.first=false;if(c.insight)return sc('for you',36,[bt('',[c.insight])]);}
+ if(!Q.list.length){
+  var g=shuffle(greetings(c)),m=shuffle(motivation(c)),t=shuffle(tricks(c)),f=shuffle(features(c)),r=[g[0]];
+  for(var i=0;i<4;i++){[t[i],m[i],f[i]].forEach(function(x){if(x)r.push(x);});}
+  Q.list=r;}
+ return Q.list.shift();}
+
+/* ---------- the engine ---------- */
+function alive(c){return c.alive&&c.box&&c.box.isConnected;}
+function setKicker(c,t){var k=c.k;t=String(t||'');if(k.dataset.t===t)return;k.dataset.t=t;Array.from(k.children).forEach(function(o){o.classList.add('out');setTimeout(function(){o.remove();},240);});k.append(h('b',null,h('i',{class:'rxd'}),t));}
+function setHue(c,hu){hu=((Math.round(hu)%360)+360)%360;c.box.style.setProperty('--rvh',hu);c.box.style.setProperty('--h',hu);}
+function sheen(c){if(RED())return;var s=c.sh;s.classList.remove('go');void s.offsetWidth;s.classList.add('go');}
+function setDots(c,n,at){var d=c.dots;if(d.children.length!==n){d.replaceChildren.apply(d,Array.from({length:n},function(){return h('i');}));}Array.from(d.children).forEach(function(e,i){e.classList.toggle('on',i===at);});d.style.display=n>1?'flex':'none';}
+function prog1(c,ms){var p=c.pg;p.classList.remove('go');void p.offsetWidth;p.style.setProperty('--dur',ms+'ms');p.classList.add('go');}
+async function ready(c){while(alive(c)&&(document.hidden||!c.vis))await sleep(300);}
+async function waitHold(c,ms){var held=0;while(held<ms&&alive(c)){await sleep(120);if(!alive(c))return;c.box.classList.toggle('paused',!!(document.hidden||!c.vis));if(!document.hidden&&c.vis)held+=120;}}
+async function showBeat(c,s,b,bi){
+ var main=c.m,old=c.line;
+ if(old&&old.isConnected){old.classList.remove('settled');old.classList.add('out');await sleep(RED()?100:360);old.remove();}
+ if(!alive(c))return;
+ setKicker(c,s.k);
+ var line=h('div',{class:'rxln '+(b.cls||'')});line.append(toks(b.parts));main.append(line);c.line=line;
+ fit(line,main,b.cls==='sr'?18:14);
+ setDots(c,s.beats.length,bi);
+ var nt=line.querySelectorAll('.rxt').length,hasW=!!line.querySelector('.rxw');
+ var enter=Math.min(1900,780+nt*34+(hasW?520:0));
+ setTimeout(function(){if(c.line===line)line.classList.add('settled');},enter+60);
+ var hold=Math.min(6200,Math.max(2400,1500+line.textContent.length*38));
+ prog1(c,hold+enter*.4);
+ c.box.setAttribute('aria-label',clip(line.textContent,110));
+ await waitHold(c,hold);}
+async function playScene(c,s){
+ if(!alive(c))return;
+ setHue(c,s.hue);sheen(c);
+ await sleep(RED()?0:240);
+ for(var i=0;i<s.beats.length;i++){await ready(c);if(!alive(c))break;await showBeat(c,s,s.beats[i],i);}}
+async function run(c){
+ while(alive(c)){try{await ready(c);if(!alive(c))return;var s=nextScene(who(c.card));await playScene(c,s);}catch(e){await sleep(800);}}}
+
+function mount(card,ins){
+ var fx=h('div',{class:'rxfx','aria-hidden':'true'},h('i',{class:'rxa1'}),h('i',{class:'rxa2'}),h('i',{class:'rxsh'}));
+ var k=h('div',{class:'rxk'}),m=h('div',{class:'rxm'}),dots=h('div',{class:'rxdots'});
+ var row=h('div',{class:'rxrow'},h('div',{class:'rxcol'},k,m),h('div',{class:'rxside'},dots));
+ var pg=h('div',{class:'rxprog','aria-hidden':'true'},h('i'));
+ var box=h('div',{class:'pfm-scr rvpm',role:'status','aria-live':'off','data-mood':'calm'});
+ box.append(fx,row,pg);
+ var c={alive:true,card:card,box:box,sh:fx.querySelector('.rxsh'),k:k,m:m,dots:dots,pg:pg.firstChild,line:null,vis:true};
+ try{var io=new IntersectionObserver(function(es){es.forEach(function(e){c.vis=e.isIntersecting;});},{threshold:.05});io.observe(box);c.io=io;}catch(e){}
+ ins.setAttribute('data-pfm','1');ins.parentNode.insertBefore(box,ins);
+ run(c);}
+
+var timer=0;
+function scan(){timer=0;
+ var l=document.querySelectorAll('.pf-card .pf-ins:not([data-pfm])');
+ for(var i=0;i<l.length;i++){var card=l[i].closest('.pf-card');if(card)mount(card,l[i]);}}
+function sched(){if(timer)return;timer=setTimeout(scan,80);}
+function boot(){new MutationObserver(sched).observe(document.body,{childList:true,subtree:true});sched();}
+window.IQPFM={scan:scan};
+if(document.body)boot();else document.addEventListener('DOMContentLoaded',boot,{once:true});
 })();
 </script>
