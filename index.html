@@ -29789,11 +29789,6 @@ button.pf-chip.warn:active{transform:translateY(1px)}
 .iqact-it>div{flex:1;min-width:0}.iqact-it b{display:block;font-size:13.5px;overflow-wrap:anywhere}.iqact-it small{display:block;color:var(--ink-3,#76809F);font-size:12px;line-height:1.4;overflow-wrap:anywhere}
 .iqact-it time{flex:none;font-size:11px;color:var(--ink-3,#76809F);white-space:nowrap}
 .iqact-it code{font:800 12px/1 ui-monospace,Menlo,monospace;letter-spacing:.08em;padding:2px 6px;border-radius:6px;background:var(--surface-2,#F1F4FB)}
-.iqact-vr{padding:12px 14px;border-radius:14px;border:1.5px solid var(--line,#DCE1EF);font-size:13px;line-height:1.5}
-.iqact-vr.ok{border-color:var(--good,#0DBE76);background:color-mix(in srgb,var(--good,#0DBE76) 12%,var(--surface,#fff))}
-.iqact-vr.no{border-color:#D0304B;background:color-mix(in srgb,#D0304B 9%,var(--surface,#fff))}
-.iqact-vr b{display:block;font-size:15px;margin-bottom:4px}
-.iqact-vr div{display:flex;justify-content:space-between;gap:12px;border-top:1px dashed var(--line,#DCE1EF);padding:4px 0}.iqact-vr div span{color:var(--ink-3,#76809F)}.iqact-vr div em{font-style:normal;font-weight:700;text-align:right;overflow-wrap:anywhere}
 @media(prefers-reduced-motion:reduce){.iqact-t{transition:none}}
 </style>
 <script id="iq-activity">
@@ -29801,7 +29796,7 @@ button.pf-chip.warn:active{transform:translateY(1px)}
    ACTIVITY ALERTS (window.IQACT) · the master admin is told, inside the app, when
      · a new person joins (signs in with Google for the first time)
      · a learner earns a Set Mastery certificate or the Master Award
-   and can check every issued certificate online, by its authentication code, without a QR image.
+   and can look through everything recorded.
    Uses the app's own Firebase project (same Google sign-in as cloud sync, notices and Users & access).
    · every signed-in person's app writes small records to  activity/{id}  (no progress, no answers)
    · the master's app listens to  activity  whenever the master's Google account is signed in
@@ -29992,7 +29987,7 @@ function stopMaster(){
   var was=MASTER_ON;MON=false;MASTER_ON=false;GOT=false;if(was)pushInbox();}
 
 /* ============================================================================================
-   PART 3 · master screens: Activity alerts (settings) and Recent activity / verify a certificate
+   PART 3 · master screens: Activity alerts (settings) and Recent activity
    ============================================================================================ */
 var IC={bell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>',
  x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
@@ -30029,7 +30024,7 @@ function settingsView(){
   function segPaint(){seg.replaceChildren.apply(seg,[['banner','Banner + inbox'],['quiet','Inbox only']].map(function(o){return mk('button',{type:'button','aria-pressed':PR.style===o[0]?'true':'false',onclick:function(){PR.style=o[0];savePrefs();segPaint();}},o[1]);}));}
   segPaint();
   var test=mk('button',{class:'adm-btn',type:'button',onclick:function(){var d={type:'join',e:'test.learner@example.com',n:'Test learner',t:Date.now()};toast(describe(d),0);}},ic('bell'),'Show a test alert');
-  var recent=mk('button',{class:'adm-btn primary',type:'button',onclick:function(){P.close();recentView();}},ic('shield'),'Recent activity & verify a certificate');
+  var recent=mk('button',{class:'adm-btn primary',type:'button',onclick:function(){P.close();recentView();}},ic('shield'),'Recent activity');
   var rules=mk('div',null,mk('div',{class:'iqact-h'},'One-time setup in Firebase'),
     mk('div',{class:'adm-note'},'Add this block inside your Firestore rules, next to the others, and Publish. Without it the cloud refuses the new records.'),
     mk('pre',{class:'iqact-pre'},RULES),copyBtn(RULES));
@@ -30044,32 +30039,10 @@ function settingsView(){
     mk('div',{class:'iqact-row'},test,recent),err,rules);
   status();}
 
-function certLines(d){
-  var kind=d.k==='M'?'Master Award':'Set Mastery',rows=[['Holder',d.n||'—'],['E-mail',d.e||'—']];
-  if(d.inst)rows.push(['Institution',d.inst]);
-  rows.push(['Certificate',kind],['Book',d.book||'—']);
-  if(d.k==='S')rows.push([(d.unit||'Set'),d.set||'—']);
-  if(d.code)rows.push(['Exam paper code',d.code]);
-  rows.push(['Score',(d.pct!=null?d.pct+'%':'—')+(d.nq?' ('+d.right+' of '+d.nq+' correct)':'')],['Date earned',dtxt(d.t)],['Authentication code',d.auth||'not issued yet (the learner has not generated the certificate)']);
-  return rows;}
 function recentView(){
   var P=popup('Recent activity','shield');
   var FIL='all',DOCS=[],q=mk('input',{class:'iqact-in',type:'search',placeholder:'Search name, e-mail, book or code','aria-label':'Search'}),
-      vin=mk('input',{class:'iqact-in',type:'text',placeholder:'Authentication code from the certificate',maxlength:'12',autocapitalize:'characters',spellcheck:'false','aria-label':'Authentication code',style:'text-transform:uppercase;letter-spacing:.12em'}),
-      vres=mk('div'),chips=mk('div',{class:'iqact-chips'}),list=mk('div',{class:'iqact-list'}),err=mk('div',{class:'adm-err',role:'alert'}),cnt=mk('small',{class:'iqua-mut'});
-  function show(rows){return mk('div',{class:'iqact-vr ok'},mk('b',null,'✓ Genuine certificate on record'),rows.map(function(r){return mk('div',null,mk('span',null,r[0]),mk('em',null,String(r[1])));}));}
-  function verify(){
-    var c=vin.value.trim().toUpperCase().replace(/[^A-Z0-9]/g,'');vres.replaceChildren();
-    if(c.length<6){vres.append(mk('div',{class:'iqact-vr no'},'Type the 6-character authentication code printed on the certificate (or read from its QR code).'));return;}
-    vres.append(mk('div',{class:'iqact-vr'},'Checking…'));
-    load().then(function(f){return f.fs.getDocs(f.fs.query(f.fs.collection(f.db,'activity'),f.fs.where('auth','==',c)));}).then(function(s){
-      var hits=[];s.forEach(function(d){hits.push(d.data());});vres.replaceChildren();
-      if(!hits.length){vres.append(mk('div',{class:'iqact-vr no'},mk('b',null,'✗ No certificate with code '+c),'Nothing is recorded under this code. It may be a certificate issued before online records started, a mistyped code, or not genuine.'));return;}
-      hits.forEach(function(d){vres.append(show(certLines(d)));});
-      if(hits.length>1)vres.prepend(mk('div',{class:'adm-note'},'More than one record carries this code. Check the holder’s name.'));
-    }).catch(function(e){vres.replaceChildren();var cd=(e&&e.code)||'';vres.append(mk('div',{class:'iqact-vr no'},/permission-denied/.test(cd)?'The cloud refused. Sign in with the master Google account and publish the rules shown in Activity alerts.':'Could not check ('+(cd||'network')+').'));});}
-  var vb=mk('button',{class:'adm-btn primary',type:'button',onclick:verify},ic('shield'),'Verify');
-  vin.addEventListener('keydown',function(e){if(e.key==='Enter')verify();});
+      chips=mk('div',{class:'iqact-chips'}),list=mk('div',{class:'iqact-list'}),err=mk('div',{class:'adm-err',role:'alert'}),cnt=mk('small',{class:'iqua-mut'});
   function paint(){
     chips.replaceChildren.apply(chips,[['all','All'],['join','Joined'],['cert','Certificates']].map(function(o){return mk('button',{type:'button','aria-pressed':FIL===o[0]?'true':'false',onclick:function(){FIL=o[0];paint();}},o[1]);}));
     var t=q.value.trim().toLowerCase(),rows=DOCS.filter(function(d){
@@ -30080,8 +30053,7 @@ function recentView(){
       return mk('div',{class:'iqact-it'},mk('i',null,x.icon),mk('div',null,mk('b',null,x.title),mk('small',null,x.text.replace(/ · code [A-Z0-9]+$/,'')),d.type==='cert'&&d.auth?mk('small',null,'Code ',mk('code',null,d.auth)):null),mk('time',null,d.old?'earlier':ago(d.t)));}));
     if(!rows.length)list.append(mk('div',{class:'adm-note'},DOCS.length?'Nothing matches.':'No records yet. They appear when learners sign in or earn certificates.'));}
   q.addEventListener('input',paint);
-  P.body.append(mk('div',{class:'adm-note'},'Check any certificate online: type the authentication code printed on it. No QR image is needed. Certificates are listed here from the moment the learner earns them.'),
-    mk('div',{class:'iqact-row'},vin,vb),vres,mk('div',{class:'iqact-h'},'Everything recorded'),q,chips,cnt,list,err);
+  P.body.append(mk('div',{class:'iqact-h'},'Everything recorded'),q,chips,cnt,list,err);
   paint();
   load().then(function(f){return f.fs.getDocs(f.fs.query(f.fs.collection(f.db,'activity'),f.fs.orderBy('t','desc'),f.fs.limit(300)));}).then(function(s){
     DOCS=[];s.forEach(function(d){DOCS.push(d.data()||{});});paint();
@@ -30097,7 +30069,7 @@ function inject(){
   var hub=document.querySelector('.adm-hub');
   if(hub&&!hub.querySelector('.iqact-hubb')){
     var r=hub.querySelector('.iqua-hubb')||Array.from(hub.querySelectorAll('.adm-hubb')).filter(function(x){return /Unlock sets on this device/.test(x.textContent);})[0];
-    var hb=mk('button',{class:'adm-hubb iqact-hubb',type:'button',onclick:function(){var ov=hub.closest('.adm-ov');if(ov)ov.remove();settingsView();}},ic('bell'),mk('div',null,mk('b',null,'Activity alerts'),mk('small',null,'Who joined, who earned a certificate, check a certificate online')));
+    var hb=mk('button',{class:'adm-hubb iqact-hubb',type:'button',onclick:function(){var ov=hub.closest('.adm-ov');if(ov)ov.remove();settingsView();}},ic('bell'),mk('div',null,mk('b',null,'Activity alerts'),mk('small',null,'Who joined and who earned a certificate')));
     if(r)r.after(hb);else hub.append(hb);}}
 var raf=0;function sched(){if(raf)return;raf=requestAnimationFrame(function(){raf=0;try{inject();}catch(e){}});}
 
