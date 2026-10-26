@@ -29966,6 +29966,353 @@ button.pf-chip.warn:active{transform:translateY(1px)}
 .iqw-ok small{display:block;margin-top:6px;color:var(--ink-3,#76809F);overflow-wrap:anywhere}
 @media(prefers-reduced-motion:reduce){.iqw-sheet{transition:opacity .3s;transform:none;opacity:0}.iqw-ov.in .iqw-sheet{opacity:1}.iqw-hero::after,.iqw-g.load svg,.iqw-tick{animation:none}}
 </style>
+<style id="iq-activity-css">
+.iqact-t{position:fixed;left:50%;top:max(10px,env(safe-area-inset-top));transform:translate(-50%,-170%);width:min(520px,calc(100vw - 20px));box-sizing:border-box;z-index:2147482700;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:18px;border:1px solid color-mix(in srgb,var(--c,#2338C9) 38%,var(--line,#DCE1EF));background:linear-gradient(180deg,color-mix(in srgb,var(--c,#2338C9) 12%,var(--surface,#fff)),var(--surface,#fff));color:var(--ink,#111A36);box-shadow:0 18px 40px -16px rgba(10,15,40,.5);font:500 13px/1.35 var(--f-ui,system-ui,sans-serif);cursor:pointer;transition:transform .45s cubic-bezier(.2,.9,.2,1)}
+.iqact-t.in{transform:translate(-50%,0)}
+.iqact-t i{flex:none;width:40px;height:40px;border-radius:13px;display:grid;place-items:center;font-style:normal;font-size:20px;background:color-mix(in srgb,var(--c,#2338C9) 16%,transparent)}
+.iqact-t div{flex:1;min-width:0}.iqact-t b{display:block;font:800 14px/1.25 var(--f-ui,system-ui,sans-serif);overflow-wrap:anywhere}.iqact-t small{display:block;color:var(--ink-2,#47537A);overflow-wrap:anywhere}
+.iqact-t em{flex:none;font:700 10px/1 var(--f-ui,system-ui,sans-serif);letter-spacing:.08em;text-transform:uppercase;color:var(--c,#2338C9)}
+.iqact-body{display:flex;flex-direction:column;gap:12px;padding:4px 2px 8px}
+.iqact-sw{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:14px;border:1px solid var(--line,#DCE1EF);background:var(--surface,#fff);cursor:pointer;text-align:left;width:100%;color:inherit;font:inherit}
+.iqact-sw>span{flex:1;min-width:0}.iqact-sw b{display:block;font-size:14px}.iqact-sw small{display:block;color:var(--ink-3,#76809F);font-size:12px;line-height:1.35}
+.iqact-sw u{flex:none;width:44px;height:26px;border-radius:99px;background:var(--line,#DCE1EF);position:relative;transition:background .2s;text-decoration:none}
+.iqact-sw u::after{content:"";position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}
+.iqact-sw[aria-checked=true] u{background:var(--good,#0DBE76)}.iqact-sw[aria-checked=true] u::after{transform:translateX(18px)}
+.iqact-seg{display:flex;gap:6px}.iqact-seg button{flex:1;padding:10px 8px;border-radius:12px;border:1.5px solid var(--line,#DCE1EF);background:var(--surface,#fff);color:var(--ink-2,#47537A);font:700 13px/1.2 var(--f-ui,system-ui,sans-serif);cursor:pointer}
+.iqact-seg button[aria-pressed=true]{border-color:var(--brand,#2338C9);color:var(--brand,#2338C9);background:color-mix(in srgb,var(--brand,#2338C9) 9%,var(--surface,#fff))}
+.iqact-h{margin:6px 0 0;font:800 11.5px/1.2 var(--f-ui,system-ui,sans-serif);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3,#76809F)}
+.iqact-row{display:flex;gap:8px;flex-wrap:wrap}
+.iqact-pre{margin:6px 0;padding:10px;border-radius:10px;background:var(--surface-2,#F1F4FB);font:11px/1.45 ui-monospace,Menlo,monospace;white-space:pre-wrap;word-break:break-word;max-height:200px;overflow:auto;color:var(--ink,#111A36)}
+.iqact-in{width:100%;box-sizing:border-box;padding:11px 12px;border-radius:12px;border:1.5px solid var(--line,#DCE1EF);background:var(--surface,#fff);color:var(--ink,#111A36);font:600 14px/1.2 var(--f-ui,system-ui,sans-serif)}
+.iqact-chips{display:flex;gap:6px;flex-wrap:wrap}.iqact-chips button{padding:7px 12px;border-radius:99px;border:1px solid var(--line,#DCE1EF);background:var(--surface,#fff);color:var(--ink-2,#47537A);font:700 12px/1 var(--f-ui,system-ui,sans-serif);cursor:pointer}
+.iqact-chips button[aria-pressed=true]{background:var(--brand,#2338C9);border-color:var(--brand,#2338C9);color:#fff}
+.iqact-list{display:flex;flex-direction:column;gap:8px}
+.iqact-it{display:flex;gap:11px;align-items:flex-start;padding:10px 12px;border-radius:14px;border:1px solid var(--line,#DCE1EF);background:var(--surface,#fff)}
+.iqact-it>i{flex:none;width:36px;height:36px;border-radius:12px;display:grid;place-items:center;font-style:normal;font-size:18px;background:var(--surface-2,#F1F4FB)}
+.iqact-it>div{flex:1;min-width:0}.iqact-it b{display:block;font-size:13.5px;overflow-wrap:anywhere}.iqact-it small{display:block;color:var(--ink-3,#76809F);font-size:12px;line-height:1.4;overflow-wrap:anywhere}
+.iqact-it time{flex:none;font-size:11px;color:var(--ink-3,#76809F);white-space:nowrap}
+.iqact-it code{font:800 12px/1 ui-monospace,Menlo,monospace;letter-spacing:.08em;padding:2px 6px;border-radius:6px;background:var(--surface-2,#F1F4FB)}
+.iqact-vr{padding:12px 14px;border-radius:14px;border:1.5px solid var(--line,#DCE1EF);font-size:13px;line-height:1.5}
+.iqact-vr.ok{border-color:var(--good,#0DBE76);background:color-mix(in srgb,var(--good,#0DBE76) 12%,var(--surface,#fff))}
+.iqact-vr.no{border-color:#D0304B;background:color-mix(in srgb,#D0304B 9%,var(--surface,#fff))}
+.iqact-vr b{display:block;font-size:15px;margin-bottom:4px}
+.iqact-vr div{display:flex;justify-content:space-between;gap:12px;border-top:1px dashed var(--line,#DCE1EF);padding:4px 0}.iqact-vr div span{color:var(--ink-3,#76809F)}.iqact-vr div em{font-style:normal;font-weight:700;text-align:right;overflow-wrap:anywhere}
+@media(prefers-reduced-motion:reduce){.iqact-t{transition:none}}
+</style>
+<script id="iq-activity">
+/* ============================================================================================
+   ACTIVITY ALERTS (window.IQACT) · the master admin is told, inside the app, when
+     · a new person joins (signs in with Google for the first time)
+     · a learner earns a Set Mastery certificate or the Master Award
+   and can check every issued certificate online, by its authentication code, without a QR image.
+   Uses the app's own Firebase project (same Google sign-in as cloud sync, notices and Users & access).
+   · every signed-in person's app writes small records to  activity/{id}  (no progress, no answers)
+   · the master's app listens to  activity  whenever the master's Google account is signed in
+     (it does not matter whether the local admin panel is open) and shows a banner + an inbox entry
+   · the master chooses what is announced in Admin centre > Activity alerts (saved in adminprefs/{email})
+   · additive: nothing existing is edited; the inbox is extended by wrapping IQINBOX.setPrivate
+   · needs one extra block in the Firestore rules (see IQACT.rules, also shown in the settings screen)
+   ============================================================================================ */
+(function(){'use strict';
+if(window.IQACT)return;
+var CFG={apiKey:"AIzaSyDNgKIh4CYkbCMbbvsyhb0aCPG4fsSAixs",authDomain:"iqravocab-c3e63.firebaseapp.com",projectId:"iqravocab-c3e63",storageBucket:"iqravocab-c3e63.firebasestorage.app",messagingSenderId:"1058920337301",appId:"1:1058920337301:web:b60a671fedd24fa041309c"};
+var BASE='https://www.gstatic.com/firebasejs/10.12.2/';
+/* must match the e-mail named in the Firestore rules */
+var MASTER_MAILS=['zahidulislam1801@gmail.com','iqravocab@gmail.com'];
+/* "gsync." keys are never copied into the progress sync, so all of this stays on the device */
+var K={on:'gsync.on',mem:'gsync.memC',joined:'gsync.actJoined',led:'gsync.actLedger',prefs:'gsync.actPrefs',items:'gsync.actItems',seen:'gsync.actSeen'};
+var RULES="match /activity/{id} {\n  allow read, delete: if request.auth != null\n    && request.auth.token.email in ['zahidulislam1801@gmail.com','iqravocab@gmail.com'];\n  allow create, update: if request.auth != null\n    && request.auth.token.email_verified == true\n    && id.matches('^(join|cert)_.*')\n    && request.resource.data.e == request.auth.token.email.lower()\n    && request.resource.data.type in ['join', 'cert']\n    && (resource == null || resource.data.e == request.auth.token.email.lower())\n    && request.resource.data.keys().hasOnly(['type','e','n','inst','uid','k','book','set','pct','right','nq','code','t','u','auth','old','v']);\n}\nmatch /adminprefs/{email} {\n  allow read, write: if request.auth != null\n    && request.auth.token.email_verified == true\n    && request.auth.token.email == email\n    && request.auth.token.email in ['zahidulislam1801@gmail.com','iqravocab@gmail.com'];\n}";
+var DEF={join:true,certS:true,certM:true,self:false,style:'banner'};
+
+var ls=function(k){try{return localStorage.getItem(k);}catch(e){return null;}};
+var lw=function(k,v){try{localStorage.setItem(k,v);}catch(e){}};
+var J=function(s,d){try{var v=JSON.parse(s);return v==null?d:v;}catch(e){return d;}};
+var ekey=function(e){return String(e||'').trim().toLowerCase();};
+var isMasterMail=function(e){return MASTER_MAILS.indexOf(ekey(e))>-1;};
+function mk(tag,a){var e=document.createElement(tag);a=a||{};for(var k in a){var v=a[k];if(v==null||v===false)continue;if(k==='class')e.className=v;else if(k==='html')e.innerHTML=v;else if(k.slice(0,2)==='on')e.addEventListener(k.slice(2),v);else e.setAttribute(k,v===true?'':v);}
+  for(var i=2;i<arguments.length;i++){var c=arguments[i];(Array.isArray(c)?c:[c]).forEach(function(x){if(x==null||x===false)return;e.append(x.nodeType?x:document.createTextNode(String(x)));});}return e;}
+function idPart(s){return String(s).toLowerCase().replace(/[^a-z0-9@._-]+/g,'_').slice(0,120);}
+function ago(t){if(!t)return '';var d=Date.now()-t;if(d<6e4)return 'just now';if(d<36e5)return Math.round(d/6e4)+' min ago';if(d<864e5)return Math.round(d/36e5)+' h ago';if(d<30*864e5)return Math.round(d/864e5)+' d ago';return new Date(t).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}
+function dtxt(t){return new Date(t).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});}
+
+/* ---------- Firebase (shared default app, loaded only when needed) ---------- */
+var fb=null,fbP=null;
+function load(){
+  if(window.__IQ_ACT_MOCK)return Promise.resolve(fb=window.__IQ_ACT_MOCK);
+  if(fb)return Promise.resolve(fb);
+  if(fbP)return fbP;
+  fbP=Promise.all([import(BASE+'firebase-app.js'),import(BASE+'firebase-auth.js'),import(BASE+'firebase-firestore.js')]).then(function(a){
+    var app=a[0].getApps().length?a[0].getApp():a[0].initializeApp(CFG);
+    fb={au:a[1],fs:a[2],auth:a[1].getAuth(app),db:a[2].getFirestore(app)};return fb;
+  }).catch(function(e){fbP=null;throw e;});
+  return fbP;}
+function who(){return load().then(function(f){return new Promise(function(res){var un=f.au.onAuthStateChanged(f.auth,function(u){try{un();}catch(e){}res(u&&u.email?u:null);});});});}
+function signIn(){return load().then(function(f){return window.IQAUTH.signIn(f.au,f.auth);}).then(function(r){return r.user;});}
+
+/* ============================================================================================
+   PART 1 · every signed-in person: report "joined" and "earned a certificate"
+   ============================================================================================ */
+var USER=null,inited=false,WAS_MEMBER=ls(K.mem)==='1',sendBusy=false;
+function folderOf(id){var F=(window.__IQAPP&&window.__IQAPP.FOLDERS)||[];for(var i=0;i<F.length;i++)if(F[i]&&F[i].id===id)return F[i];return null;}
+function holderName(u){var n='';try{if(window.IQPROF&&IQPROF.has())n=IQPROF.name()||'';}catch(e){}return String(n||(u&&u.displayName)||(u&&u.email)||'').trim().slice(0,80);}
+function holderInst(){try{if(window.IQPROF&&IQPROF.has())return String(IQPROF.inst()||'').trim().slice(0,80);}catch(e){}return '';}
+
+function sendDoc(id,data){return load().then(function(f){return f.fs.setDoc(f.fs.doc(f.db,'activity',id),data,{merge:true});});}
+
+/* -- joined: once per Google account on this device (a returning member of an older version is not announced) -- */
+function reportJoin(u){
+  var key=ekey(u.email);if(!key)return;
+  var done=J(ls(K.joined),null);
+  if(done===null&&WAS_MEMBER){lw(K.joined,JSON.stringify([key]));return;}
+  done=Array.isArray(done)?done:[];
+  if(done.indexOf(key)>-1)return;
+  var now=Date.now();
+  sendDoc('join_'+idPart(key),{type:'join',e:key,n:holderName(u),uid:u.uid||'',t:now,u:now,v:1}).then(function(){
+    var d=J(ls(K.joined),[]);d=Array.isArray(d)?d:[];if(d.indexOf(key)<0)d.push(key);lw(K.joined,JSON.stringify(d.slice(-20)));
+  }).catch(function(){});}
+
+/* -- earned a certificate: read the saved awards of the three exam engines, never touch them -- */
+function authMap(D){
+  /* authentication codes are made when a certificate is drawn:  m|folder|time   or   s|folder|set,set|time,time */
+  var m={};Object.keys((D&&D.au)||{}).forEach(function(k){
+    var p=k.split('|');
+    if(p[0]==='m'&&p.length>=3)m['m|'+p[1]]={t:+p[2],a:D.au[k]};
+    else if(p[0]==='s'&&p.length>=4){var ss=p[2].split(','),ts=p[3].split(',');ss.forEach(function(s,i){m['s|'+p[1]+'|'+s]={t:+ts[i],a:D.au[k]};});}
+  });return m;}
+function awards(){
+  var out=[],D=J(ls('iqc.v1'),null),am=authMap(D);
+  if(D){
+    Object.keys(D.mst||{}).forEach(function(fid){var a=D.mst[fid]&&D.mst[fid].award;if(!a||!a.t||a.bypass)return;var f=folderOf(fid),b='m|'+fid,x=am[b];
+      out.push({b:b,k:'M',book:(f&&f.name)||fid,pct:a.pct,right:a.right,nq:a.n,code:a.code||'',t:a.t,auth:x&&x.t===a.t?x.a:''});});
+    Object.keys(D.sms||{}).forEach(function(fid){var ff=D.sms[fid]||{},f=folderOf(fid);Object.keys(ff).forEach(function(s){var a=ff[s]&&ff[s].award;if(!a||!a.t||a.bypass)return;var b='s|'+fid+'|'+s,x=am[b];
+      out.push({b:b,k:'S',book:(f&&f.name)||fid,set:(+s)+1,unit:f&&f.custom?'Week':'Set',pct:a.pct,right:a.right,nq:a.n,code:a.code||'',t:a.t,auth:x&&x.t===a.t?x.a:''});});});
+  }
+  [['iq.sc5.v1','501 Sentence Completion'],['iq.gra.v1','GRE Analogy']].forEach(function(p){
+    var S=J(ls(p[0]),null),a=S&&S.m&&S.m.award;if(!a||!a.t||a.bypass)return;
+    out.push({b:'x|'+p[0],k:'M',book:p[1],pct:a.pct,right:a.right,nq:a.n,code:a.code||'',t:a.t,auth:''});});
+  return out;}
+function scanCerts(){
+  if(!USER||sendBusy)return;
+  var led=J(ls(K.led),null),first=led===null;led=led||{};
+  var list=awards(),todo=[];
+  list.forEach(function(a){
+    var h=a.t+'|'+a.auth,e=led[a.b];
+    if(!e){led[a.b]={o:first?1:0,h:''};e=led[a.b];}
+    if(e.h!==h)todo.push([a,h,e]);});
+  lw(K.led,JSON.stringify(led));
+  if(!todo.length)return;
+  sendBusy=true;
+  var u=USER,em=ekey(u.email),nm=holderName(u),inst=holderInst(),p=Promise.resolve();
+  todo.forEach(function(x){var a=x[0];p=p.then(function(){
+    var d={type:'cert',e:em,n:nm,uid:u.uid||'',k:a.k,book:String(a.book).slice(0,80),pct:+a.pct||0,right:+a.right||0,nq:+a.nq||0,t:a.t,u:Date.now(),v:1};
+    if(inst)d.inst=inst;if(a.set)d.set=a.set;if(a.code)d.code=String(a.code).slice(0,40);if(a.auth)d.auth=a.auth;if(x[2].o)d.old=1;
+    return sendDoc('cert_'+idPart(em)+'_'+idPart(a.b.replace(/\|/g,'_')),d).then(function(){led[a.b]={o:x[2].o,h:x[1]};lw(K.led,JSON.stringify(led));});});});
+  p.catch(function(){}).then(function(){sendBusy=false;});}
+var scanT=0;function scanSoon(){clearTimeout(scanT);scanT=setTimeout(scanCerts,2500);}
+(function(){var o=Storage.prototype.setItem;
+  Storage.prototype.setItem=function(k){var r=o.apply(this,arguments);try{if(this===window.localStorage&&(k==='iqc.v1'||k==='iq.sc5.v1'||k==='iq.gra.v1'))scanSoon();}catch(e){}return r;};})();
+
+function onUser(u){
+  if(u&&u.email){
+    USER=u;reportJoin(u);scanSoon();
+    if(isMasterMail(u.email))startMaster(u);else stopMaster();
+  }else{USER=null;stopMaster();}}
+function init(){
+  if(inited)return;inited=true;
+  load().then(function(f){f.au.onAuthStateChanged(f.auth,onUser);}).catch(function(){inited=false;});
+  setInterval(function(){if(!document.hidden)scanCerts();},5*60*1000);}
+
+/* ============================================================================================
+   PART 2 · master: listen, alert, keep an inbox entry
+   ============================================================================================ */
+var PR=Object.assign({},DEF,J(ls(K.prefs),{})),ITEMS=J(ls(K.items),[]),SEEN=J(ls(K.seen),null),
+    MON=false,MASTER_ON=false,UNS=null,LASTERR='',GOT=false,RAW=null,BASEMSG=[];
+if(!Array.isArray(ITEMS))ITEMS=[];
+function savePrefsLocal(){lw(K.prefs,JSON.stringify(PR));}
+function savePrefs(){
+  PR.pt=Date.now();savePrefsLocal();
+  if(!USER||!isMasterMail(USER.email))return Promise.resolve();
+  return load().then(function(f){return f.fs.setDoc(f.fs.doc(f.db,'adminprefs',ekey(USER.email)),PR);}).catch(function(e){LASTERR=(e&&e.code)||'';});}
+function pullPrefs(f,u){
+  f.fs.getDoc(f.fs.doc(f.db,'adminprefs',ekey(u.email))).then(function(s){
+    if(!s.exists())return;var c=s.data()||{};
+    if((+c.pt||0)>(+PR.pt||0)){Object.keys(DEF).forEach(function(k){if(c[k]!=null)PR[k]=c[k];});PR.pt=c.pt;savePrefsLocal();}
+  }).catch(function(){});}
+
+function describe(d){
+  var who=d.n||d.e||'Someone';
+  if(d.type==='join')return{icon:'\u{1F44B}',color:'#0DBE76',label:'New learner',title:who+' joined',text:(d.e||'')+' signed in with Google for the first time.'};
+  var kind=d.k==='M'?'Master Award':'Set Mastery',unit=d.k==='M'?'':' · '+(d.unit||'Set')+' '+(d.set||'');
+  return{icon:'\u{1F393}',color:'#B08A3E',label:'Certificate earned',title:who+' earned the '+kind+' certificate',
+    text:(d.book||'')+unit+' · '+(d.pct!=null?d.pct+'%':'')+(d.nq?' ('+d.right+' of '+d.nq+')':'')+' · '+(d.e||'')+(d.auth?' · code '+d.auth:'')};}
+function wanted(d){
+  if(!PR.self&&USER&&ekey(d.e)===ekey(USER.email))return false;
+  if(d.type==='join')return !!PR.join;
+  if(d.type==='cert')return d.k==='M'?!!PR.certM:!!PR.certS;
+  return false;}
+function saveItems(){ITEMS=ITEMS.slice(0,60);lw(K.items,JSON.stringify(ITEMS));}
+function toItem(id,d){var x=describe(d);return{id:'act_'+id,kind:'quiet',label:x.label,title:x.title,text:x.text,icon:x.icon,color:x.color,t:+d.t||Date.now(),start:+d.t||Date.now()};}
+function pushInbox(){try{if(RAW&&window.IQINBOX)RAW.call(window.IQINBOX,BASEMSG.concat(MASTER_ON?ITEMS:[]));}catch(e){}}
+function patchInbox(){
+  var I=window.IQINBOX;if(!I)return false;if(I.__act)return true;I.__act=1;RAW=I.setPrivate;
+  I.setPrivate=function(a){BASEMSG=Array.isArray(a)?a:[];return RAW.call(this,BASEMSG.concat(MASTER_ON?ITEMS:[]));};
+  return true;}
+
+var TT=0,TEL=null;
+function toast(x,more){
+  if(TEL){TEL.remove();TEL=null;}clearTimeout(TT);
+  var el=mk('div',{class:'iqact-t',role:'status','aria-live':'polite',style:'--c:'+x.color,onclick:function(){hide();try{window.IQINBOX&&IQINBOX.open();}catch(e){}}},
+    mk('i',null,x.icon),mk('div',null,mk('b',null,x.title),mk('small',null,x.text)),mk('em',null,more?'+'+more:'Open'));
+  function hide(){clearTimeout(TT);el.classList.remove('in');setTimeout(function(){el.remove();},460);if(TEL===el)TEL=null;}
+  document.body.append(el);TEL=el;requestAnimationFrame(function(){requestAnimationFrame(function(){el.classList.add('in');});});
+  TT=setTimeout(hide,6500);}
+
+function onSnap(snap){
+  var seen=SEEN,base=seen===null;if(base)seen={};
+  var fresh=[];
+  snap.docChanges().forEach(function(c){
+    if(c.type!=='added')return;var d=c.doc.data()||{},id=c.doc.id;
+    if(seen[id])return;seen[id]=1;
+    if(base||d.old)return;               /* the first time ever: only note what is already there */
+    if(wanted(d))fresh.push([id,d]);});
+  var ks=Object.keys(seen);if(ks.length>500)ks.slice(0,ks.length-500).forEach(function(k){delete seen[k];});
+  SEEN=seen;lw(K.seen,JSON.stringify(SEEN));
+  GOT=true;LASTERR='';
+  if(!fresh.length)return;
+  fresh.sort(function(a,b){return(+a[1].t||0)-(+b[1].t||0);});
+  fresh.forEach(function(x){ITEMS.unshift(toItem(x[0],x[1]));});
+  ITEMS.sort(function(a,b){return b.t-a.t;});saveItems();pushInbox();
+  if(PR.style!=='quiet'){var last=fresh[fresh.length-1];toast(describe(last[1]),fresh.length>1?fresh.length-1:0);}}
+function startMaster(u){
+  if(MON)return;MON=true;MASTER_ON=true;patchInbox();pushInbox();
+  load().then(function(f){
+    pullPrefs(f,u);
+    var q=f.fs.query(f.fs.collection(f.db,'activity'),f.fs.orderBy('t','desc'),f.fs.limit(150));
+    UNS=f.fs.onSnapshot(q,onSnap,function(e){LASTERR=(e&&e.code)||'error';});
+  }).catch(function(){MON=false;});}
+function stopMaster(){
+  if(UNS){try{UNS();}catch(e){}UNS=null;}
+  var was=MASTER_ON;MON=false;MASTER_ON=false;GOT=false;if(was)pushInbox();}
+
+/* ============================================================================================
+   PART 3 · master screens: Activity alerts (settings) and Recent activity / verify a certificate
+   ============================================================================================ */
+var IC={bell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>',
+ x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+ back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5-7 7 7 7"/></svg>',
+ shield:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.4 9.3-8 11-4.6-1.7-8-6-8-11V5z"/><path d="m9 12 2.2 2.2L15.5 10"/></svg>'};
+var ic=function(n){return mk('span',{class:'adm-ic',html:IC[n]});};
+function isMasterAdmin(){try{return !!(window.IQADM&&IQADM.isMaster&&IQADM.isMaster());}catch(e){return false;}}
+function popup(title,icon){
+  var ov=mk('div',{class:'adm-ui adm-ov iqua-ov',onmousedown:function(e){if(e.target===ov)close();}});
+  function close(){ov.remove();}
+  var ttl=mk('b',null,title),back=mk('button',{class:'adm-x',type:'button','aria-label':'Back',hidden:true},ic('back')),body=mk('div',{class:'iqact-body'});
+  var ii=ic(icon||'bell');ii.classList.add('lg');
+  ov.append(mk('div',{class:'adm-card big',role:'dialog','aria-label':title,style:'overflow:auto'},mk('div',{class:'adm-h'},back,ii,ttl,mk('button',{class:'adm-x',type:'button','aria-label':'Close',onclick:close},ic('x'))),body));
+  document.body.append(ov);
+  return{close:close,body:body,title:function(t){ttl.textContent=t;},back:function(fn){if(fn){back.hidden=false;back.onclick=fn;}else{back.hidden=true;back.onclick=null;}}};}
+function sw(title,sub,key,after){
+  var b=mk('button',{class:'iqact-sw',type:'button',role:'switch','aria-checked':PR[key]?'true':'false'},mk('span',null,mk('b',null,title),mk('small',null,sub)),mk('u'));
+  b.addEventListener('click',function(){PR[key]=!PR[key];b.setAttribute('aria-checked',PR[key]?'true':'false');savePrefs();if(after)after();});return b;}
+function copyBtn(txt){return mk('button',{class:'adm-btn sm',type:'button',onclick:function(ev){try{navigator.clipboard.writeText(txt);ev.target.textContent='Copied';}catch(x){}}},'Copy rules');}
+
+function settingsView(){
+  var P=popup('Activity alerts','bell');
+  var acct=mk('div',{class:'adm-note',role:'status'},'Checking your cloud sign-in…'),err=mk('div',{class:'adm-err',role:'alert'}),health=mk('div',{class:'adm-note',role:'status'});
+  function status(){who().then(function(u){acct.replaceChildren();
+    if(u&&isMasterMail(u.email)){acct.append('✓ Alerts are on. Signed in to the cloud as '+u.email+'. You get them even when this admin panel is closed, as long as this Google account stays signed in on this device.');}
+    else if(u){acct.append('Signed in as '+u.email+', which is not the master account ('+MASTER_MAILS.join(' or ')+'). Alerts need the master Google account. ',mk('button',{class:'adm-btn sm',type:'button',style:'margin-top:6px',onclick:function(){go();}},'Sign in with the master account'));}
+    else{acct.append('Sign in once with the master Google account ('+MASTER_MAILS.join(' or ')+') to receive alerts in this app. ',mk('button',{class:'adm-btn sm',type:'button',style:'margin-top:6px',onclick:function(){go();}},'Sign in with Google'));}
+    health.replaceChildren();
+    if(/permission-denied/.test(LASTERR)){health.append('The cloud refused the alert feed. Publish the rules below (Firebase console → Firestore → Rules), then reopen this screen.');health.className='adm-err';health.style.display='';}
+    else{health.className='adm-note';health.style.display='none';}
+  }).catch(function(){acct.textContent='Could not reach the cloud service. Check your internet connection.';});}
+  function go(){err.textContent='';signIn().then(function(){status();}).catch(function(e){err.textContent=/popup/.test((e&&e.code)||'')?'The sign-in window was closed or blocked. Allow pop-ups and try again.':'Could not sign in ('+((e&&e.code)||'network')+').';});}
+  var seg=mk('div',{class:'iqact-seg',role:'group','aria-label':'Alert style'});
+  function segPaint(){seg.replaceChildren.apply(seg,[['banner','Banner + inbox'],['quiet','Inbox only']].map(function(o){return mk('button',{type:'button','aria-pressed':PR.style===o[0]?'true':'false',onclick:function(){PR.style=o[0];savePrefs();segPaint();}},o[1]);}));}
+  segPaint();
+  var test=mk('button',{class:'adm-btn',type:'button',onclick:function(){var d={type:'join',e:'test.learner@example.com',n:'Test learner',t:Date.now()};toast(describe(d),0);}},ic('bell'),'Show a test alert');
+  var recent=mk('button',{class:'adm-btn primary',type:'button',onclick:function(){P.close();recentView();}},ic('shield'),'Recent activity & verify a certificate');
+  var rules=mk('div',null,mk('div',{class:'iqact-h'},'One-time setup in Firebase'),
+    mk('div',{class:'adm-note'},'Add this block inside your Firestore rules, next to the others, and Publish. Without it the cloud refuses the new records.'),
+    mk('pre',{class:'iqact-pre'},RULES),copyBtn(RULES));
+  P.body.append(mk('div',{class:'adm-note'},'You are told inside the app when someone joins or earns a certificate. Choose what you want to hear about.'),
+    acct,health,
+    mk('div',{class:'iqact-h'},'Tell me when'),
+    sw('A new learner joins','The first time someone signs in with Google.','join'),
+    sw('A learner earns a Set Mastery certificate','Passing a set or week mastery exam.','certS'),
+    sw('A learner earns the Master Award','Passing a whole-book master exam.','certM'),
+    sw('Include my own activity','Also alert me about this master account (off is best).','self'),
+    mk('div',{class:'iqact-h'},'How to tell me'),seg,
+    mk('div',{class:'iqact-row'},test,recent),err,rules);
+  status();}
+
+function certLines(d){
+  var kind=d.k==='M'?'Master Award':'Set Mastery',rows=[['Holder',d.n||'—'],['E-mail',d.e||'—']];
+  if(d.inst)rows.push(['Institution',d.inst]);
+  rows.push(['Certificate',kind],['Book',d.book||'—']);
+  if(d.k==='S')rows.push([(d.unit||'Set'),d.set||'—']);
+  if(d.code)rows.push(['Exam paper code',d.code]);
+  rows.push(['Score',(d.pct!=null?d.pct+'%':'—')+(d.nq?' ('+d.right+' of '+d.nq+' correct)':'')],['Date earned',dtxt(d.t)],['Authentication code',d.auth||'not issued yet (the learner has not generated the certificate)']);
+  return rows;}
+function recentView(){
+  var P=popup('Recent activity','shield');
+  var FIL='all',DOCS=[],q=mk('input',{class:'iqact-in',type:'search',placeholder:'Search name, e-mail, book or code','aria-label':'Search'}),
+      vin=mk('input',{class:'iqact-in',type:'text',placeholder:'Authentication code from the certificate',maxlength:'12',autocapitalize:'characters',spellcheck:'false','aria-label':'Authentication code',style:'text-transform:uppercase;letter-spacing:.12em'}),
+      vres=mk('div'),chips=mk('div',{class:'iqact-chips'}),list=mk('div',{class:'iqact-list'}),err=mk('div',{class:'adm-err',role:'alert'}),cnt=mk('small',{class:'iqua-mut'});
+  function show(rows){return mk('div',{class:'iqact-vr ok'},mk('b',null,'✓ Genuine certificate on record'),rows.map(function(r){return mk('div',null,mk('span',null,r[0]),mk('em',null,String(r[1])));}));}
+  function verify(){
+    var c=vin.value.trim().toUpperCase().replace(/[^A-Z0-9]/g,'');vres.replaceChildren();
+    if(c.length<6){vres.append(mk('div',{class:'iqact-vr no'},'Type the 6-character authentication code printed on the certificate (or read from its QR code).'));return;}
+    vres.append(mk('div',{class:'iqact-vr'},'Checking…'));
+    load().then(function(f){return f.fs.getDocs(f.fs.query(f.fs.collection(f.db,'activity'),f.fs.where('auth','==',c)));}).then(function(s){
+      var hits=[];s.forEach(function(d){hits.push(d.data());});vres.replaceChildren();
+      if(!hits.length){vres.append(mk('div',{class:'iqact-vr no'},mk('b',null,'✗ No certificate with code '+c),'Nothing is recorded under this code. It may be a certificate issued before online records started, a mistyped code, or not genuine. A Master Award QR image can still be checked with “Verify QR code”.'));return;}
+      hits.forEach(function(d){vres.append(show(certLines(d)));});
+      if(hits.length>1)vres.prepend(mk('div',{class:'adm-note'},'More than one record carries this code. Check the holder’s name.'));
+    }).catch(function(e){vres.replaceChildren();var cd=(e&&e.code)||'';vres.append(mk('div',{class:'iqact-vr no'},/permission-denied/.test(cd)?'The cloud refused. Sign in with the master Google account and publish the rules shown in Activity alerts.':'Could not check ('+(cd||'network')+').'));});}
+  var vb=mk('button',{class:'adm-btn primary',type:'button',onclick:verify},ic('shield'),'Verify');
+  vin.addEventListener('keydown',function(e){if(e.key==='Enter')verify();});
+  function paint(){
+    chips.replaceChildren.apply(chips,[['all','All'],['join','Joined'],['cert','Certificates']].map(function(o){return mk('button',{type:'button','aria-pressed':FIL===o[0]?'true':'false',onclick:function(){FIL=o[0];paint();}},o[1]);}));
+    var t=q.value.trim().toLowerCase(),rows=DOCS.filter(function(d){
+      if(FIL!=='all'&&d.type!==FIL)return false;
+      return !t||[d.n,d.e,d.book,d.auth,d.code].join(' ').toLowerCase().indexOf(t)>-1;});
+    cnt.textContent=rows.length+' record'+(rows.length===1?'':'s');
+    list.replaceChildren.apply(list,rows.map(function(d){var x=describe(d);
+      return mk('div',{class:'iqact-it'},mk('i',null,x.icon),mk('div',null,mk('b',null,x.title),mk('small',null,x.text.replace(/ · code [A-Z0-9]+$/,'')),d.type==='cert'&&d.auth?mk('small',null,'Code ',mk('code',null,d.auth)):null),mk('time',null,d.old?'earlier':ago(d.t)));}));
+    if(!rows.length)list.append(mk('div',{class:'adm-note'},DOCS.length?'Nothing matches.':'No records yet. They appear when learners sign in or earn certificates.'));}
+  q.addEventListener('input',paint);
+  P.body.append(mk('div',{class:'adm-note'},'Check any certificate online: type the authentication code printed on it. No QR image is needed. Certificates are listed here from the moment the learner earns them.'),
+    mk('div',{class:'iqact-row'},vin,vb),vres,mk('div',{class:'iqact-h'},'Everything recorded'),q,chips,cnt,list,err);
+  paint();
+  load().then(function(f){return f.fs.getDocs(f.fs.query(f.fs.collection(f.db,'activity'),f.fs.orderBy('t','desc'),f.fs.limit(300)));}).then(function(s){
+    DOCS=[];s.forEach(function(d){DOCS.push(d.data()||{});});paint();
+  }).catch(function(e){var cd=(e&&e.code)||'';err.textContent=/permission-denied/.test(cd)?'The cloud refused. Sign in with the master Google account (Admin centre → Activity alerts) and publish the rules shown there.':'Could not load the list ('+(cd||'network')+').';});}
+
+/* ---------- entries in the Admin centre and the side menu ---------- */
+function inject(){
+  if(!isMasterAdmin())return;
+  var slot=document.querySelector('.adm-slot');
+  if(slot&&!slot.querySelector('.iqact-btn')){
+    var ref=slot.querySelector('.iqua-btn')||slot.querySelector('.adm-ul-btn');
+    if(ref){var b=mk('button',{class:'adm-btn wide iqact-btn',type:'button',onclick:function(){try{window.__IQAPP&&window.__IQAPP.menuSet(false);}catch(e){}settingsView();}},ic('bell'),'Activity alerts');ref.after(b);}}
+  var hub=document.querySelector('.adm-hub');
+  if(hub&&!hub.querySelector('.iqact-hubb')){
+    var r=hub.querySelector('.iqua-hubb')||Array.from(hub.querySelectorAll('.adm-hubb')).filter(function(x){return /Unlock sets on this device/.test(x.textContent);})[0];
+    var hb=mk('button',{class:'adm-hubb iqact-hubb',type:'button',onclick:function(){var ov=hub.closest('.adm-ov');if(ov)ov.remove();settingsView();}},ic('bell'),mk('div',null,mk('b',null,'Activity alerts'),mk('small',null,'Who joined, who earned a certificate, check a certificate online')));
+    if(r)r.after(hb);else hub.append(hb);}}
+var raf=0;function sched(){if(raf)return;raf=requestAnimationFrame(function(){raf=0;try{inject();}catch(e){}});}
+
+window.IQACT={open:settingsView,recent:recentView,rules:RULES,prefs:function(){return Object.assign({},PR);},_snap:onSnap,_scan:scanCerts,_awards:awards};
+function boot(){
+  var n=0;(function w(){if(!patchInbox()&&n++<40)setTimeout(w,250);})();
+  new MutationObserver(sched).observe(document.body,{childList:true,subtree:true});sched();
+  if(ls(K.on)==='1'||window.__IQ_ACT_MOCK)init();
+  window.addEventListener('iq:signin',init);}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
+</script>
 <script id="iq-welcome">
 /* Smart sign-in invitation + automatic profile from the Google account. Additive: reads the app only through its public hooks. */
 (function(){'use strict';
