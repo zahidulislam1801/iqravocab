@@ -4553,6 +4553,43 @@ function noticeModal(mode){
   paintAcct();paintLive();
 }
 
+/* ---------- master admin only: send / edit / stop the "Make it yours" contribution invitation ---------- */
+function yoursModal(){
+  if(!(SESSION&&SESSION.role==='master'))return;
+  var Y=window.IQYOURS,N=window.IQNOTICE;
+  if(!Y||!Y.send||!N){toast('Still loading — try again in a moment');return;}
+  var cur=Y.current()||{};
+  var ti=H('input',{type:'text',maxlength:'60',placeholder:'Make it yours'}),tx=H('textarea',{maxlength:'160',rows:'3',placeholder:'Be a part of IQRA Vocab'}),cta=H('input',{type:'text',maxlength:'24',placeholder:'Continue'});
+  ti.value=cur.title||'Make it yours';tx.value=cur.text||'Be a part of IQRA Vocab';cta.value=cur.cta||'Continue';
+  var dur=H('select',null,[['1 day',864e5],['3 days',3*864e5],['7 days',7*864e5],['14 days',14*864e5],['Until I stop it',0]].map(function(o){return H('option',{value:String(o[1])},o[0]);}));dur.value=String(3*864e5);
+  var acct=H('div',{class:'adm-note',role:'status'},'Checking your cloud sign-in…'),live=H('small',{style:'color:var(--ink-3,#76809F)'}),err=H('div',{class:'adm-err',role:'alert'});
+  var sendB=H('button',{class:'adm-btn primary',type:'button'},ic('check'),'Send to all users');
+  var rvOn=!!(cur&&cur.on&&cur.rv);
+  var rvB=H('button',{class:'iqact-sw',type:'button',role:'switch','aria-checked':rvOn?'true':'false'},H('span',null,H('b',null,'Also show in the review bar'),H('small',null,'The home review bar shows it once too; tapping it opens the contribution page.')),H('u'));
+  rvB.addEventListener('click',function(){rvOn=!rvOn;rvB.setAttribute('aria-checked',rvOn?'true':'false');});
+  function obj(){return{title:ti.value,text:tx.value,cta:cta.value,ms:+dur.value||0,rv:rvOn};}
+  function paintLive(){var c=Y.current();live.textContent=c&&c.on&&c.text&&(!c.end||c.end>Date.now())?'Live now: “'+c.text.slice(0,70)+(c.text.length>70?'…':'')+'”'+(c.end?' · until '+new Date(c.end).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):' · until stopped'):'Nothing is being sent right now.';}
+  function paintAcct(){acct.replaceChildren();N.who().then(function(em){
+    if(em){acct.append('Signed in to the cloud as '+em+'. Only the master Google account can send or change this. ',H('button',{class:'adm-btn sm',type:'button',style:'margin-top:6px',onclick:function(){N.signOut().then(paintAcct).catch(function(){});}},'Sign out'));}
+    else{acct.append('To send, sign in once with the master Google account. ',H('button',{class:'adm-btn sm',type:'button',style:'margin-top:6px',onclick:function(){err.textContent='';N.signIn().then(paintAcct).catch(explain);}},'Sign in with Google'));}
+  }).catch(function(){acct.textContent='Could not reach the cloud service. Check your internet connection.';});}
+  function explain(e){var c=(e&&e.code)||'';err.replaceChildren();
+    if(c==='not-signed-in'){err.textContent='Sign in with the master Google account first.';return;}
+    if(/permission-denied/.test(c)){err.textContent='The cloud refused this. Only the master Google accounts listed in the Firestore rules for notices can send it.';return;}
+    if(/popup/.test(c)){err.textContent='The sign-in window was closed or blocked. Allow pop-ups and try again.';return;}
+    err.textContent='Could not send ('+(c||'network')+'). Check your internet connection and try again.';}
+  sendB.onclick=function(){err.textContent='';var o=obj();if(!o.text.trim()){err.textContent='Write a message first.';return;}sendB.disabled=true;
+    Y.send(o).then(function(){sendB.disabled=false;toast('Sent — users see it now');paintLive();}).catch(function(e){sendB.disabled=false;explain(e);});};
+  modal('Contribute invitation','bell',H('div',{class:'adm-f',style:'gap:12px'},
+    H('div',{class:'adm-note'},'“Make it yours” is no longer shown by itself. It appears only when you send it here, with the words you choose. Each person sees it once; the button opens the contribution page.'),
+    acct,field('Title',ti),field('Message',tx),H('div',{class:'adm-g2'},field('Button text',cta),field('Show for',dur)),rvB,
+    H('div',{class:'adm-row'},sendB,
+      H('button',{class:'adm-btn',type:'button',onclick:function(){var o=obj();if(!o.text.trim()){err.textContent='Write a message to preview.';return;}err.textContent='';Y.preview(o);}},ic('eye'),'Preview on this device'),
+      H('button',{class:'adm-btn danger',type:'button',onclick:function(){err.textContent='';Y.stop().then(function(){toast('Stopped for everyone');paintLive();}).catch(explain);}},'Stop sending')),
+    live,err),{big:true});
+  paintAcct();paintLive();
+}
+
 /* ================= Certificate studio ================= */
 var SIZES=[['A4 landscape',297,210],['A4 portrait',210,297],['A3 landscape',420,297],['A3 portrait',297,420],['Letter landscape',279.4,215.9],['Letter portrait',215.9,279.4],['Square',250,250],['Wide 16:9',320,180],['ID card',85.6,54],['Custom',0,0]];
 var STYLES={
@@ -4748,6 +4785,7 @@ function hubModal(){
     btn('gear','Colours & logo','Make the app look yours',appearanceModal,'design'),
     btn('gear','Rules & announcement','Certificate score, message to all',rulesModal,'design'),
     SESSION&&SESSION.role==='master'?btn('bell','Send notification','Live message to every user, no new file needed',noticeModal):null,
+    SESSION&&SESSION.role==='master'?btn('bell','Contribute invitation','Send or stop the “Make it yours” message',yoursModal):null,
     SESSION&&SESSION.role==='master'?btn('pen','Publish article','Formatted article in everyone\'s notifications',function(){noticeModal('article');}):null,
     btn('gear','Backup, text changes, admins','Publish and manage access',adminModal),
     SESSION&&SESSION.role==='master'?btn('unlock','Unlock sets on this device','Keep folders or single sets open, even after sign-out',unlockModal):null,
@@ -5686,9 +5724,9 @@ function logoNode(){var lg=null;try{var st=window.IQADM&&IQADM._st&&IQADM._st();
   var ic=h('span',{class:'iqy-wi'});if(lg&&/^data:image\//.test(lg))ic.appendChild(h('img',{src:lg,alt:'',style:'width:100%;height:100%;object-fit:cover'}));else ic.innerHTML=LOGO_SVG;return ic;}
 var BAR=null;
 function hideBar(){if(!BAR)return;var b=BAR;BAR=null;b.classList.remove('in');setTimeout(function(){b.remove();},700);}
-function showWeekly(){if(BAR||!due())return;try{localStorage.setItem(WK_KEY,String(Date.now()));}catch(e){}
-  var go=h('button',{class:'iqy-go',type:'button'},'Continue'),x=h('button',{class:'iqy-wbx',type:'button','aria-label':'Not now',html:LG.x.replace('width="20" height="20"','width="16" height="16"')});
-  var bar=h('div',{class:'iqy-wb',role:'region','aria-label':'Make it yours'},h('span',{class:'iqy-wg','aria-hidden':'true',lang:'ar'},'\u0627\u0642\u0631\u0623'),logoNode(),h('div',{class:'iqy-wt'},h('b',null,'Make it yours'),h('small',null,'Be a part of IQRA Vocab')),go,x);
+function showWeekly(N){if(BAR||!N)return;
+  var go=h('button',{class:'iqy-go',type:'button'},N.cta||'Continue'),x=h('button',{class:'iqy-wbx',type:'button','aria-label':'Not now',html:LG.x.replace('width="20" height="20"','width="16" height="16"')});
+  var bar=h('div',{class:'iqy-wb',role:'region','aria-label':'Make it yours'},h('span',{class:'iqy-wg','aria-hidden':'true',lang:'ar'},'\u0627\u0642\u0631\u0623'),logoNode(),h('div',{class:'iqy-wt'},h('b',null,N.title||'Make it yours'),h('small',null,N.text||'Be a part of IQRA Vocab')),go,x);
   BAR=bar;go.addEventListener('click',function(e){e.stopPropagation();hideBar();open();});x.addEventListener('click',function(e){e.stopPropagation();hideBar();});
   var sx=0,dx=0,drag=false,moved=false,pid=-1;
   bar.addEventListener('pointerdown',function(e){if(e.target.closest('button'))return;sx=e.clientX;dx=0;pid=e.pointerId;drag=true;moved=false;});
@@ -5696,15 +5734,26 @@ function showWeekly(){if(BAR||!due())return;try{localStorage.setItem(WK_KEY,Stri
   var up=function(){if(!drag)return;drag=false;if(!moved)return;bar.classList.remove('drag');if(Math.abs(dx)>64){bar.classList.add('fly');bar.style.transform='translate(calc(-50% + '+(dx>0?115:-115)+'vw),0)';bar.style.opacity='0';BAR=null;setTimeout(function(){bar.remove();},340);}else{bar.style.transform='';bar.style.opacity='';}};
   bar.addEventListener('pointerup',up);bar.addEventListener('pointercancel',up);
   document.body.appendChild(bar);requestAnimationFrame(function(){requestAnimationFrame(function(){bar.classList.add('in');});});setTimeout(hideBar,AUTO_HIDE);}
-/* wait until the welcome drawer (or any dialog) is gone, then slip in */
-function scheduleWeekly(){if(!due())return;var tries=0;(function wait(){if(!due())return;if(blocked()&&tries++<100){setTimeout(wait,400);return;}if(blocked())return;setTimeout(function(){if(!blocked())showWeekly();else{tries=0;wait();}},600);})();}
-(function(){var go=function(){try{scheduleWeekly();}catch(e){}};var when=function(){if(document.hidden){document.addEventListener('visibilitychange',function f(){if(!document.hidden){document.removeEventListener('visibilitychange',f);setTimeout(go,900);}});}else setTimeout(go,1500);};
-  if(document.readyState==='complete')when();else window.addEventListener('load',when,{once:true});})();
+/* ---------- the invitation is no longer automatic: only the master admin sends it (Firestore notices/yours, same master-only write rules as notices/{id}) ---------- */
+var YCFG={apiKey:"AIzaSyDNgKIh4CYkbCMbbvsyhb0aCPG4fsSAixs",authDomain:"iqravocab-c3e63.firebaseapp.com",projectId:"iqravocab-c3e63",storageBucket:"iqravocab-c3e63.firebasestorage.app",messagingSenderId:"1058920337301",appId:"1:1058920337301:web:b60a671fedd24fa041309c"},YBASE='https://www.gstatic.com/firebasejs/10.12.2/',YSEEN='gsync.yoursSeen';
+var YFB=null,YFBP=null,YCUR=null,YSHOW=false,YTRY=0;
+function yLoad(){if(YFB)return Promise.resolve(YFB);return YFBP||(YFBP=Promise.all([import(YBASE+'firebase-app.js'),import(YBASE+'firebase-auth.js'),import(YBASE+'firebase-firestore.js')]).then(function(a){var app=a[0].getApps().length?a[0].getApp():a[0].initializeApp(YCFG);YFB={au:a[1],fs:a[2],auth:a[1].getAuth(app),db:a[2].getFirestore(app)};return YFB;}).catch(function(e){YFBP=null;throw e;}));}
+function yRef(f){return f.fs.doc(f.db,'notices','yours');}
+function ySeen(){try{return localStorage.getItem(YSEEN)||'';}catch(e){return '';}}
+function yMark(id){try{localStorage.setItem(YSEEN,String(id));}catch(e){}}
+function yConsider(n){if(!n||!n.on||!n.text||YSHOW||BAR)return;var now=Date.now();if(n.end&&now>n.end)return;if(ySeen()===String(n.id))return;YSHOW=true;var tries=0;
+  (function wait(){if(!YCUR||String(YCUR.id)!==String(n.id)||ySeen()===String(n.id)){YSHOW=false;return;}if(blocked()&&tries++<100){setTimeout(wait,400);return;}if(blocked()){YSHOW=false;return;}
+    setTimeout(function(){if(blocked()){tries=0;wait();return;}YSHOW=false;yMark(n.id);showWeekly(n);},600);})();}
+function yListen(){yLoad().then(function(f){f.fs.onSnapshot(yRef(f),function(s){YCUR=s.exists()?s.data():null;if(BAR&&(!YCUR||!YCUR.on))hideBar();try{yConsider(YCUR);}catch(e){}},function(){});}).catch(function(){if(++YTRY<6)setTimeout(yListen,60000);});}
+(function(){var go=function(){setTimeout(yListen,4000);};if(document.readyState==='complete')go();else window.addEventListener('load',go,{once:true});})();
+function ySend(o){return(window.IQNOTICE?IQNOTICE.who():Promise.resolve(null)).then(function(em){if(!em)throw{code:'not-signed-in'};return yLoad();}).then(function(f){var now=Date.now(),d={id:now.toString(36)+Math.random().toString(36).slice(2,5),on:true,title:String(o.title||'').trim().slice(0,60),text:String(o.text||'').trim().slice(0,160),cta:String(o.cta||'').trim().slice(0,24),start:now,end:o.ms?now+o.ms:0,rv:!!o.rv,by:f.auth.currentUser&&f.auth.currentUser.email||'',t:now};return f.fs.setDoc(yRef(f),d).then(function(){return d;});});}
+function yStop(){return(window.IQNOTICE?IQNOTICE.who():Promise.resolve(null)).then(function(em){if(!em)throw{code:'not-signed-in'};return yLoad();}).then(function(f){return f.fs.setDoc(yRef(f),{on:false,id:String(Date.now()),t:Date.now(),by:f.auth.currentUser&&f.auth.currentUser.email||''});});}
+function yPreview(o){hideBar();showWeekly({title:o.title,text:o.text,cta:o.cta});}
 /* ---------- review bar invitation: first one 5 days after the first entry, then every 15 days ---------- */
-var RV_KEY='iqra.yours.rv',RV_FIRST=5*864e5,RV_EVERY=15*864e5;
-function rvDue(){var n=Date.now(),f=firstUse(),t=0;try{t=+localStorage.getItem(RV_KEY)||0;}catch(e){}if(!f||f>n+864e5||n-f<RV_FIRST)return false;return !t||t>n+864e5||n-t>=RV_EVERY;}   /* never shown, 15 days passed, or the clock was set back */
-function rvShown(){try{localStorage.setItem(RV_KEY,String(Date.now()));}catch(e){}}
-window.IQYOURS={open:open,rvDue:rvDue,rvShown:rvShown};
+var RV_SEEN='iqra.yours.rvSeen',RV_KEY='iqra.yours.rv',RV_FIRST=5*864e5,RV_EVERY=15*864e5;
+function rvDue(){var c=YCUR,nw=Date.now();if(c&&c.on&&c.rv&&c.text&&!(c.end&&nw>c.end)){try{return localStorage.getItem(RV_SEEN)!==String(c.id);}catch(e){return false;}}return false;var n=Date.now(),f=firstUse(),t=0;try{t=+localStorage.getItem(RV_KEY)||0;}catch(e){}if(!f||f>n+864e5||n-f<RV_FIRST)return false;return !t||t>n+864e5||n-t>=RV_EVERY;}   /* never shown, 15 days passed, or the clock was set back */
+function rvShown(){try{localStorage.setItem(RV_KEY,String(Date.now()));if(YCUR&&YCUR.id)localStorage.setItem(RV_SEEN,String(YCUR.id));}catch(e){}}
+window.IQYOURS={open:open,rvDue:rvDue,rvShown:rvShown,send:ySend,stop:yStop,preview:yPreview,current:function(){return YCUR;}};
 
 })();
 </script>
@@ -11135,7 +11184,10 @@ function surprise(cx){const ok=[];SURP.forEach(f=>{let s=null;try{s=f(cx);}catch
 /* ---------- compose a round ---------- */
 const R={box:null,last:null,run:false,dirty:true,cur:null,ptr:lsGet(PTR,0),style:'',sheet:null,poke:0,line:null,conn:false,scene:null};
 /* ---------- IQRA Vocab invitation, shown by the review bar (first after 5 days, then every 15 days) ---------- */
-function yoursScene(){return sc('inv',null,'✦ make it yours',[bt('sr',['Be a part of',EM('IQRA Vocab'),'.'],{k:'✦ make it yours',mood:'alert',fx:'spark',hold:3200}),bt('tx',['Tap here to see how you can contribute.'],{k:'tap to continue'})],{hue:44,mood:'alert',yours:1});}
+function yoursScene(){let N=null;try{N=window.IQYOURS&&IQYOURS.current&&IQYOURS.current();}catch(e){}
+ const T=N&&N.text?String(N.text).trim().slice(0,160):'';
+ if(T&&T!=='Be a part of IQRA Vocab'){const K=String(N.title||'make it yours').trim().toLowerCase().slice(0,32)||'make it yours';return sc('inv',null,'✦ '+K,[bt('sr',[T],{k:'✦ '+K,mood:'alert',fx:'spark',hold:3200}),bt('tx',['Tap here to see how you can contribute.'],{k:'tap to continue'})],{hue:44,mood:'alert',yours:1});}
+ return sc('inv',null,'✦ make it yours',[bt('sr',['Be a part of',EM('IQRA Vocab'),'.'],{k:'✦ make it yours',mood:'alert',fx:'spark',hold:3200}),bt('tx',['Tap here to see how you can contribute.'],{k:'tap to continue'})],{hue:44,mood:'alert',yours:1});}
 function compose(){
  const cx=ctx(),out=[];B.rounds++;
  const list=rank(cx.C);
@@ -28584,7 +28636,7 @@ function noticeModal(X){var H=X.H,S={aud:'all',to:null,kind:'banner',label:'Noti
   var stW=H('label',{class:'iqs-fl',style:'display:none'},'Start at',stIn);
   /* preview + send */
   function ob(){return{kind:S.kind,label:S.label,title:ti.value,text:tx.value,color:S.color,icon:S.icon,img:S.img,cta:cta.value,url:safeUrl(url.value),pin:S.pin,stay:S.stay,push:S.push&&S.aud==='all',ms:S.ms,start:S.start};}
-  function rp(){cT.textContent=ti.value.length+' / 120';cX.textContent=tx.value.length+' / 600';root.style.setProperty('--ac',S.color);var o=ob();o.text=o.text||'Your message appears here.';o.t=Date.now();if(S.aud==='one')o.aud='one';pv.replaceChildren(S.kind==='banner'?bannerEl(o,true):S.kind==='popup'?popCard(o):noticeCard(Date.now(),o));}
+  function rp(){cT.textContent=ti.value.length+' / 120';cX.textContent=tx.value.length+' / 600';root.style.setProperty('--ac','#c8922a');var o=ob();o.text=o.text||'Your message appears here.';o.t=Date.now();if(S.aud==='one')o.aud='one';pv.replaceChildren(S.kind==='banner'?bannerEl(o,true):S.kind==='popup'?popCard(o):noticeCard(Date.now(),o));}
   var sendB=H('button',{class:'iqs-send',type:'button',onclick:go});
   function lab(){sendB.replaceChildren(H('span',{html:SI.send}),H('b',null,S.aud==='all'?'Send to everyone':(S.to?'Send to '+FIRST(S.to):'Choose a person')));}
   function busy(b){sendB.disabled=b;sendB.classList.toggle('busy',b);}
@@ -29823,6 +29875,101 @@ button.pf-chip.warn:active{transform:translateY(1px)}
 .iqact-dr{display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-top:1px solid var(--line,#DCE1EF);font-size:13px}.iqact-dr:first-child{border-top:0}.iqact-dr span{color:var(--ink-3,#76809F);flex:none}.iqact-dr b{text-align:right;overflow-wrap:anywhere}
 .iqact-cg{text-decoration:none;justify-content:center}.iqact-cg.off{opacity:.5;pointer-events:none}
 @media(prefers-reduced-motion:reduce){.iqact-t{transition:none}}
+/* ===== master preferences (Activity alerts): premium look, scoped to .iqact-pm so no other screen changes ===== */
+.iqact-pm{gap:14px}
+.iqact-pm>*{animation:iqactIn .5s cubic-bezier(.2,.8,.2,1) both}
+.iqact-pm>:nth-child(2){animation-delay:.05s}.iqact-pm>:nth-child(3){animation-delay:.1s}.iqact-pm>:nth-child(4){animation-delay:.15s}.iqact-pm>:nth-child(5){animation-delay:.2s}.iqact-pm>:nth-child(6){animation-delay:.25s}
+@keyframes iqactIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.iqact-hero{position:relative;overflow:hidden;border-radius:20px;padding:16px 16px 14px;color:#fff;background:linear-gradient(135deg,#0a0f2c 0%,#15123f 58%,#2a1c09 100%);border:1px solid rgba(232,200,120,.5);box-shadow:0 18px 36px -22px rgba(0,0,0,.75),inset 0 1px 0 rgba(255,236,170,.22)}
+.iqact-hero::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(70% 140% at 100% 0,rgba(232,200,120,.2),transparent 70%),linear-gradient(105deg,transparent 35%,rgba(255,240,190,.2) 50%,transparent 65%);background-size:100% 100%,260% 100%;background-position:0 0,160% 0;animation:iqactSheen 1.6s ease .5s 1 both}
+@keyframes iqactSheen{to{background-position:0 0,-60% 0}}
+.iqact-hd{position:relative;z-index:1;display:flex;align-items:center;gap:12px}
+.iqact-hd>div{flex:1;min-width:0}
+.iqact-crest{flex:none;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;color:#3b2604;background:radial-gradient(circle at 32% 26%,#fff6cf 0,#ecc455 42%,#b07a1c 100%);box-shadow:0 10px 18px -8px rgba(0,0,0,.7),0 0 0 2px rgba(255,238,176,.7),0 0 0 5px rgba(212,168,67,.2)}
+.iqact-crest svg{width:24px;height:24px}
+.iqact-eb{display:block;font:800 10.5px/1 var(--f-ui,system-ui,sans-serif);letter-spacing:.14em;text-transform:uppercase;color:#e8c878}
+.iqact-hd b{display:block;margin-top:5px;font:700 1.18rem/1.2 "Newsreader","Iowan Old Style",Georgia,serif;color:#fff3cf;letter-spacing:-.01em}
+.iqact-hd small{display:block;margin-top:3px;color:rgba(255,255,255,.74);font-size:12px;line-height:1.35}
+.iqact-pill{flex:none;display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:99px;font:800 10px/1 var(--f-ui,system-ui,sans-serif);letter-spacing:.07em;text-transform:uppercase;color:#fff3cf;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.18)}
+.iqact-pill i{width:7px;height:7px;border-radius:50%;background:#9aa3bd}
+.iqact-pill em{font-style:normal}
+.iqact-pill.ok i{background:#2ee59d;box-shadow:0 0 0 3px rgba(46,229,157,.2)}
+.iqact-pill.warn i{background:#f5b94a;box-shadow:0 0 0 3px rgba(245,185,74,.2)}
+.iqact-mrow{position:relative;z-index:1;display:flex;align-items:center;gap:12px;margin-top:14px}
+.iqact-meter{flex:1;display:flex;gap:6px}
+.iqact-meter i{flex:1;height:4px;border-radius:99px;background:rgba(255,255,255,.14);transition:background .25s,box-shadow .25s}
+.iqact-meter i.on{background:linear-gradient(90deg,#f7e3a1,#c8922a);box-shadow:0 0 10px rgba(232,200,120,.5)}
+.iqact-saved{flex:none;font:700 10.5px/1 var(--f-ui,system-ui,sans-serif);color:#2ee59d;opacity:0;transform:translateY(3px);transition:opacity .25s,transform .25s}
+.iqact-saved.on{opacity:1;transform:none}
+.iqact-pm .iqact-acct{padding:12px 14px;border-radius:16px;border:1px solid var(--line,#DCE1EF);background:var(--surface,#fff);font-size:12.5px;line-height:1.45;color:var(--ink-3,#76809F)}
+.iqact-pm .iqact-acct b{display:block;color:var(--ink,#111A36);font-size:13px;overflow-wrap:anywhere}
+.iqact-pm .iqact-acct small{display:block;margin-top:2px;font-size:12px}
+.iqact-pm .iqact-grp{display:flex;flex-direction:column}
+.iqact-pm .iqact-h{margin:2px 2px 8px;display:flex;align-items:center;gap:8px}
+.iqact-pm .iqact-h::before{content:"";width:5px;height:5px;transform:rotate(45deg);background:#c8922a}
+.iqact-pm .iqact-card{border-radius:18px;border:1px solid var(--line,#DCE1EF);background:var(--surface,#fff);overflow:hidden;box-shadow:0 10px 24px -20px rgba(16,26,60,.4)}
+.iqact-pm .iqact-card .iqact-sw{border:0;border-radius:0;background:transparent;padding:13px 14px;transition:background .15s}
+.iqact-pm .iqact-card .iqact-sw+.iqact-sw{border-top:1px solid var(--line,#DCE1EF)}
+.iqact-pm .iqact-sw:active{background:var(--surface-2,#F1F4FB)}
+.iqact-si{flex:none;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-style:normal;font-size:18px;background:linear-gradient(145deg,color-mix(in srgb,#d4a843 22%,var(--surface,#fff)),color-mix(in srgb,#d4a843 8%,var(--surface,#fff)));box-shadow:inset 0 0 0 1px color-mix(in srgb,#d4a843 38%,transparent)}
+.iqact-pm .iqact-sw u{width:48px;height:28px;background:color-mix(in srgb,var(--ink-3,#76809F) 30%,var(--surface,#fff));box-shadow:inset 0 1px 3px rgba(0,0,0,.18)}
+.iqact-pm .iqact-sw u::after{width:22px;height:22px;box-shadow:0 2px 5px rgba(0,0,0,.3)}
+.iqact-pm .iqact-sw[aria-checked=true] u{background:linear-gradient(135deg,#17d28a,#0a9d62);box-shadow:0 0 0 3px rgba(13,190,118,.16),inset 0 1px 2px rgba(0,0,0,.15)}
+.iqact-pm .iqact-sw[aria-checked=true] u::after{transform:translateX(20px)}
+.iqact-pm .iqact-seg{gap:10px}
+.iqact-pm .iqact-seg button{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;padding:13px 34px 13px 14px;border-radius:16px;border:1.5px solid var(--line,#DCE1EF);transition:border-color .2s,background .2s,box-shadow .2s}
+.iqact-pm .iqact-seg button b{font-size:13.5px;color:var(--ink,#111A36)}
+.iqact-pm .iqact-seg button small{font:500 11.5px/1.35 var(--f-ui,system-ui,sans-serif);color:var(--ink-3,#76809F)}
+.iqact-pm .iqact-seg button[aria-pressed=true]{border-color:#c8922a;background:linear-gradient(145deg,color-mix(in srgb,#d4a843 16%,var(--surface,#fff)),var(--surface,#fff));box-shadow:0 10px 22px -16px rgba(176,138,62,.75)}
+.iqact-pm .iqact-seg button[aria-pressed=true]::after{content:"✓";position:absolute;top:11px;right:11px;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font:800 11px/1 system-ui,sans-serif;color:#3b2604;background:linear-gradient(135deg,#f7e3a1,#c8922a)}
+.iqact-pm .iqact-row .adm-btn{flex:1 1 auto;justify-content:center}
+.iqact-rules{border-radius:16px;border:1px solid var(--line,#DCE1EF);background:var(--surface,#fff);padding:0 14px}
+.iqact-rules[open]{padding-bottom:12px}
+.iqact-rules summary{cursor:pointer;list-style:none;padding:13px 0;font:800 11.5px/1.2 var(--f-ui,system-ui,sans-serif);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3,#76809F)}
+.iqact-rules summary::-webkit-details-marker{display:none}
+.iqact-rules summary::after{content:"+";float:right;font-size:16px;line-height:1}
+.iqact-rules[open] summary::after{content:"−"}
+@media(prefers-reduced-motion:reduce){.iqact-pm>*,.iqact-hero::after{animation:none}.iqact-pm .iqact-sw u,.iqact-pm .iqact-sw u::after,.iqact-meter i,.iqact-saved{transition:none}}
+/* ===== master admin: premium ink-and-gold look on every admin screen; no blue buttons ===== */
+.adm-ui{--brand:#b9831f;--brand-ink:#2a1a02;--brand-soft:color-mix(in srgb,#d4a843 16%,var(--surface,#fff));--brand-line:rgba(200,146,42,.5)}
+.adm-ui .adm-ov,.adm-ov.adm-ui{background:rgba(6,9,22,.64);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.adm-ui .adm-card{border-radius:24px;border:1px solid rgba(200,146,42,.38);box-shadow:0 34px 80px -24px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,236,170,.14)}
+.adm-ui .adm-card>.adm-h{padding-bottom:11px;border-bottom:1px solid color-mix(in srgb,#c8922a 28%,var(--line,#DCE1EF))}
+.adm-ui .adm-h b{font-family:"Newsreader","Iowan Old Style",Georgia,serif;font-weight:700;letter-spacing:-.01em}
+.adm-ui .adm-h .adm-ic.lg{box-sizing:border-box;flex:none;width:36px;height:36px;padding:8px;border-radius:50%;color:#3b2604;background:radial-gradient(circle at 32% 26%,#fff6cf 0,#ecc455 42%,#b07a1c 100%);box-shadow:0 8px 14px -8px rgba(0,0,0,.6),0 0 0 2px rgba(255,238,176,.6)}
+.adm-ui .adm-x{background:color-mix(in srgb,#c8922a 12%,var(--surface-2,#E9EDF7));transition:background .2s}
+.adm-ui .adm-x:hover{background:color-mix(in srgb,#c8922a 24%,var(--surface-2,#E9EDF7))}
+:is(.adm-ui .adm-btn,.adm-btn.adm-ui){border-radius:13px;font-weight:650;transition:border-color .2s,box-shadow .2s,transform .12s,filter .2s,background .2s}
+:is(.adm-ui .adm-btn,.adm-btn.adm-ui):hover{border-color:#c8922a;box-shadow:0 8px 18px -12px rgba(176,138,62,.85)}
+:is(.adm-ui .adm-btn,.adm-btn.adm-ui):active{transform:scale(.985)}
+:is(.adm-ui .adm-btn.primary,.adm-btn.primary.adm-ui){background:linear-gradient(135deg,#f7e3a1 0%,#e0b64d 46%,#b9831f 100%);border-color:#a9741a;color:#2a1a02;text-shadow:0 1px 0 rgba(255,246,207,.5);box-shadow:0 10px 20px -12px rgba(176,138,62,.95),inset 0 1px 0 rgba(255,246,207,.75)}
+:is(.adm-ui .adm-btn.primary,.adm-btn.primary.adm-ui):hover{filter:brightness(1.05);border-color:#a9741a}
+:is(.adm-ui .adm-btn.on,.adm-btn.on.adm-ui){background:color-mix(in srgb,#d4a843 20%,var(--surface,#fff));border-color:#c8922a;color:inherit}
+:is(.adm-ui .adm-btn.danger,.adm-btn.danger.adm-ui){color:var(--bad,#D0304B)}
+.adm-ui .adm-seg{border-color:color-mix(in srgb,#c8922a 35%,var(--line,#DCE1EF))}
+.adm-ui .adm-seg button.on,.adm-ui .adm-lv button.on{background:linear-gradient(135deg,#f7e3a1,#c8922a);border-color:#b9831f;color:#2a1a02}
+.adm-ui .adm-f input:focus,.adm-ui .adm-f textarea:focus,.adm-ui .adm-f select:focus,.adm-ui .adm-in:focus{outline:none;border-color:#c8922a;box-shadow:0 0 0 4px rgba(200,146,42,.16)}
+.adm-ui .adm-sec{display:flex;align-items:center;gap:8px}
+.adm-ui .adm-sec::before{content:"";flex:none;width:5px;height:5px;transform:rotate(45deg);background:#c8922a}
+.adm-ui .adm-hubb{border-radius:18px;transition:border-color .2s,transform .15s,box-shadow .2s}
+.adm-ui .adm-hubb:hover{border-color:#c8922a;transform:translateY(-1px);box-shadow:0 14px 26px -18px rgba(176,138,62,.9)}
+.adm-ui .adm-hubb .adm-ic{box-sizing:border-box;flex:none;width:42px;height:42px;padding:10px;border-radius:14px;color:#8a5d12;background:linear-gradient(145deg,color-mix(in srgb,#d4a843 26%,var(--surface,#fff)),color-mix(in srgb,#d4a843 9%,var(--surface,#fff)));box-shadow:inset 0 0 0 1px color-mix(in srgb,#d4a843 42%,transparent)}
+.adm-ui .adm-hubb b{font-family:"Newsreader","Iowan Old Style",Georgia,serif;font-size:15px}
+.adm-ui .adm-bar,.adm-bar.adm-ui{border-color:rgba(200,146,42,.55);border-radius:22px;box-shadow:0 20px 50px -14px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,236,170,.16)}
+.adm-ui .adm-bar .tag,.adm-bar.adm-ui .tag{color:#b9831f}
+.adm-ui .adm-addcard,.adm-addcard.adm-ui{border-color:rgba(200,146,42,.55);background:color-mix(in srgb,#d4a843 12%,var(--surface,#fff));color:#8a5d12}
+.adm-ui .adm-who{border-color:rgba(200,146,42,.4);background:linear-gradient(145deg,color-mix(in srgb,#d4a843 10%,var(--surface-2,#E9EDF7)),var(--surface-2,#E9EDF7))}
+.adm-ui .adm-who-t .adm-ic{color:#b9831f}
+.adm-ui .adm-pct{color:#a9741a}
+.adm-ui .iqact-chips button[aria-pressed=true]{background:linear-gradient(135deg,#f7e3a1,#c8922a);border-color:#b9831f;color:#2a1a02}
+.adm-ui .iqs-hero{background:linear-gradient(135deg,#0a0f2c 0%,#15123f 58%,#2a1c09 100%);border:1px solid rgba(232,200,120,.5);box-shadow:0 18px 34px -22px rgba(0,0,0,.75),inset 0 1px 0 rgba(255,236,170,.22)}
+.adm-ui .iqs-hero b{color:#fff3cf;font-family:"Newsreader","Iowan Old Style",Georgia,serif;font-weight:700}
+.adm-ui .iqs-hi2{color:#3b2604;background:radial-gradient(circle at 32% 26%,#fff6cf 0,#ecc455 42%,#b07a1c 100%);box-shadow:0 8px 14px -8px rgba(0,0,0,.6),0 0 0 2px rgba(255,238,176,.6)}
+.adm-ui .iqs-send{color:#2a1a02;text-shadow:0 1px 0 rgba(255,246,207,.5);background:linear-gradient(135deg,#f7e3a1 0%,#e0b64d 46%,#b9831f 100%);box-shadow:0 16px 28px -14px rgba(176,138,62,.95),inset 0 1px 0 rgba(255,246,207,.75)}
+.adm-ui .iqs-sw[aria-checked=true]{background:linear-gradient(135deg,#e0b64d,#b9831f)}
+.adm-ui .iqs-tile.on .iqs-ti{color:#2a1a02}
+.adm-ui .iqs-tile.on::after{color:#2a1a02}
+.vfl-adm{border-color:#c8922a;background:linear-gradient(145deg,color-mix(in srgb,#d4a843 10%,var(--surface-2,#E9EDF7)),var(--surface-2,#E9EDF7))}
 </style>
 <script id="iq-activity">
 /* ============================================================================================
@@ -30036,41 +30183,49 @@ function popup(title,icon){
   ov.append(mk('div',{class:'adm-card big',role:'dialog','aria-label':title,style:'overflow:auto'},mk('div',{class:'adm-h'},back,ii,ttl,mk('button',{class:'adm-x',type:'button','aria-label':'Close',onclick:close},ic('x'))),body));
   document.body.append(ov);
   return{close:close,body:body,title:function(t){ttl.textContent=t;},back:function(fn){if(fn){back.hidden=false;back.onclick=fn;}else{back.hidden=true;back.onclick=null;}}};}
-function sw(title,sub,key,after){
-  var b=mk('button',{class:'iqact-sw',type:'button',role:'switch','aria-checked':PR[key]?'true':'false'},mk('span',null,mk('b',null,title),mk('small',null,sub)),mk('u'));
+function sw(title,sub,key,after,icon){
+  var b=mk('button',{class:'iqact-sw',type:'button',role:'switch','aria-checked':PR[key]?'true':'false'},icon?mk('i',{class:'iqact-si'},icon):null,mk('span',null,mk('b',null,title),mk('small',null,sub)),mk('u'));
   b.addEventListener('click',function(){PR[key]=!PR[key];b.setAttribute('aria-checked',PR[key]?'true':'false');savePrefs();if(after)after();});return b;}
 function copyBtn(txt){return mk('button',{class:'adm-btn sm',type:'button',onclick:function(ev){try{navigator.clipboard.writeText(txt);ev.target.textContent='Copied';}catch(x){}}},'Copy rules');}
 
 function settingsView(){
-  var P=popup('Activity alerts','bell');
-  var acct=mk('div',{class:'adm-note',role:'status'},'Checking your cloud sign-in…'),err=mk('div',{class:'adm-err',role:'alert'}),health=mk('div',{class:'adm-note',role:'status'});
+  var P=popup('Activity alerts','bell');P.body.classList.add('iqact-pm');
+  var acct=mk('div',{class:'iqact-acct',role:'status'},'Checking your cloud sign-in…'),err=mk('div',{class:'adm-err',role:'alert'}),health=mk('div',{class:'adm-note',role:'status'});
+  var pill=mk('span',{class:'iqact-pill'},mk('i'),mk('em',null,'Checking')),sum=mk('small',null,''),
+      meter=mk('div',{class:'iqact-meter','aria-hidden':'true'},mk('i'),mk('i'),mk('i')),saved=mk('span',{class:'iqact-saved',role:'status','aria-live':'polite'},'✓ Saved');
+  function tally(){var n=0;['join','certS','certM'].forEach(function(k,i){var on=!!PR[k];if(on)n++;meter.children[i].className=on?'on':'';});
+    sum.textContent=n+' of 3 alerts on · '+(PR.style==='quiet'?'inbox only':'banner + inbox');}
+  var st=0;function changed(){tally();saved.classList.add('on');clearTimeout(st);st=setTimeout(function(){saved.classList.remove('on');},1500);}
+  function state(cls,txt){pill.className='iqact-pill'+(cls?' '+cls:'');pill.lastChild.textContent=txt;}
   function status(){who().then(function(u){acct.replaceChildren();
-    if(u&&isMasterMail(u.email)){acct.append('✓ Alerts are on. Signed in to the cloud as '+u.email+'. You get them even when this admin panel is closed, as long as this Google account stays signed in on this device.');}
-    else if(u){acct.append('Signed in as '+u.email+', which is not the master account ('+MASTER_MAILS.join(' or ')+'). Alerts need the master Google account. ',mk('button',{class:'adm-btn sm',type:'button',style:'margin-top:6px',onclick:function(){go();}},'Sign in with the master account'));}
-    else{acct.append('Sign in once with the master Google account ('+MASTER_MAILS.join(' or ')+') to receive alerts in this app. ',mk('button',{class:'adm-btn sm',type:'button',style:'margin-top:6px',onclick:function(){go();}},'Sign in with Google'));}
+    if(u&&isMasterMail(u.email)){state('ok','Live');acct.append(mk('b',null,'Signed in as '+u.email),mk('small',null,'You get alerts even when this admin panel is closed, as long as this Google account stays signed in on this device.'));}
+    else if(u){state('warn','Wrong account');acct.append(mk('b',null,'Signed in as '+u.email),mk('small',null,'This is not the master account ('+MASTER_MAILS.join(' or ')+'). Alerts need the master Google account.'),mk('button',{class:'adm-btn sm',type:'button',style:'margin-top:8px',onclick:function(){go();}},'Sign in with the master account'));}
+    else{state('warn','Sign-in needed');acct.append(mk('b',null,'Not signed in'),mk('small',null,'Sign in once with the master Google account ('+MASTER_MAILS.join(' or ')+') to receive alerts in this app.'),mk('button',{class:'adm-btn sm',type:'button',style:'margin-top:8px',onclick:function(){go();}},'Sign in with Google'));}
     health.replaceChildren();
     if(/permission-denied/.test(LASTERR)){health.append('The cloud refused the alert feed. Publish the rules below (Firebase console → Firestore → Rules), then reopen this screen.');health.className='adm-err';health.style.display='';}
     else{health.className='adm-note';health.style.display='none';}
-  }).catch(function(){acct.textContent='Could not reach the cloud service. Check your internet connection.';});}
+  }).catch(function(){state('warn','Offline');acct.textContent='Could not reach the cloud service. Check your internet connection.';});}
   function go(){err.textContent='';signIn().then(function(){status();}).catch(function(e){err.textContent=/popup/.test((e&&e.code)||'')?'The sign-in window was closed or blocked. Allow pop-ups and try again.':'Could not sign in ('+((e&&e.code)||'network')+').';});}
   var seg=mk('div',{class:'iqact-seg',role:'group','aria-label':'Alert style'});
-  function segPaint(){seg.replaceChildren.apply(seg,[['banner','Banner + inbox'],['quiet','Inbox only']].map(function(o){return mk('button',{type:'button','aria-pressed':PR.style===o[0]?'true':'false',onclick:function(){PR.style=o[0];savePrefs();segPaint();}},o[1]);}));}
+  function segPaint(){seg.replaceChildren.apply(seg,[['banner','Banner + inbox','A banner slides in, and the alert is kept in your inbox.'],['quiet','Inbox only','Silent. Look in the bell whenever you like.']].map(function(o){return mk('button',{type:'button','aria-pressed':PR.style===o[0]?'true':'false',onclick:function(){PR.style=o[0];savePrefs();segPaint();changed();}},mk('b',null,o[1]),mk('small',null,o[2]));}));}
   segPaint();
   var test=mk('button',{class:'adm-btn',type:'button',onclick:function(){var d={type:'join',e:'test.learner@example.com',n:'Test learner',t:Date.now()};toast(describe(d),0);}},ic('bell'),'Show a test alert');
   var recent=mk('button',{class:'adm-btn primary',type:'button',onclick:function(){P.close();recentView();}},ic('shield'),'Recent activity');
-  var rules=mk('div',null,mk('div',{class:'iqact-h'},'One-time setup in Firebase'),
+  var holders=mk('button',{class:'adm-btn',type:'button',onclick:function(){P.close();holdersView();}},ic('crown'),'Award holders');
+  var rules=mk('details',{class:'iqact-rules'},mk('summary',null,'One-time setup in Firebase'),
     mk('div',{class:'adm-note'},'Add this block inside your Firestore rules, next to the others, and Publish. Without it the cloud refuses the new records.'),
     mk('pre',{class:'iqact-pre'},RULES),copyBtn(RULES));
-  P.body.append(mk('div',{class:'adm-note'},'You are told inside the app when someone joins or earns a certificate. Choose what you want to hear about.'),
+  P.body.append(
+    mk('div',{class:'iqact-hero'},mk('div',{class:'iqact-hd'},mk('span',{class:'iqact-crest',html:IC.shield}),mk('div',null,mk('span',{class:'iqact-eb'},'Master admin'),mk('b',null,'Your preferences'),sum),pill),mk('div',{class:'iqact-mrow'},meter,saved)),
     acct,health,
-    mk('div',{class:'iqact-h'},'Tell me when'),
-    sw('A new learner joins','The first time someone signs in with Google.','join'),
-    sw('A learner earns a Set Mastery certificate','Passing a set or week mastery exam.','certS'),
-    sw('A learner earns the Master Award','Passing a whole-book master exam.','certM'),
-    sw('Include my own activity','Also alert me about this master account (off is best).','self'),
-    mk('div',{class:'iqact-h'},'How to tell me'),seg,
-    mk('div',{class:'iqact-row'},test,recent),err,rules);
-  status();}
+    mk('section',{class:'iqact-grp'},mk('div',{class:'iqact-h'},'Tell me when'),mk('div',{class:'iqact-card'},
+      sw('A new learner joins','The first time someone signs in with Google.','join',changed,'\u{1F44B}'),
+      sw('A learner earns a Set Mastery certificate','Passing a set or week mastery exam.','certS',changed,'\u{1F393}'),
+      sw('A learner earns the Master Award','Passing a whole-book master exam.','certM',changed,'\u{1F451}'),
+      sw('Include my own activity','Also alert me about this master account (off is best).','self',changed,'\u{1F464}'))),
+    mk('section',{class:'iqact-grp'},mk('div',{class:'iqact-h'},'How to tell me'),seg),
+    mk('div',{class:'iqact-row'},test,recent,holders),err,rules);
+  tally();status();}
 
 function recentView(){
   var P=popup('Recent activity','shield');
