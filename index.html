@@ -9885,7 +9885,7 @@ function openPanel(mode,preset,scope,opt){if(openOv)return;const st={mode,page:0
   setsBox.replaceChildren(...(st.mode==='cert'?examSets():dataSets().length?dataSets():[]).map(s=>{const a=st.mode==='cert'?{p:sAward(s).pct}:acc(s),b=E('button',{type:'button','aria-pressed':String(st.sets.includes(s)),class:(st.mode==='cert'||pass(a))?'ok':'',onclick:()=>{const k=st.sets.indexOf(s);k<0?st.sets.push(s):st.sets.splice(k,1);refresh()}},UNIT()+' '+(s+1),E('em',null,a.p+'%'));return b}));if(st.mode==='cert'?!examSets().length:!dataSets().length)setsBox.textContent=st.mode==='cert'?'No set exam passed yet.':'No quiz answers yet.';
   reset();preview()}
  gen.addEventListener('click',async()=>{if(st.busy)return;if(st.bp&&!isMA()){fn.textContent='The admin session has ended.';refresh();return}st.busy=true;gen.disabled=true;const b=ring.querySelector('b'),arc=ring.querySelector('#iqa');ov.classList.add('iqc-busy');fn.textContent='Preparing…';
-  try{const ph=(st.mode==='cert'||st.mode==='master')&&st.fmt==='photo',prg=p=>{b.textContent=Math.round(p*100)+'%';arc.style.strokeDashoffset=String(119.4*(1-p))},dd=mdl(st),blob=await (ph?makePhoto(st.mode,dd,prg):makePdf(st.mode,dd,prg));if(st.url)URL.revokeObjectURL(st.url);st.url=URL.createObjectURL(blob);const vs=(st.mode==='master'||st.mode==='cert')&&!st.bp&&window.IQVER?await IQVER.publish(pubDoc(dd)).catch(()=>'queued'):'ok';
+  try{const ph=(st.mode==='cert'||st.mode==='master')&&st.fmt==='photo',prg=p=>{b.textContent=Math.round(p*100)+'%';arc.style.strokeDashoffset=String(119.4*(1-p))},dd=mdl(st),blob=await (ph?makePhoto(st.mode,dd,prg):makePdf(st.mode,dd,prg));if(st.url)URL.revokeObjectURL(st.url);st.url=URL.createObjectURL(blob);const vs=(st.mode==='master'||st.mode==='cert')&&window.IQVER?await IQVER.publish(pubDoc(dd)).catch(()=>'queued'):'ok';
    const nmx=(st.name.trim()||'IQRA').replace(/[^\w\u0980-\u09FF]+/g,'_').replace(/^_+|_+$/g,'').slice(0,40),file=(st.mode==='cert'?'Cert_IQRA_':st.mode==='master'?'Cert_IQRA_Master_':'IQRA-'+SPEC[st.mode].n+'-')+nmx+(ph?'.png':'.pdf'),mime=ph?'image/png':'application/pdf';fn.textContent=file+' · '+(blob.size/1024|0)+' KB';gen.style.display='none';sv.style.display='grid';const fl=[new File([blob],file,{type:mime})];
    sv.replaceChildren(...[E('a',Object.assign({class:'iqc-btn p',href:st.url,download:file,style:'text-decoration:none'},{}),ico(ph?'img':'pdf'),ph?'Save photo':'Save PDF'),
     E('button',{class:'iqc-btn',type:'button',onclick:()=>{window.IQSHARE&&window.IQSHARE(fl.map(f=>({blob:f,name:f.name})),file)}},'Share'),
@@ -29789,6 +29789,14 @@ button.pf-chip.warn:active{transform:translateY(1px)}
 .iqact-it>div{flex:1;min-width:0}.iqact-it b{display:block;font-size:13.5px;overflow-wrap:anywhere}.iqact-it small{display:block;color:var(--ink-3,#76809F);font-size:12px;line-height:1.4;overflow-wrap:anywhere}
 .iqact-it time{flex:none;font-size:11px;color:var(--ink-3,#76809F);white-space:nowrap}
 .iqact-it code{font:800 12px/1 ui-monospace,Menlo,monospace;letter-spacing:.08em;padding:2px 6px;border-radius:6px;background:var(--surface-2,#F1F4FB)}
+.iqact-hi{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;border-radius:14px;border:1px solid var(--line,#DCE1EF);background:var(--surface,#fff);color:inherit;font:inherit;text-align:left;cursor:pointer}.iqact-hi:active{background:var(--surface-2,#F1F4FB)}
+.iqact-av{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font:800 16px/1 var(--f-ui,system-ui,sans-serif);color:#10234A;background:linear-gradient(135deg,#B08A3E,#F0D98A)}.iqact-av.lg{width:64px;height:64px;font-size:26px}
+.iqact-hm{flex:1;min-width:0}.iqact-hm b{display:block;font-size:14px;overflow-wrap:anywhere}.iqact-hm small{display:block;color:var(--ink-3,#76809F);font-size:12px;line-height:1.4;overflow-wrap:anywhere}.iqact-chev{flex:none;font-style:normal;font-size:22px;color:var(--ink-3,#76809F)}
+.iqact-dh{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;padding:6px 0 2px}.iqact-dh b{font-size:18px;overflow-wrap:anywhere}.iqact-dh small{color:var(--ink-3,#76809F);font-size:13px}
+.iqact-badge{margin-top:4px;padding:5px 12px;border-radius:99px;font:800 11px/1 var(--f-ui,system-ui,sans-serif);letter-spacing:.08em;text-transform:uppercase;background:var(--surface-2,#F1F4FB);color:var(--ink-2,#47537A)}.iqact-badge.m{background:linear-gradient(135deg,#B08A3E,#F0D98A);color:#10234A}
+.iqact-dl{display:flex;flex-direction:column;border:1px solid var(--line,#DCE1EF);border-radius:14px;background:var(--surface,#fff);padding:2px 12px}
+.iqact-dr{display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-top:1px solid var(--line,#DCE1EF);font-size:13px}.iqact-dr:first-child{border-top:0}.iqact-dr span{color:var(--ink-3,#76809F);flex:none}.iqact-dr b{text-align:right;overflow-wrap:anywhere}
+.iqact-cg{text-decoration:none;justify-content:center}.iqact-cg.off{opacity:.5;pointer-events:none}
 @media(prefers-reduced-motion:reduce){.iqact-t{transition:none}}
 </style>
 <script id="iq-activity">
@@ -29813,7 +29821,7 @@ var BASE='https://www.gstatic.com/firebasejs/10.12.2/';
 var MASTER_MAILS=['zahidulislam1801@gmail.com','iqravocab@gmail.com'];
 /* "gsync." keys are never copied into the progress sync, so all of this stays on the device */
 var K={on:'gsync.on',mem:'gsync.memC',joined:'gsync.actJoined',led:'gsync.actLedger',prefs:'gsync.actPrefs',items:'gsync.actItems',seen:'gsync.actSeen'};
-var RULES="match /activity/{id} {\n  allow read, delete: if request.auth != null\n    && request.auth.token.email in ['zahidulislam1801@gmail.com','iqravocab@gmail.com'];\n  allow create, update: if request.auth != null\n    && request.auth.token.email_verified == true\n    && id.matches('^(join|cert)_.*')\n    && request.resource.data.e == request.auth.token.email.lower()\n    && request.resource.data.type in ['join', 'cert']\n    && (resource == null || resource.data.e == request.auth.token.email.lower())\n    && request.resource.data.keys().hasOnly(['type','e','n','inst','uid','k','book','set','pct','right','nq','code','t','u','auth','old','v']);\n}\nmatch /verify/{code} {\n  // anyone may read one certificate by its code; nobody may list them or change one after it is recorded\n  allow get: if true;\n  allow update: if false;\n  allow create: if request.auth != null\n    && request.auth.token.email_verified == true\n    && code.matches('^[A-Z0-9]{6}$')\n    && request.resource.data.auth == code\n    && request.resource.data.uid == request.auth.uid\n    && request.resource.data.at == request.time\n    && request.resource.data.k in ['M', 'S']\n    && request.resource.data.n is string && request.resource.data.n.size() > 0 && request.resource.data.n.size() <= 80\n    && request.resource.data.nq is int && request.resource.data.nq > 0 && request.resource.data.nq <= 400\n    && request.resource.data.right is int && request.resource.data.right >= 0 && request.resource.data.right <= request.resource.data.nq\n    && request.resource.data.pct is number && request.resource.data.pct >= 50 && request.resource.data.pct <= 100\n    && request.resource.data.pct * request.resource.data.nq >= request.resource.data.right * 100 - request.resource.data.nq\n    && request.resource.data.pct * request.resource.data.nq <= request.resource.data.right * 100 + request.resource.data.nq\n    && request.resource.data.hints is int && request.resource.data.hints >= 0 && request.resource.data.hints <= 999\n    && (!('tt' in request.resource.data) || (request.resource.data.tt is number && request.resource.data.tt >= 0 && request.resource.data.tt <= 86400))\n    && request.resource.data.t is number && request.resource.data.t <= request.time.toMillis() + 86400000\n    && request.resource.data.keys().hasOnly(['auth','k','n','inst','book','lab','pct','right','nq','hints','tt','t','cid','fid','uid','u','v','at']);\n  allow delete: if request.auth != null\n    && request.auth.token.email in ['zahidulislam1801@gmail.com','iqravocab@gmail.com'];\n}\nmatch /adminprefs/{email} {\n  allow read, write: if request.auth != null\n    && request.auth.token.email_verified == true\n    && request.auth.token.email == email\n    && request.auth.token.email in ['zahidulislam1801@gmail.com','iqravocab@gmail.com'];\n}";
+var RULES="match /activity/{id} {\n  allow read, delete: if request.auth != null\n    && request.auth.token.email in ['zahidulislam1801@gmail.com','iqravocab@gmail.com'];\n  allow create, update: if request.auth != null\n    && request.auth.token.email_verified == true\n    && id.matches('^(join|cert)_.*')\n    && request.resource.data.e == request.auth.token.email.lower()\n    && request.resource.data.type in ['join', 'cert']\n    && (resource == null || resource.data.e == request.auth.token.email.lower())\n    && request.resource.data.keys().hasOnly(['type','e','n','inst','uid','k','book','set','pct','right','nq','code','t','u','auth','old','v']);\n}\nmatch /verify/{code} {\n  // anyone may read one certificate by its code; nobody may list them or change one after it is recorded\n  allow get: if true;\n  allow list: if false;\n  allow update: if false;\n  allow create: if request.auth != null\n    && request.auth.token.email_verified == true\n    && code.matches('^[A-Z0-9]{6}$')\n    && request.resource.data.auth == code\n    && request.resource.data.uid == request.auth.uid\n    && request.resource.data.at == request.time\n    && request.resource.data.keys().hasOnly(['auth','k','n','inst','book','lab','pct','right','nq','hints','tt','t','cid','fid','uid','u','v','at'])\n    && request.resource.data.k in ['M', 'S']\n    && request.resource.data.n is string\n    && request.resource.data.n.size() > 0\n    && request.resource.data.n.size() <= 80\n    && request.resource.data.nq is int\n    && request.resource.data.nq > 0\n    && request.resource.data.right is int\n    && request.resource.data.right >= 0\n    && request.resource.data.pct is number\n    && request.resource.data.pct >= 0\n    && request.resource.data.pct <= 100\n    && (\n      // certificates issued by the master admin (admin bypass) need nothing more\n      request.auth.token.email in ['zahidulislam1801@gmail.com','iqravocab@gmail.com']\n      ||\n      // certificates earned by a learner: the server also checks the numbers\n      (\n        request.resource.data.nq <= 1000\n        && request.resource.data.right <= request.resource.data.nq\n        && request.resource.data.pct >= 50\n        && request.resource.data.pct * request.resource.data.nq >= request.resource.data.right * 100 - request.resource.data.nq\n        && request.resource.data.pct * request.resource.data.nq <= request.resource.data.right * 100 + request.resource.data.nq\n        && request.resource.data.hints is int\n        && request.resource.data.hints >= 0\n        && request.resource.data.hints <= 999\n        && (!('tt' in request.resource.data)\n            || (request.resource.data.tt is number\n                && request.resource.data.tt >= 0\n                && request.resource.data.tt <= 86400))\n        && request.resource.data.t is number\n        && request.resource.data.t <= request.time.toMillis() + 86400000\n      )\n    );\n  allow delete: if request.auth != null\n    && request.auth.token.email in ['zahidulislam1801@gmail.com','iqravocab@gmail.com'];\n}\nmatch /adminprefs/{email} {\n  allow read, write: if request.auth != null\n    && request.auth.token.email_verified == true\n    && request.auth.token.email == email\n    && request.auth.token.email in ['zahidulislam1801@gmail.com','iqravocab@gmail.com'];\n}";
 var DEF={join:true,certS:true,certM:true,self:false,style:'banner'};
 
 var ls=function(k){try{return localStorage.getItem(k);}catch(e){return null;}};
@@ -30059,21 +30067,83 @@ function recentView(){
     DOCS=[];s.forEach(function(d){DOCS.push(d.data()||{});});paint();
   }).catch(function(e){var cd=(e&&e.code)||'';err.textContent=/permission-denied/.test(cd)?'The cloud refused. Sign in with the master Google account (Admin centre → Activity alerts) and publish the rules shown there.':'Could not load the list ('+(cd||'network')+').';});}
 
+/* ============================================================================================
+   PART 4 · master: Award holders. Everyone who earned an award, every detail of one learner,
+   a Congratulate button (opens an e-mail to the learner), and a separate alert switch for the Master Award.
+   ============================================================================================ */
+IC.crown='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/><path d="M5 22h14"/></svg>';
+function durTxt(s){if(s==null)return '—';var h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=Math.round(s%60);return(h?h+' h ':'')+m+' min '+(x<10?'0':'')+x+' s';}
+function initial(n){var c=String(n||'?').trim().charAt(0);return c?c.toUpperCase():'?';}
+function awardName(d){return d.k==='M'?'Master Award':'Set Mastery'+(d.set?' · '+(d.unit||'Set')+' '+d.set:'');}
+function congratsLink(d){
+  var sub='Congratulations on your IQRA VOCAB '+(d.k==='M'?'Master Award':'Set Mastery certificate')+'!',
+      body='Dear '+(d.n||'learner')+',\n\nCongratulations! You earned the '+awardName(d)+' in '+(d.book||'IQRA VOCAB')+(d.pct!=null?' with a score of '+d.pct+'%':'')+(d.nq?' ('+d.right+' of '+d.nq+' correct)':'')+'.\n\nThis takes real dedication, and we are proud of you. Keep learning with passion!\n\nWarm regards,\nIQRA VOCAB';
+  return 'mailto:'+(d.e||'')+'?subject='+encodeURIComponent(sub)+'&body='+encodeURIComponent(body);}
+function holdersView(){
+  var P=popup('Award holders','crown'),FIL='M',ROWS=[],loaded=false,
+      q=mk('input',{class:'iqact-in',type:'search',placeholder:'Search name, e-mail or book','aria-label':'Search'}),
+      chips=mk('div',{class:'iqact-chips'}),cnt=mk('small',{class:'iqua-mut'}),list=mk('div',{class:'iqact-list'}),err=mk('div',{class:'adm-err',role:'alert'});
+  function pick(){var t=q.value.trim().toLowerCase();return ROWS.filter(function(d){if(FIL!=='all'&&d.k!==FIL)return false;return !t||[d.n,d.e,d.inst,d.book].join(' ').toLowerCase().indexOf(t)>-1;});}
+  function count(f){return ROWS.filter(function(d){return f==='all'||d.k===f;}).length;}
+  function note(t,btn){list.replaceChildren(mk('div',{class:'adm-note'},t),btn||null);cnt.textContent='';}
+  function paint(){
+    chips.replaceChildren.apply(chips,[['M','Master Award'],['S','Set Mastery'],['all','All']].map(function(o){return mk('button',{type:'button','aria-pressed':FIL===o[0]?'true':'false',onclick:function(){FIL=o[0];paint();}},o[1]+' ('+count(o[0])+')');}));
+    if(!loaded)return;
+    var rows=pick();cnt.textContent=rows.length+' award holder'+(rows.length===1?'':'s');
+    list.replaceChildren.apply(list,rows.map(function(d){
+      return mk('button',{class:'iqact-hi',type:'button',onclick:function(){detail(d);}},mk('span',{class:'iqact-av'},initial(d.n||d.e)),
+        mk('span',{class:'iqact-hm'},mk('b',null,d.n||d.e||'Learner'),mk('small',null,(d.book||'')+(d.pct!=null?' · '+d.pct+'%':'')),mk('small',null,dtxt(d.t))),mk('i',{class:'iqact-chev'},'›'));}));
+    if(!rows.length)list.append(mk('div',{class:'adm-note'},ROWS.length?'Nothing matches.':'No award holders yet. They appear here when learners earn certificates.'));}
+  function show(){
+    P.title('Award holders');P.back(null);
+    P.body.replaceChildren(
+      sw('Tell me when a Master Award is earned','A separate alert, only for the Master Award. Set Mastery and new-learner alerts stay in Activity alerts.','certM'),
+      q,chips,cnt,list,err);paint();}
+  function row(k,v){return mk('div',{class:'iqact-dr'},mk('span',null,k),mk('b',null,String(v==null||v===''?'—':v)));}
+  function detail(d){
+    P.title(d.n||d.e||'Award holder');P.back(show);
+    var dl=mk('div',{class:'iqact-dl'}),cert=row('Certificate','Checking…'),extra=mk('div',{style:'display:contents'});
+    dl.append(row('Award',awardName(d)),row('Book',d.book),row('Score',d.pct!=null?d.pct+'%':'—'),row('Correct answers',d.nq?d.right+' of '+d.nq:'—'),extra,row('Date earned',d.t?dtxt(d.t):'—'),row('E-mail',d.e),row('Institution',d.inst||'—'),cert);
+    P.body.replaceChildren(
+      mk('div',{class:'iqact-dh'},mk('span',{class:'iqact-av lg'},initial(d.n||d.e)),mk('b',null,d.n||d.e||'Learner'),d.inst?mk('small',null,d.inst):null,mk('span',{class:'iqact-badge'+(d.k==='M'?' m':'')},awardName(d))),
+      mk('a',{class:'adm-btn primary wide iqact-cg'+(d.e?'':' off'),href:d.e?congratsLink(d):null},ic('bell'),'Congratulate'),
+      dl);
+    /* hints and exam time are kept with the online certificate record */
+    var set=function(t){cert.lastChild.textContent=t;};
+    if(!d.auth){set('Not generated yet');return;}
+    load().then(function(f){return f.fs.getDoc(f.fs.doc(f.db,'verify',d.auth));}).then(function(s){
+      if(!s||!s.exists()){set('Not recorded online yet');return;}
+      var v=s.data()||{};set('Issued and verifiable online');
+      extra.append(row('Hints used',v.hints!=null?v.hints:'—'));if(d.k==='M'&&v.tt!=null)extra.append(row('Exam time',durTxt(v.tt)));
+    }).catch(function(){set('—');});}
+  function reload(){
+    err.textContent='';loaded=false;paint();note('Loading…');
+    who().then(function(u){
+      if(!u){note('Sign in with the master Google account to see the award holders.',mk('button',{class:'adm-btn sm',type:'button',style:'margin-top:6px',onclick:function(){signIn().then(reload).catch(function(){err.textContent='Sign-in did not finish.';});}},'Sign in with Google'));return null;}
+      if(!isMasterMail(u.email)){note('Signed in as '+u.email+', which is not the master account. Sign in with the master Google account.');return null;}
+      return load().then(function(f){return f.fs.getDocs(f.fs.query(f.fs.collection(f.db,'activity'),f.fs.where('type','==','cert'),f.fs.limit(500)));}).then(function(s){
+        var a=[];s.forEach(function(x){var d=x.data()||{};d._id=x.id;a.push(d);});
+        a.sort(function(x,y){return(+y.t||0)-(+x.t||0);});ROWS=a;loaded=true;paint();});
+    }).catch(function(e){var cd=(e&&e.code)||'';note(/permission-denied/.test(cd)?'The cloud refused. Sign in with the master Google account and publish the rules shown in Activity alerts.':'Could not load the list ('+(cd||'network')+').');});}
+  q.addEventListener('input',paint);
+  show();reload();}
+
+
 /* ---------- entries in the Admin centre and the side menu ---------- */
 function inject(){
   if(!isMasterAdmin())return;
   var slot=document.querySelector('.adm-slot');
   if(slot&&!slot.querySelector('.iqact-btn')){
     var ref=slot.querySelector('.iqua-btn')||slot.querySelector('.adm-ul-btn');
-    if(ref){var b=mk('button',{class:'adm-btn wide iqact-btn',type:'button',onclick:function(){try{window.__IQAPP&&window.__IQAPP.menuSet(false);}catch(e){}settingsView();}},ic('bell'),'Activity alerts');ref.after(b);}}
+    if(ref){var b=mk('button',{class:'adm-btn wide iqact-btn',type:'button',onclick:function(){try{window.__IQAPP&&window.__IQAPP.menuSet(false);}catch(e){}settingsView();}},ic('bell'),'Activity alerts');ref.after(b);var b2=mk('button',{class:'adm-btn wide iqact-hold',type:'button',onclick:function(){try{window.__IQAPP&&window.__IQAPP.menuSet(false);}catch(e){}holdersView();}},ic('crown'),'Award holders');b.after(b2);}}
   var hub=document.querySelector('.adm-hub');
   if(hub&&!hub.querySelector('.iqact-hubb')){
     var r=hub.querySelector('.iqua-hubb')||Array.from(hub.querySelectorAll('.adm-hubb')).filter(function(x){return /Unlock sets on this device/.test(x.textContent);})[0];
     var hb=mk('button',{class:'adm-hubb iqact-hubb',type:'button',onclick:function(){var ov=hub.closest('.adm-ov');if(ov)ov.remove();settingsView();}},ic('bell'),mk('div',null,mk('b',null,'Activity alerts'),mk('small',null,'Who joined and who earned a certificate')));
-    if(r)r.after(hb);else hub.append(hb);}}
+    if(r)r.after(hb);else hub.append(hb);var hb2=mk('button',{class:'adm-hubb iqact-hubb2',type:'button',onclick:function(){var ov=hub.closest('.adm-ov');if(ov)ov.remove();holdersView();}},ic('crown'),mk('div',null,mk('b',null,'Award holders'),mk('small',null,'See every award holder and congratulate them')));hb.after(hb2);}}
 var raf=0;function sched(){if(raf)return;raf=requestAnimationFrame(function(){raf=0;try{inject();}catch(e){}});}
 
-window.IQACT={open:settingsView,recent:recentView,rules:RULES,prefs:function(){return Object.assign({},PR);},_snap:onSnap,_scan:scanCerts,_awards:awards};
+window.IQACT={open:settingsView,recent:recentView,holders:holdersView,rules:RULES,prefs:function(){return Object.assign({},PR);},_snap:onSnap,_scan:scanCerts,_awards:awards};
 function boot(){
   var n=0;(function w(){if(!patchInbox()&&n++<40)setTimeout(w,250);})();
   new MutationObserver(sched).observe(document.body,{childList:true,subtree:true});sched();
@@ -30091,7 +30161,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
    · When a learner generates a certificate, the app records its data once under  verify/{code}.
      The server (Firestore rules) checks every record before it is accepted: the learner is signed in with a verified
      Google account, the score matches the correct answers, the pass mark is reached, the time is stamped by the server
-     (it cannot be back-dated), and a recorded certificate can never be changed afterwards (only the master admin can delete it).
+     (it cannot be back-dated), and a recorded certificate can never be changed afterwards (only the master admin can delete it). Certificates issued by the master admin (admin bypass) are recorded the same way.
      Anyone may read one code at a time; nobody may list them.
    · If the learner is offline or not signed in, the record waits on the device and is recorded as soon as possible.
    · Needs the rule block for  verify/{code}  shown in Admin centre > Activity alerts (IQACT.rules): paste it once.
