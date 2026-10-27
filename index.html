@@ -28308,13 +28308,13 @@ window.IQNOTICE={who:who,signIn:signIn,signOut:function(){return load().then(fun
 if(window.IQINBOX)return;
 var CFG={apiKey:"AIzaSyDNgKIh4CYkbCMbbvsyhb0aCPG4fsSAixs",authDomain:"iqravocab-c3e63.firebaseapp.com",projectId:"iqravocab-c3e63",storageBucket:"iqravocab-c3e63.firebasestorage.app",messagingSenderId:"1058920337301",appId:"1:1058920337301:web:b60a671fedd24fa041309c"};
 var BASE='https://www.gstatic.com/firebasejs/10.12.2/',DAY=864e5,MAXDOC=950000;
-var K={a:'gsync.inbox',r:'gsync.inboxRemote',g:'gsync.inboxGen',s:'gsync.inboxSeen',d:'gsync.inboxRead',o:'gsync.inboxSet',f:'gsync.inboxDraft',p:'gsync.inboxPriv'};
+var K={a:'gsync.inbox',r:'gsync.inboxRemote',g:'gsync.inboxGen',s:'gsync.inboxSeen',d:'gsync.inboxRead',o:'gsync.inboxSet',f:'gsync.inboxDraft',p:'gsync.inboxPriv',l:'gsync.inboxLocal'};
 function ld(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}}
 function sv(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true;}catch(e){return false;}}
 function h(t,a){var e=document.createElement(t);if(a)for(var k in a){var v=a[k];if(v==null||v===false)continue;if(k==='class')e.className=v;else if(k==='html')e.innerHTML=v;else if(k.slice(0,2)==='on')e.addEventListener(k.slice(2),v);else e.setAttribute(k,v===true?'':v);}for(var i=2;i<arguments.length;i++){var c=arguments[i];(Array.isArray(c)?c:[c]).forEach(function(x){if(x==null||x===false)return;e.append(x.nodeType?x:document.createTextNode(String(x)));});}return e;}
 var BELL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>';
 var ICO={w:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h6a3 3 0 0 1 3 3v11a2 2 0 0 0-2-2H4zM20 5h-6"/><path d="M20 5v12h-7"/></svg>',v:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',h:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 8l9 5 9-5z"/><path d="M3 13l9 5 9-5"/></svg>',n:BELL,r:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M9 9h6M9 13h6"/></svg>'};
-var PRIV=ld(K.p,[]),REM=ld(K.r,[]),AUTO=ld(K.a,[]),READ=ld(K.d,{}),SET=ld(K.o,{}),SEEN=ld(K.s,null);
+var PRIV=ld(K.p,[]),REM=ld(K.r,[]),AUTO=ld(K.a,[]),READ=ld(K.d,{}),SET=ld(K.o,{}),SEEN=ld(K.s,null),LOC=(function(a){return Array.isArray(a)?a:[];})(ld(K.l,[]));
 function dn(d){d=d||new Date();return Math.floor((d.getTime()-d.getTimezoneOffset()*6e4)/DAY);}
 function d0(n){var u=new Date(n*DAY);return new Date(u.getUTCFullYear(),u.getUTCMonth(),u.getUTCDate()).getTime();}
 function hs(n){n=Math.imul(n^(n>>>16),2246822507);n=Math.imul(n^(n>>>13),3266489909);return(n^(n>>>16))>>>0;}
@@ -28341,7 +28341,7 @@ function ensure(){var gen=ld(K.g,[]),t=dn(),ch=false;
 function items(){var now=Date.now(),a=[];
   AUTO.forEach(function(x){if(x.t<=now)a.push(x);});
   REM.forEach(function(x){if((x.start||0)<=now)a.push({id:x._id,k:x.kind==='article'?'r':'n',t:x.t,o:x,pin:!!x.pin});});
-  PRIV.forEach(function(x){if((x.start||0)<=now)a.push({id:x._id,k:'n',t:x.t,o:x,pin:!!x.pin});});
+  PRIV.forEach(function(x){if((x.start||0)<=now)a.push({id:x._id,k:'n',t:x.t,o:x,pin:!!x.pin});});LOC.forEach(function(x){if(!x.ghost&&(x.start||0)<=now)a.push({id:x._id,k:'n',t:x.t,o:x,pin:!!x.pin});});
   return a.sort(function(p,q){return(q.pin?1:0)-(p.pin?1:0)||q.t-p.t;});}
 function unread(){return items().filter(function(x){return!READ[x.id];}).length;}
 function badge(){var n=unread();document.querySelectorAll('.iqi-bell').forEach(function(b){var d=b.querySelector('.iqi-dot');if(d)d.remove();if(n)b.append(h('span',{class:'iqi-dot'},n>9?'9+':n));b.setAttribute('aria-label','Notifications'+(n?', '+n+' unread':''));});}
@@ -28387,7 +28387,11 @@ function card(x){var o=x.o,k=x.k;
   var c=col(o);
   if(k==='r')return h('article',{class:'iqi-c',style:'--c:'+c},o.cover?h('img',{class:'iqi-img',style:'margin:0 0 10px',src:o.cover,alt:''}):null,h('div',{class:'iqi-eb'},h('span',{class:'iqi-ic',html:ICO.r}),h('b',null,o.label||'Article'),h('time',null,when(x.t)),!READ[x.id]&&x.fresh?h('i',{class:'iqi-nw'}):null),h('h4',{class:'iqi-rt'},o.title),o.summary?h('p',{class:'iqi-rs'},o.summary):null,h('button',{class:'iqi-cta',type:'button',onclick:function(){openReader(o);}},'Read article'));
   return noticeCard(x.t,o,x);}
-function noticeCard(t,o,x){var c=col(o),u=safeUrl(o.url);
+var TROPHY='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a1 1 0 0 0-1 1c0 2.2 1.6 3.8 4 4M16 6h3a1 1 0 0 1 1 1c0 2.2-1.6 3.8-4 4"/><path d="M12 13v3M10 16h4v4h-4zM8.5 20h7"/></svg>';
+function awardCard(t,o,x){var ch=h('div',{class:'iqi-pch'});(o.chips||[]).forEach(function(s){ch.append(h('span',null,s));});
+return h('article',{class:'iqi-c iqi-pa',style:'--c:'+col(o)},h('div',{class:'iqi-nrow'},h('span',{class:'iqi-pm','aria-hidden':'true',html:TROPHY}),h('div',{class:'iqi-nt'},h('div',{class:'iqi-eb'},h('b',null,'Award earned'),h('span',{class:'iqi-by sm',title:'A private message for you',html:SHIELD+'<span>Just for you</span>'}),h('time',null,when(t)),x&&!READ[x.id]&&x.fresh?h('i',{class:'iqi-nw'}):null),h('h4',null,o.title||'Congratulations!'),h('p',null,o.text||''),(o.chips&&o.chips.length)?ch:null)));}
+function awardBanner(o,st){var c=col(o);return h('div',{class:'wb iqi-wb iqi-mb iqi-pa'+(st?' iqi-st in':''),role:'status','aria-live':'polite',style:'--act:'+c+';--act-hi:color-mix(in srgb,'+c+' 68%,#fff)'},h('span',{class:'wb-g','aria-hidden':'true',lang:'ar'},'\u0627\u0642\u0631\u0623'),h('span',{class:'iqi-pm','aria-hidden':'true',html:TROPHY}),h('div',{class:'wb-t'},h('span',{class:'iqi-pe'},'Award earned'),h('b',null,o.title||'Congratulations!'),h('small',null,o.text||'')),(!st&&!o.stay)?h('i',{class:'wb-p',style:'animation-duration:'+hold(o)+'ms'}):null);}
+function noticeCard(t,o,x){if(o.prem==='award')return awardCard(t,o,x);var c=col(o),u=safeUrl(o.url);
   return h('article',{class:'iqi-c',style:'--c:'+c},h('div',{class:'iqi-nrow'},iconEl(o,'iqi-ni'),h('div',{class:'iqi-nt'},h('div',{class:'iqi-eb'},h('b',null,o.label||'Notice'),h('span',{class:'iqi-by sm',title:o.aud==='one'?'A private message for you':'Sent by the Master Admin',html:SHIELD+'<span>'+(o.aud==='one'?'Just for you':'Master Admin')+'</span>'}),o.pin?h('span',{class:'iqi-pin'},'\u{1F4CC}'):null,h('time',null,when(t)),x&&!READ[x.id]&&x.fresh?h('i',{class:'iqi-nw'}):null,delBtn(o)),o.title?h('h4',null,o.title):null,h('p',null,o.text))),o.img?h('img',{class:'iqi-img',src:o.img,alt:''}):null,u?h('a',{class:'iqi-cta',href:u,target:'_blank',rel:'noopener'},o.cta||'Open'):null);}
 /* ---------- panel ---------- */
 var OV=null,FIL='all',PAINT=null;
@@ -28410,7 +28414,7 @@ function openReader(o){var c=col(o),S;S=shell('iqi-rd',h('div',{class:'iqi-hd'},
 var SHIELD='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.4 9.3-8 11-4.6-1.7-8-6-8-11V5z"/><path d="m9 12 2.2 2.2L15.5 10"/></svg>';
 function urgent(o){return/urgent|important|alert/i.test(o&&o.label||'');}
 function hold(o){return 3800+Math.min(3000,((o.title||'').length+(o.text||'').length)*22);}
-function bannerEl(o,st){var c=col(o),u=urgent(o);return h('div',{class:'wb iqi-wb iqi-mb'+(u?' iqi-ur':'')+(st?' iqi-st in':''),role:u?'alert':'status','aria-live':u?'assertive':'polite',style:'--act:'+c+';--act-hi:color-mix(in srgb,'+c+' 68%,#fff)'},h('span',{class:'wb-g','aria-hidden':'true',lang:'ar'},'\u0627\u0642\u0631\u0623'),iconEl(o,'wb-i'),h('div',{class:'wb-t'},h('span',{class:'iqi-by'},h('span',{class:'iqi-by-i',html:SHIELD}),'Master Admin',o.label?h('em',null,o.label):null),h('b',null,o.title||o.label||'Notice'),h('small',null,o.text||'')),(!st&&!o.stay)?h('i',{class:'wb-p',style:'animation-duration:'+hold(o)+'ms'}):null);}
+function bannerEl(o,st){if(o.prem==='award')return awardBanner(o,st);var c=col(o),u=urgent(o);return h('div',{class:'wb iqi-wb iqi-mb'+(u?' iqi-ur':'')+(st?' iqi-st in':''),role:u?'alert':'status','aria-live':u?'assertive':'polite',style:'--act:'+c+';--act-hi:color-mix(in srgb,'+c+' 68%,#fff)'},h('span',{class:'wb-g','aria-hidden':'true',lang:'ar'},'\u0627\u0642\u0631\u0623'),iconEl(o,'wb-i'),h('div',{class:'wb-t'},h('span',{class:'iqi-by'},h('span',{class:'iqi-by-i',html:SHIELD}),'Master Admin',o.label?h('em',null,o.label):null),h('b',null,o.title||o.label||'Notice'),h('small',null,o.text||'')),(!st&&!o.stay)?h('i',{class:'wb-p',style:'animation-duration:'+hold(o)+'ms'}):null);}
 function popCard(o,done){var u=safeUrl(o.url),nk='';try{nk=window.IQPROF&&IQPROF.has()?IQPROF.nick():'';}catch(e){}return h('div',{class:'iqi-c iqi-pc iqi-mp'+(urgent(o)?' iqi-ur':''),style:'--c:'+col(o)},h('div',{class:'iqi-ph'},h('span',{class:'iqi-by'},h('span',{class:'iqi-by-i',html:SHIELD}),'From the Master Admin'),h('time',null,when(o.t||Date.now()))),h('div',{class:'iqi-nrow',style:'margin-top:0'},iconEl(o,'iqi-ni'),h('div',{class:'iqi-nt'},h('div',{class:'iqi-eb'},h('b',null,o.label||'Notice')),h('h4',{style:'font-size:1.15rem;margin-top:4px'},o.title||''),nk?h('p',{class:'iqi-hi'},'Hi '+nk+','):null,h('p',null,o.text||''))),o.img?h('img',{class:'iqi-img',src:o.img,alt:''}):null,u?h('a',{class:'iqi-cta',href:u,target:'_blank',rel:'noopener'},o.cta||'Open'):null,done?h('button',{class:'iqi-go',type:'button',onclick:done},'Got it'):null);}
 var LIVE=null;
 function hideLive(){if(!LIVE)return;var e=LIVE;LIVE=null;e.classList.add('fast');e.classList.remove('in');setTimeout(function(){e.remove();},460);}
@@ -28422,8 +28426,8 @@ function showLive(n,pv){var o=n;if(n.kind==='article')o={kind:'banner',label:'Ar
     if(!o.stay)setTimeout(function(){if(LIVE===b)hideLive();},3800+Math.min(3000,((o.title||'').length+(o.text||'').length)*22));};
   if(pv)go();else whenFree(go);}
 function liveCheck(){var now=Date.now();
-  if(SEEN===null){SEEN={};REM.concat(PRIV).forEach(function(x){if(now-x.t>216e5)SEEN[x._id]=1;});sv(K.s,SEEN);}
-  var c=REM.concat(PRIV).filter(function(x){var l=x.kind==='banner'||x.kind==='popup'||(x.kind==='article'&&x.live);return l&&!SEEN[x._id]&&(!x.end||x.end>now)&&(x.start||0)<=now;}).sort(function(p,q){return q.t-p.t;})[0];
+  if(SEEN===null){SEEN={};REM.concat(PRIV,LOC).forEach(function(x){if(now-x.t>216e5)SEEN[x._id]=1;});sv(K.s,SEEN);}
+  var c=REM.concat(PRIV,LOC).filter(function(x){var l=x.kind==='banner'||x.kind==='popup'||(x.kind==='article'&&x.live);return l&&!SEEN[x._id]&&(!x.end||x.end>now)&&(x.start||0)<=now;}).sort(function(p,q){return q.t-p.t;})[0];
   if(c){SEEN[c._id]=1;var k=Object.keys(SEEN);if(k.length>300)delete SEEN[k[0]];sv(K.s,SEEN);showLive(c);}}
 /* ---------- cloud ---------- */
 var fb=null,fbP=null,tries=0;
@@ -28637,7 +28641,12 @@ function setPrivate(a){a=Array.isArray(a)?a:[];PRIV=a.filter(function(x){return 
 function boot(){try{mo.observe(document.body,{childList:true,subtree:true});var p=document.querySelector('header.top .tools .pf-top');if(p)p.replaceWith(btn());}catch(e){}
   setTimeout(function(){try{ensure();badge();}catch(e){}},1800);setTimeout(listen,2500);
   setInterval(function(){try{ensure();liveCheck();badge();}catch(e){}},45000);}
-window.IQINBOX={btn:btn,open:openPanel,adminModal:adminModal,send:send,setPrivate:setPrivate,isMaster:isM,list:function(){return REM;},unread:unread,refresh:badge};
+function addLocal(o){if(!o||!o.id||!(o.title||o.text))return false;
+  if(LOC.some(function(x){return x._id===o.id;}))return false;
+  LOC.unshift(Object.assign({},o,{_id:o.id,aud:'one',t:o.t||Date.now()}));
+  LOC.sort(function(p,q){return(q.t||0)-(p.t||0);});LOC=LOC.slice(0,80);sv(K.l,LOC);
+  badge();try{liveCheck();}catch(e){}if(PAINT)try{PAINT();}catch(e){}HOOKS.forEach(function(g){try{g();}catch(e){}});return true;}
+window.IQINBOX={btn:btn,open:openPanel,adminModal:adminModal,send:send,setPrivate:setPrivate,addLocal:addLocal,isMaster:isM,list:function(){return REM;},unread:unread,refresh:badge};
 if(document.readyState==='complete')boot();else window.addEventListener('load',boot);
 })();
 </script>
@@ -30150,6 +30159,86 @@ function boot(){
   if(ls(K.on)==='1'||window.__IQ_ACT_MOCK)init();
   window.addEventListener('iq:signin',init);}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
+</script>
+<style id="iq-award-css">
+/* premium award messages: ink and gold, one shine on arrival, no continuous animation */
+.wb.iqi-pa{--gold:#e8c878;background:linear-gradient(135deg,#0a0f2c 0%,#15123f 55%,#2a1c09 100%);border-color:rgba(232,200,120,.55);color:#fff;box-shadow:0 24px 50px -16px rgba(0,0,0,.7),0 0 0 3px rgba(212,168,67,.14),inset 0 1px 0 rgba(255,236,170,.24);-webkit-backdrop-filter:none;backdrop-filter:none}
+.wb.iqi-pa::before{background:linear-gradient(180deg,#f7e3a1,#c8922a 55%,#8a5d12)}
+.wb.iqi-pa::after{background:radial-gradient(60% 130% at 100% 0,rgba(232,200,120,.2),transparent 70%),linear-gradient(105deg,transparent 35%,rgba(255,240,190,.32) 50%,transparent 65%);background-size:100% 100%,260% 100%;background-position:0 0,160% 0}
+.iqi-pa .wb-g{color:var(--gold);opacity:.11}
+.iqi-pm{position:relative;z-index:1;flex:none;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;color:#3b2604;background:radial-gradient(circle at 32% 26%,#fff6cf 0,#ecc455 42%,#b07a1c 100%);box-shadow:0 10px 18px -8px rgba(0,0,0,.7),0 0 0 2px rgba(255,238,176,.7),0 0 0 5px rgba(212,168,67,.2)}
+.iqi-pm::after{content:"";position:absolute;inset:3px;border-radius:50%;border:1px solid rgba(80,50,6,.35)}
+.iqi-pm svg{width:25px;height:25px}
+.iqi-wb.in .iqi-pm{animation:wbPulse 1.6s ease-in-out .4s 2}
+.iqi-pa .wb-t b{color:#fff3cf;font:700 1.06rem/1.25 "Newsreader","Iowan Old Style",Georgia,serif;letter-spacing:-.01em}
+.iqi-pa .wb-t small{color:rgba(255,255,255,.82)}
+.iqi-pe{display:flex;align-items:center;gap:6px;margin-bottom:3px;font:700 11.5px/1.1 var(--f-ui,system-ui,sans-serif);color:var(--gold,#e8c878)}
+.iqi-pe::before{content:"";width:5px;height:5px;transform:rotate(45deg);background:currentColor}
+.iqi-pa .wb-p{background:linear-gradient(90deg,#f7e3a1,#c8922a);opacity:.7}
+.iqi-c.iqi-pa{--gold:#e8c878;border-radius:18px;padding:13px 14px 14px 18px;background:linear-gradient(135deg,#0a0f2c 0%,#15123f 58%,#2a1c09 100%);border:1px solid rgba(232,200,120,.5);color:#fff;box-shadow:0 16px 34px -20px rgba(0,0,0,.75),inset 0 1px 0 rgba(255,236,170,.2)}
+.iqi-c.iqi-pa::before{width:4px;background:linear-gradient(180deg,#f7e3a1,#c8922a 55%,#8a5d12)}
+.iqi-c.iqi-pa::after{background:radial-gradient(70% 140% at 100% 0,rgba(232,200,120,.18),transparent 70%)}
+.iqi-pa .iqi-eb{color:var(--gold);min-height:20px}
+.iqi-pa .iqi-eb b{text-transform:none;letter-spacing:0;font-size:12px}
+.iqi-pa .iqi-eb time{color:rgba(255,255,255,.55)}
+.iqi-pa .iqi-by.sm{background:rgba(232,200,120,.14);color:var(--gold)}
+.iqi-pa .iqi-nt h4{margin-top:5px;color:#fff3cf;font:700 1.08rem/1.25 "Newsreader","Iowan Old Style",Georgia,serif;letter-spacing:-.01em}
+.iqi-pa .iqi-nt p{margin-top:5px;color:rgba(255,255,255,.84);font-size:.88rem;line-height:1.5}
+.iqi-c.iqi-pa .iqi-pm{width:42px;height:42px}.iqi-c.iqi-pa .iqi-pm svg{width:23px;height:23px}
+.iqi-pch{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.iqi-pch span{padding:4px 10px;border-radius:99px;font:600 11.5px/1.2 var(--f-ui,system-ui,sans-serif);color:#fff3cf;background:rgba(232,200,120,.13);border:1px solid rgba(232,200,120,.35)}
+@media(prefers-reduced-motion:reduce){.iqi-wb.in .iqi-pm{animation:none}}
+</style>
+<script id="iq-award-msg">
+/* ============================================================================================
+   AWARD MESSAGES (window.IQAWM)
+   The moment a learner earns a Set Mastery certificate or the Master Award, the app adds two
+   separate premium messages for that learner on their own device:
+     - a notice in the bell inbox   (stays until it ages out, shows the score)
+     - a banner at the top of the screen (once, in the welcome-banner design)
+   The Master Admin e-mail (Admin centre > Award holders > Congratulate) is not touched.
+   Works offline and without Google sign-in. Awards earned before this update are not announced,
+   and awards that only arrive through a progress restore (older than 15 minutes) stay silent.
+   ============================================================================================ */
+(function(){'use strict';
+if(window.IQAWM)return;
+var LK='gsync.awardMsgLed',FRESH=15*60*1000;
+function ls(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+function lw(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+function hs(s){var n=7;for(var i=0;i<s.length;i++)n=(n*31+s.charCodeAt(i))>>>0;return n.toString(36);}
+function awards(){try{return window.IQACT&&IQACT._awards?(IQACT._awards()||[]):[];}catch(e){return [];}}
+function nick(){try{return window.IQPROF&&IQPROF.has()?String(IQPROF.nick()||'').trim():'';}catch(e){return '';}}
+function nameOf(a){return a.k==='M'?'Master Award':'Set Mastery'+(a.set?' \u00b7 '+(a.unit||'Set')+' '+a.set:'');}
+function make(a){
+  var I=window.IQINBOX;if(!I||!I.addLocal)return false;
+  var t=Date.now(),id=hs(String(a.b)+'|'+String(a.t)),nk=nick(),nm=nameOf(a),book=a.book||'IQRA VOCAB',
+      sc=(a.pct!=null&&a.pct!=='')?(+a.pct||0)+'%':'',ok=a.nq?a.right+' of '+a.nq+' correct':'',
+      hi=nk?'Congratulations, '+nk+'!':'Congratulations!',
+      body='You earned the '+nm+' in '+book+(sc?' with a score of '+sc:'')+(ok?' ('+ok+')':'')+'. This takes real dedication, and we are proud of you. Keep learning with passion!',
+      chips=[nm];if(sc)chips.push(sc);if(ok)chips.push(ok);
+  I.addLocal({id:'aw_n_'+id,t:t,kind:'notice',label:'Award',prem:'award',title:hi,text:body,chips:chips,color:'#c8922a',icon:'\u{1F3C6}'});
+  I.addLocal({id:'aw_b_'+id,t:t+1,kind:'banner',ghost:true,label:'Award',prem:'award',title:hi,text:nm+' \u00b7 '+book+(sc?' \u00b7 '+sc:''),color:'#c8922a',icon:'\u{1F3C6}',end:t+6*36e5});
+  return true;}
+function scan(){
+  var I=window.IQINBOX;if(!I||!I.addLocal)return;
+  var raw=ls(LK),led=null;try{led=raw?JSON.parse(raw):null;}catch(e){}
+  var first=!led||typeof led!=='object';if(first)led={};
+  var now=Date.now(),ch=first;
+  awards().forEach(function(a){
+    if(!a||!a.b||led[a.b]===a.t)return;
+    var fresh=!first&&now-a.t<FRESH&&now-a.t>-6e4;
+    led[a.b]=a.t;ch=true;
+    if(fresh)make(a);});
+  if(ch)lw(LK,JSON.stringify(led));}
+var T=0;function soon(ms){clearTimeout(T);T=setTimeout(scan,ms||2500);}
+(function(){var o=Storage.prototype.setItem;
+  Storage.prototype.setItem=function(k){var r=o.apply(this,arguments);try{if(this===window.localStorage&&(k==='iqc.v1'||k==='iq.sc5.v1'||k==='iq.gra.v1'))soon();}catch(e){}return r;};})();
+document.addEventListener('visibilitychange',function(){if(!document.hidden)soon(1500);});
+function boot(){setTimeout(scan,4000);}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+/* preview without earning anything: IQAWM.demo() */
+window.IQAWM={scan:scan,demo:function(k){return make({b:'demo|'+Date.now(),t:Date.now(),k:k==='S'?'S':'M',book:'Barron\u2019s 1100',set:k==='S'?3:0,unit:'Set',pct:92,right:46,nq:50});}};
 })();
 </script>
 <script id="iq-verify">
