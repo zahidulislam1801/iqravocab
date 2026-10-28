@@ -31518,3 +31518,33 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 window.IQFI={refresh:tick};
 })();
 </script>
+<style id="iq-fit-v1">
+/* ===== IQRA VOCAB · fit & smooth patch v1 (appended; nothing above this block was touched) =====
+   Cause of the overlaps: on phones with a larger system font size (or the Android WebView text zoom) the
+   fixed-width / no-wrap buttons grew wider than their boxes and painted on top of their neighbours.
+   Fix: boxes now size to their content and wrap to the next line instead of overlapping. */
+
+/* 1 · Progress report / Mistake notebook  +  Get certificate  (and the Bookmarked / Missed / Master Award pair) */
+html .iqc-pair.iqc-slim{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch}
+html .iqc-pair.iqc-slim>.iqc-lhs{flex:1 1 0;min-width:max-content;box-sizing:border-box}
+html .iqc-pair.iqc-slim>.iqc-rhs{flex:0 0 auto;margin-left:auto;box-sizing:border-box;max-width:100%}
+html .iqc-pair.iqc-slim>.iqc-rhs .iqc-gc{min-height:38px}
+/* the orange count badge no longer sits on top of the label */
+html .iqc-lhs .iqc-mb{padding-right:20px}
+html .iqc-lhs .iqc-mb .iqc-cnt{right:5px;top:50%;margin-top:-9px}
+
+/* 2 · Worksheet · PDF · Quiz row (folder page and set page): a button never shrinks below its own label */
+html .sec-title .pdfh .pdfb,html .sec-title .pdfh .mttog,
+html .hub-head .pdfh.iqsb .pdfb,html .hub-head .pdfh.iqsb .mttog{min-width:max-content}
+html .sec-title .pdfh,html .hub-head .pdfh.iqsb{flex-wrap:wrap}
+
+/* 3 · general safety: long words wrap instead of spilling out of cards */
+html .fcard,html .iqc-box,html .iqc-lhs,html .iqc-rhs{min-width:0}
+
+/* 4 · smoother touch + scrolling */
+html{-webkit-tap-highlight-color:transparent;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased}
+html button,html [role=button],html a,html select,html summary,html label,html input[type=checkbox],html input[type=radio],html input[type=range]{touch-action:manipulation}
+html body{overscroll-behavior-y:none}
+html .iqc-menu,html .iqc-cd,html .iqc-gs,html .iqc-list{-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+@media (prefers-reduced-motion:reduce){html *,html *::before,html *::after{scroll-behavior:auto!important}}
+</style>
