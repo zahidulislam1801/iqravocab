@@ -4,6 +4,21 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
+    # Skip the build when only these files change (none of them go into the app)
+    paths-ignore:
+      - '**.md'
+      - '.nojekyll'
+      - '404.html'
+      - 'favicon.ico'
+      - 'og-image.png'
+      - 'sw.js'
+      - 'firebase-messaging-sw.js'
+      - '.github/workflows/validate.yml'
+      - '.github/dependabot.yml'
+
+# Needed to publish the Release at the end
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -125,3 +140,19 @@ jobs:
         with:
           name: IQRA Vocab
           path: IQRA Vocab.apk
+
+      - name: Publish to Release (permanent download link)
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -e
+          cp "IQRA Vocab.apk" IQRA-Vocab.apk
+          if gh release view android-latest >/dev/null 2>&1; then
+            gh release delete android-latest --cleanup-tag -y
+          fi
+          gh release create android-latest IQRA-Vocab.apk \
+            --title "IQRA Vocab Android (latest)" \
+            --notes "Latest Android APK. Build #${{ github.run_number }}, commit ${GITHUB_SHA::7}." \
+            --target "$GITHUB_SHA"
