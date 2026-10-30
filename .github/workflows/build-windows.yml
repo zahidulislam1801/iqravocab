@@ -35,6 +35,13 @@ jobs:
           Copy-Item index.html, manifest.webmanifest, logo.svg, privacy.html, terms.html desktop\
           Copy-Item icon-512.png desktop\icon.png
 
+      - name: Stamp build number into the app
+        run: |
+          $p = Join-Path $PWD "desktop\index.html"
+          $t = [System.IO.File]::ReadAllText($p)
+          $t = $t.Replace('__IQ_WIN_BUILD__', '${{ github.run_number }}')
+          [System.IO.File]::WriteAllText($p, $t, (New-Object System.Text.UTF8Encoding $false))
+
       - name: Build
         working-directory: desktop
         run: |
