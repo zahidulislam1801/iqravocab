@@ -33090,6 +33090,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 var REPO='zahidulislam1801/iqravocab';
 var FILES={a:{tag:'android-latest',name:'IQRA-Vocab.apk'},w:{tag:'windows-latest',name:'IQRA-Vocab-Setup.exe'}};
 var KI='iq.upd.info',EVERY=3*864e5;
+var WINBUILD=parseInt('__IQ_WIN_BUILD__',10)||0;   /* stamped in by the Windows build */
 var C=null,MODE='none',raf=0,msgT=0;
 var ST={cur:0,info:load(),busy:false,msg:'',pct:-1,spin:false};
 
@@ -33103,8 +33104,8 @@ function setText(el,t){if(el&&el.textContent!==t)el.textContent=t;}
 function setAttr(el,k,v){if(el&&el.getAttribute(k)!==v)el.setAttribute(k,v);}
 function native(){try{return !!(C&&C.isNativePlatform&&C.isNativePlatform()&&C.getPlatform&&C.getPlatform()==='android');}catch(e){return false;}}
 function plug(n){try{return(C.Plugins&&C.Plugins[n])||(C.registerPlugin?C.registerPlugin(n):null);}catch(e){return null;}}
-function latest(){return(ST.info.a&&ST.info.a.build)||0;}
-function avail(){return MODE==='native'&&ST.cur>0&&latest()>ST.cur;}
+function latest(){var d=MODE==='electron'?ST.info.w:ST.info.a;return(d&&d.build)||0;}
+function avail(){return(MODE==='native'||MODE==='electron')&&ST.cur>0&&latest()>ST.cur;}
 function ago(ms){if(!ms)return '—';var s=Math.max(0,(Date.now()-ms)/1000);if(s<90)return 'just now';var m=s/60;if(m<60)return Math.round(m)+' min ago';var h=m/60;if(h<36)return Math.round(h)+' h ago';return Math.round(h/24)+' days ago';}
 function mb(n){return n?(n/1048576).toFixed(n>=1.05e7?0:1)+' MB':'';}
 function device(){var u=navigator.userAgent||'';if(/Android/i.test(u))return 'a';if(/Windows/i.test(u))return 'w';if(/iPhone|iPad|iPod/i.test(u))return 'ios';return 'other';}
@@ -33138,6 +33139,7 @@ function say(t,ms){ST.msg=t;sched();clearTimeout(msgT);if(ms)msgT=setTimeout(fun
 function fallback(url){var B=plug('Browser');say('Opening the download…',6000);if(B&&B.open)return B.open({url:url});window.open(url,'_blank');}
 function doUpdate(){
   if(ST.busy)return;
+  if(MODE==='electron'){goDownload('w');return;}
   ST.busy=true;ST.pct=-1;say('Preparing…');
   getReleases().then(function(o){
     if(!o.a)throw 0;
@@ -33159,7 +33161,7 @@ function doCheck(){
 /* ---------- website: download the app ---------- */
 function goDownload(k){
   var d=ST.info[k],url=(d&&d.url)||fallbackUrl(k);
-  say('Download started. Look in your notifications or Downloads.',9000);
+  say(MODE==='electron'?'Installer download started. Open it to finish the update.':'Download started. Look in your notifications or Downloads.',9000);
   try{location.assign(url);}catch(e){window.open(url,'_blank');}}
 
 /* ---------- sidebar ---------- */
@@ -33222,7 +33224,7 @@ function paint(){
   if(!body||!body.querySelector('.mcat:not(.iqup-cat)'))return;
   var box=body.querySelector('.iqup-cat')||buildCat(body);
   var sum=box.querySelector('.mcat-t small'),dot=box.querySelector('.iqup-dotb');
-  if(MODE==='native'){
+  if(MODE!=='web'){
     setText(sum,ST.msg||(up?'New version available':(latest()&&ST.cur?'Up to date · build '+ST.cur:'Checked every 3 days')));
     dot.hidden=!up;
     var s=box.querySelector('.iqup-stat');
@@ -33243,7 +33245,7 @@ function paint(){
         mk('span',{class:'iqup-tx'},mk('b',null,'New update available'),mk('small')),
         mk('span',{class:'iqup-bar'},mk('i')));
         body.insertBefore(cd,body.firstChild);}
-      setText(cd.querySelector('small'),ST.msg||'Tap to download and install');
+      setText(cd.querySelector('small'),ST.msg||(MODE==='electron'?'Tap to download the new installer':'Tap to download and install'));
       var w2=ST.busy&&ST.pct>=0?ST.pct+'%':'0%';
       if(cd.querySelector('.iqup-bar i').style.width!==w2)cd.querySelector('.iqup-bar i').style.width=w2;
       cd.classList.toggle('busy',ST.busy);
@@ -33308,12 +33310,11 @@ function css(){
 function start(){
   C=window.Capacitor;
   var ua=navigator.userAgent||'';
-  MODE=native()?'native':(/Electron/i.test(ua)?'none':'web');   /* inside the Windows app: nothing to show */
-  if(MODE==='none')return;
+  MODE=native()?'native':(/Electron/i.test(ua)?'electron':'web');
   css();
   new MutationObserver(sched).observe(document.body,{childList:true,subtree:true});
-  if(MODE==='native'){
-    getCur().then(sched);
+  if(MODE!=='web'){
+    if(MODE==='electron')ST.cur=WINBUILD;else getCur().then(sched);
     setTimeout(function(){check(false);},3500);
     document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')check(false);});}
   sched();}

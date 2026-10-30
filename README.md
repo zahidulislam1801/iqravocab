@@ -10,6 +10,7 @@ A vocabulary-learning web app for GRE and English learners, with Bengali support
 | `sw.js` | Service worker: fast repeat opens and offline use |
 | `manifest.webmanifest`, `icon-*.png`, `apple-touch-icon.png` | Install-to-home-screen support |
 | `firebase-messaging-sw.js` | Push notifications |
+| `LICENSE`, `robots.txt`, `sitemap.xml` | Licence and search-engine files |
 | `404.html` | Friendly page for broken links |
 | `og-image.png` | Preview image when the link is shared |
 | `privacy.html`, `terms.html` | Legal pages |
