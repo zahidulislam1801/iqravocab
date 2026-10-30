@@ -1,0 +1,61 @@
+name: Build Windows EXE
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    # Skip the build when only these files change (none of them go into the app)
+    paths-ignore:
+      - '**.md'
+      - '.nojekyll'
+      - '404.html'
+      - 'favicon.ico'
+      - 'og-image.png'
+      - 'sw.js'
+      - 'firebase-messaging-sw.js'
+      - '.github/workflows/validate.yml'
+      - '.github/dependabot.yml'
+
+# Needed to publish the Release at the end
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Copy web files and logo
+        run: |
+          Copy-Item index.html, manifest.webmanifest, logo.svg, privacy.html, terms.html desktop\
+          Copy-Item icon-512.png desktop\icon.png
+
+      - name: Build
+        working-directory: desktop
+        run: |
+          npm install
+          npm run dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: IQRA Vocab Windows
+          path: desktop/dist/IQRA-Vocab-Setup.exe
+
+      - name: Publish to Release (permanent download link)
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release view windows-latest *> $null
+          if ($LASTEXITCODE -eq 0) { gh release delete windows-latest --cleanup-tag -y }
+          $short = "${{ github.sha }}".Substring(0,7)
+          gh release create windows-latest desktop/dist/IQRA-Vocab-Setup.exe `
+            --title "IQRA Vocab Windows (latest)" `
+            --notes "Latest Windows installer. Build #${{ github.run_number }}, commit $short." `
+            --target "${{ github.sha }}"
