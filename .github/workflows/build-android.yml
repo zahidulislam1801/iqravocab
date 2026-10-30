@@ -94,6 +94,159 @@ jobs:
           open(p,'w',encoding='utf-8').write(s)
           PY
 
+      - name: Add in-app updater (optional, skipped safely if the project layout is unexpected)
+        run: |
+          mkdir -p /tmp/iqbak
+          python3 - <<'PY'
+          import glob, re, shutil, sys
+
+          man = 'android/app/src/main/AndroidManifest.xml'
+          paths = glob.glob('android/app/src/main/res/xml/file_paths.xml')
+          mains = glob.glob('android/app/src/main/java/**/MainActivity.java', recursive=True)
+          s = open(man, encoding='utf-8').read()
+          if len(mains) != 1 or not paths or 'fileprovider' not in s or 'cache-path' not in open(paths[0], encoding='utf-8').read():
+              print('::warning::In-app updater skipped: unexpected Android project layout')
+              sys.exit(0)
+          m = open(mains[0], encoding='utf-8').read()
+          if 'onCreate' in m or 'registerPlugin' in m:
+              print('::warning::In-app updater skipped: MainActivity was already customised')
+              sys.exit(0)
+          pk = re.search(r'^package\s+([\w.]+);', m, re.M).group(1)
+
+          shutil.copy(man, '/tmp/iqbak/AndroidManifest.xml')
+          shutil.copy(mains[0], '/tmp/iqbak/MainActivity.java')
+          open('/tmp/iqbak/main_path', 'w').write(mains[0])
+
+          plugin = mains[0].replace('MainActivity.java', 'IqUpdaterPlugin.java')
+          open('/tmp/iqbak/plugin_path', 'w').write(plugin)
+
+          open(plugin, 'w', encoding='utf-8').write('''package __PKG__;
+
+          import android.content.Context;
+          import android.content.Intent;
+          import android.net.Uri;
+          import android.os.Build;
+          import android.provider.Settings;
+          import androidx.core.content.FileProvider;
+          import com.getcapacitor.JSObject;
+          import com.getcapacitor.Plugin;
+          import com.getcapacitor.PluginCall;
+          import com.getcapacitor.PluginMethod;
+          import com.getcapacitor.annotation.CapacitorPlugin;
+          import java.io.File;
+          import java.io.FileOutputStream;
+          import java.io.InputStream;
+          import java.net.HttpURLConnection;
+          import java.net.URL;
+
+          @CapacitorPlugin(name = "IqUpdater")
+          public class IqUpdaterPlugin extends Plugin {
+
+              @PluginMethod
+              public void downloadAndInstall(final PluginCall call) {
+                  final String link = call.getString("url");
+                  if (link == null || !link.startsWith("https://github.com/")) {
+                      call.reject("bad-url");
+                      return;
+                  }
+                  final Context ctx = getContext();
+                  if (Build.VERSION.SDK_INT >= 26 && !ctx.getPackageManager().canRequestPackageInstalls()) {
+                      try {
+                          Intent s = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + ctx.getPackageName()));
+                          s.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                          ctx.startActivity(s);
+                      } catch (Exception e) {
+                      }
+                      JSObject r = new JSObject();
+                      r.put("status", "needs-permission");
+                      call.resolve(r);
+                      return;
+                  }
+                  new Thread(new Runnable() {
+                      @Override
+                      public void run() {
+                          HttpURLConnection c = null;
+                          try {
+                              File dir = new File(ctx.getCacheDir(), "updates");
+                              if (!dir.exists()) dir.mkdirs();
+                              File out = new File(dir, "IQRA-Vocab.apk");
+                              if (out.exists()) out.delete();
+                              c = (HttpURLConnection) new URL(link).openConnection();
+                              c.setInstanceFollowRedirects(true);
+                              c.setConnectTimeout(15000);
+                              c.setReadTimeout(30000);
+                              c.connect();
+                              if (c.getResponseCode() != 200) {
+                                  call.reject("http-" + c.getResponseCode());
+                                  return;
+                              }
+                              int total = c.getContentLength();
+                              InputStream in = c.getInputStream();
+                              FileOutputStream fo = new FileOutputStream(out);
+                              byte[] buf = new byte[65536];
+                              long done = 0;
+                              int last = -1;
+                              int n;
+                              while ((n = in.read(buf)) > 0) {
+                                  fo.write(buf, 0, n);
+                                  done += n;
+                                  if (total > 0) {
+                                      int pct = (int) (done * 100 / total);
+                                      if (pct != last) {
+                                          last = pct;
+                                          JSObject p = new JSObject();
+                                          p.put("percent", pct);
+                                          notifyListeners("progress", p);
+                                      }
+                                  }
+                              }
+                              fo.close();
+                              in.close();
+                              if (done < 1000000) {
+                                  out.delete();
+                                  call.reject("too-small");
+                                  return;
+                              }
+                              Uri uri = FileProvider.getUriForFile(ctx, ctx.getPackageName() + ".fileprovider", out);
+                              Intent i = new Intent(Intent.ACTION_VIEW);
+                              i.setDataAndType(uri, "application/vnd.android.package-archive");
+                              i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+                              ctx.startActivity(i);
+                              JSObject r = new JSObject();
+                              r.put("status", "installing");
+                              call.resolve(r);
+                          } catch (Exception e) {
+                              call.reject("failed");
+                          } finally {
+                              if (c != null) c.disconnect();
+                          }
+                      }
+                  }).start();
+              }
+          }
+          '''.replace('__PKG__', pk))
+
+          open(mains[0], 'w', encoding='utf-8').write('''package __PKG__;
+
+          import android.os.Bundle;
+          import com.getcapacitor.BridgeActivity;
+
+          public class MainActivity extends BridgeActivity {
+              @Override
+              public void onCreate(Bundle savedInstanceState) {
+                  registerPlugin(IqUpdaterPlugin.class);
+                  super.onCreate(savedInstanceState);
+              }
+          }
+          '''.replace('__PKG__', pk))
+
+          perm = '<uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />'
+          if 'REQUEST_INSTALL_PACKAGES' not in s:
+              s = s.replace('<application', '    ' + perm + '\n\n    <application', 1)
+              open(man, 'w', encoding='utf-8').write(s)
+          print('In-app updater added, package', pk)
+          PY
+
       - name: Add fixed signing key
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
@@ -126,7 +279,19 @@ jobs:
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          if ! ./gradlew assembleDebug; then
+            if [ -f /tmp/iqbak/plugin_path ]; then
+              echo "::warning::Build failed with the in-app updater. Retrying without it."
+              cd ..
+              cp /tmp/iqbak/AndroidManifest.xml android/app/src/main/AndroidManifest.xml
+              cp /tmp/iqbak/MainActivity.java "$(cat /tmp/iqbak/main_path)"
+              rm -f "$(cat /tmp/iqbak/plugin_path)"
+              cd android
+              ./gradlew assembleDebug
+            else
+              exit 1
+            fi
+          fi
 
       - name: Show app ID
         run: |
@@ -154,5 +319,5 @@ jobs:
           fi
           gh release create android-latest IQRA-Vocab.apk \
             --title "IQRA Vocab Android (latest)" \
-            --notes "Latest Android APK. Build #${{ github.run_number }}, commit ${GITHUB_SHA::7}." \
+            --notes "Latest Android APK. Build #${{ github.run_number }}, commit ${GITHUB_SHA::7}. iq-build=${{ github.run_number }}" \
             --target "$GITHUB_SHA"
