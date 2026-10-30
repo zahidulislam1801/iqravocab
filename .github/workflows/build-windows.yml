@@ -57,5 +57,5 @@ jobs:
           $short = "${{ github.sha }}".Substring(0,7)
           gh release create windows-latest desktop/dist/IQRA-Vocab-Setup.exe `
             --title "IQRA Vocab Windows (latest)" `
-            --notes "Latest Windows installer. Build #${{ github.run_number }}, commit $short." `
+            --notes "Latest Windows installer. Build #${{ github.run_number }}, commit $short. iq-build=${{ github.run_number }}" `
             --target "${{ github.sha }}"
