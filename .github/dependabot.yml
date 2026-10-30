@@ -1,0 +1,17 @@
+version: 2
+updates:
+  # Tells you when GitHub Actions used in the build files (checkout, setup-node, ...) have a new version
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+
+  # Optional: turn these on to also get update suggestions for the app's npm packages.
+  # - package-ecosystem: npm
+  #   directory: /
+  #   schedule:
+  #     interval: monthly
+  # - package-ecosystem: npm
+  #   directory: /desktop
+  #   schedule:
+  #     interval: monthly
