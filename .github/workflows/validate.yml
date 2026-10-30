@@ -1,0 +1,112 @@
+name: Validate app
+
+# Runs after every upload that touches the app files.
+# It does NOT stop GitHub Pages from publishing; it turns the run red
+# (and emails you) if something looks broken, so you can fix it quickly.
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'sw.js'
+      - 'manifest.webmanifest'
+      - 'firebase-messaging-sw.js'
+      - '.github/workflows/validate.yml'
+
+env:
+  # Fewer JSON data blocks than this means data may have been deleted. Raise it if you add more.
+  MIN_DATA_BLOCKS: 33
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Check the app
+        run: |
+          python3 - <<'PY'
+          import json, os, re, subprocess, sys, tempfile
+
+          errors, warns = [], []
+
+          def need(path):
+              if not os.path.isfile(path):
+                  errors.append(f"Missing file: {path} (the Android/Windows builds need it)")
+                  return False
+              return True
+
+          # 1. Files the app and the build workflows depend on
+          for f in ["index.html", "manifest.webmanifest", "logo.svg", "privacy.html", "terms.html",
+                    "apple-touch-icon.png", "icon-192.png", "icon-512.png", "icon-maskable-512.png",
+                    "sw.js", "firebase-messaging-sw.js"]:
+              need(f)
+          if not os.path.isfile("index.html"):
+              for e in errors: print(f"::error::{e}")
+              sys.exit(1)
+
+          # 2. index.html basics (catches half-uploaded files)
+          html = open("index.html", encoding="utf-8", errors="replace").read()
+          mb = os.path.getsize("index.html") / 1048576
+          print(f"index.html: {mb:.1f} MB")
+          if mb > 50:
+              warns.append(f"index.html is {mb:.0f} MB; very large files load slowly")
+          if not html.lstrip().lower().startswith("<!doctype html"):
+              errors.append("index.html does not start with <!doctype html>")
+          if not html.rstrip().lower().endswith(("</html>", "</body>", "</script>")):
+              errors.append("index.html ends in the middle of something (upload may be cut off)")
+          if "REPO-NAME" in html:
+              warns.append("index.html still contains REPO-NAME in the share-preview image link")
+
+          # 3. Every script: JSON must parse, JavaScript must have valid syntax
+          tmp = tempfile.mkdtemp()
+          js_ok = json_ok = 0
+          for n, (attrs, body) in enumerate(re.findall(r"<script([^>]*)>(.*?)</script>", html, re.S)):
+              m = re.search(r'id="([^"]+)"', attrs)
+              label = f"#{n}" + (f" ({m.group(1)})" if m else "")
+              if "application/json" in attrs:
+                  try:
+                      json.loads(body); json_ok += 1
+                  except Exception as e:
+                      errors.append(f"Data block {label} is not valid JSON: {e}")
+                  continue
+              t = re.search(r'type="([^"]+)"', attrs)
+              if (t and "module" not in t.group(1) and "javascript" not in t.group(1)) or not body.strip():
+                  continue
+              path = os.path.join(tmp, f"s{n}." + ("mjs" if t and "module" in t.group(1) else "js"))
+              open(path, "w", encoding="utf-8").write(body)
+              r = subprocess.run(["node", "--check", path], capture_output=True, text=True)
+              if r.returncode:
+                  line = next((l for l in r.stderr.splitlines() if "Error" in l), "syntax error")
+                  errors.append(f"Script {label} has a syntax error: {line}")
+              else:
+                  js_ok += 1
+          print(f"Scripts OK: {js_ok}, data blocks OK: {json_ok}")
+          minb = int(os.environ.get("MIN_DATA_BLOCKS", "0"))
+          if json_ok < minb:
+              errors.append(f"Only {json_ok} data blocks found, expected at least {minb}. Data may be missing.")
+
+          # 4. Other files
+          if os.path.isfile("manifest.webmanifest"):
+              try:
+                  json.load(open("manifest.webmanifest", encoding="utf-8"))
+              except Exception as e:
+                  errors.append(f"manifest.webmanifest is not valid JSON: {e}")
+          for f in ["sw.js", "firebase-messaging-sw.js"]:
+              if os.path.isfile(f):
+                  r = subprocess.run(["node", "--check", f], capture_output=True, text=True)
+                  if r.returncode:
+                      errors.append(f"{f} has a syntax error")
+
+          for w in warns: print(f"::warning::{w}")
+          for e in errors: print(f"::error::{e}")
+          print("RESULT:", "FAILED" if errors else "all checks passed")
+          sys.exit(1 if errors else 0)
+          PY
