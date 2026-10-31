@@ -32752,6 +32752,14 @@ html[data-theme="dark"] .iqs-ov{--iw-bg:#1B1913;--iw-head:#26231B;--iw-head2:#1F
 @keyframes iqsTipOut{from{opacity:1;transform:none}to{opacity:0;transform:translateY(-16px) scale(.95)}}
 @media(prefers-reduced-motion:reduce){.iqs-head .iqs-tip,.iqs-dots i{animation-duration:.01s}}
 </style>
+<style id="iq-chat-fix">
+/* chat fixes: search box wrapper (was clashing with the toggle-switch class), swipe-away banner, unseen-message dot beside the menu button */
+.iqs-swq{padding:8px 10px;flex:none}
+.iqs-ban{touch-action:none;-webkit-user-select:none;user-select:none}
+html.iqs-unseen .top .menubtn{position:relative}
+html.iqs-unseen .top .menubtn::after{content:"";position:absolute;top:6px;right:6px;width:10px;height:10px;border-radius:50%;background:#e0314b;border:2px solid var(--surface,#fff);box-sizing:content-box}
+.iqs-pf{cursor:pointer}
+</style>
 <script id="iq-support">
 /* ============================================================================================
    CONTACT ADMIN & SUPPORT CENTRE (window.IQSUP) · additive module, nothing existing is edited
@@ -33062,7 +33070,7 @@ function openInbox(jump){
     var tabs=mk('div',{class:'iqs-tabs'},[['open','Open'],['closed','Closed'],['blocked','Blocked'],['all','All']].map(function(x){return mk('button',{class:'iqs-tab'+(tab===x[0]?' on':''),type:'button',onclick:function(){tab=x[0];showList();}},x[1]);}));
     var list=mk('div',{class:'iqs-list'});
     w.box.append(mk('div',{class:'iqs-head'},mk('button',{class:'iqs-x',type:'button','aria-label':'Close',html:SV.x,onclick:close}),mk('div',{class:'iqs-av',html:SV.chat}),mk('div',{class:'iqs-ht'},mk('b',null,'Support chats'),mk('small',null,unread?unread+' waiting for a reply':'All replied')),
-      isMasterSigned()||isMasterUI()?mk('button',{class:'iqs-btn sm',type:'button',onclick:function(){close();openMaster('new');}},'New message'):null),tabs,mk('div',{class:'iqs-sw'},qi),list);
+      isMasterSigned()||isMasterUI()?mk('button',{class:'iqs-btn sm',type:'button',onclick:function(){close();openMaster('new');}},'New message'):null),tabs,mk('div',{class:'iqs-swq'},qi),list);
     function paintList(){var rows=threads().filter(function(t){if(tab==='open')return t.status!=='closed'&&t.status!=='blocked';if(tab==='all')return true;return t.status===tab;}).filter(function(t){return !q||((t.name||'')+' '+(t.email||t._k)).toLowerCase().indexOf(q)>-1;});
       list.replaceChildren.apply(list,rows.map(function(t){return mk('button',{class:'iqs-li'+(t.unreadAdmin?' un':''),type:'button',onclick:function(){showThread(t._k);}},
         mk('span',{class:'iqs-av'+(t.photo?' ph':'')},t.photo?mk('img',{src:t.photo,alt:''}):(t.name||t.email||'?').charAt(0).toUpperCase()),
@@ -33201,6 +33209,45 @@ function paintRows(){
 var LASTROW='';
 document.addEventListener('click',function(e){var r=e.target&&e.target.closest&&e.target.closest('.iqua-row');if(!r)return;var t=String(r.textContent||''),m=t.match(/[^\s@·]+@[^\s@·]+\.[^\s@·]+/);LASTROW=m?ekey(m[0]):'';},true);
 var raf=0;function sched(){if(raf)return;raf=requestAnimationFrame(function(){raf=0;try{paintRows();}catch(e){}});}
+
+/* ---------- added: unseen-message dot + bell entries, swipe-away banner, profile and history from the chat ---------- */
+var UNS='';
+function unseenN(){var n=(ME&&TH&&TH.unreadUser)?1:0;if(ME&&isAdmin())n+=ADMTH.filter(function(t){return t.unreadAdmin;}).length;return n;}
+function bellSync(){var I=window.IQINBOX;if(!I||!I.addLocal||!ME)return;
+  if(TH&&TH.unreadUser&&TH.lastAt)I.addLocal({id:'iqs_u_'+TH.lastAt,label:'Support chat',title:'The admin replied to you',text:String(TH.lastText||'Tap to open the chat').slice(0,160),color:'#2338c9',icon:'\u{1F4AC}',t:+TH.lastAt||Date.now()});
+  if(isAdmin())ADMTH.filter(function(t){return t.unreadAdmin&&t.lastAt;}).sort(function(a,b){return (b.lastAt||0)-(a.lastAt||0);}).slice(0,10).forEach(function(t){I.addLocal({id:'iqs_a_'+t._k+'_'+t.lastAt,label:'Support chat',title:t.name||t.email||t._k,text:String(t.lastText||'New message').slice(0,160),color:'#2338c9',icon:'\u{1F4AC}',t:+t.lastAt||Date.now()});});}
+function unseenSync(){var n=unseenN();document.documentElement.classList.toggle('iqs-unseen',n>0);
+  var sig=n+'|'+(TH&&TH.lastAt||'')+'|'+ADMTH.map(function(t){return t.unreadAdmin?t._k+t.lastAt:'';}).join('');
+  if(sig!==UNS){UNS=sig;if(n)try{bellSync();}catch(e){}}}
+var _pr=paintRows;paintRows=function(){_pr();try{unseenSync();}catch(e){}};
+/* tapping a chat entry in the bell list opens that chat */
+document.addEventListener('click',function(e){var c=e.target&&e.target.closest&&e.target.closest('.iqi-ov .iqi-c');if(!c||!ME)return;var lb=c.querySelector('.iqi-eb b');if(!lb||lb.textContent!=='Support chat')return;
+  var h4=c.querySelector('h4'),ti=h4?h4.textContent:'',key='';
+  if(isAdmin()&&ti!=='The admin replied to you'){var m=ADMTH.filter(function(t){return (t.name||t.email||t._k)===ti;})[0];key=m?m._k:'';}
+  var x=document.querySelector('.iqi-ov .iqi-x');if(x)x.click();
+  setTimeout(function(){if(key||(isAdmin()&&ti!=='The admin replied to you'))openInbox(key||undefined);else openChat();},300);},true);
+/* swipe a message banner away (left, right or up) */
+var SW=null,SWK=0;
+document.addEventListener('pointerdown',function(e){var b=e.target&&e.target.closest&&e.target.closest('.iqs-ban');if(!b||b.classList.contains('out'))return;SW={b:b,x:e.clientX,y:e.clientY,dx:0,dy:0,m:false,id:e.pointerId};try{b.setPointerCapture(e.pointerId);}catch(x){}},true);
+document.addEventListener('pointermove',function(e){if(!SW||e.pointerId!==SW.id)return;SW.dx=e.clientX-SW.x;SW.dy=e.clientY-SW.y;if(!SW.m&&Math.abs(SW.dx)+Math.abs(SW.dy)>8)SW.m=true;if(!SW.m)return;var u=Math.min(0,SW.dy);
+  SW.b.style.transition='none';SW.b.style.transform='translateX(calc(-50% + '+SW.dx+'px)) translateY('+u+'px)';SW.b.style.opacity=String(Math.max(.25,1-Math.max(Math.abs(SW.dx)/260,-u/90)));},true);
+function swEnd(e){if(!SW||(e&&e.pointerId!==SW.id))return;var s=SW;SW=null;if(!s.m)return;SWK=Date.now();
+  if(Math.abs(s.dx)>70||s.dy<-40){s.b.style.transition='transform .22s ease,opacity .22s';s.b.style.transform=Math.abs(s.dx)>=-s.dy?'translateX(calc(-50% + '+(s.dx>0?'120vw':'-120vw')+'))':'translateX(-50%) translateY(-140px)';s.b.style.opacity='0';s.b.classList.add('out');setTimeout(function(){s.b.remove();},230);}
+  else{s.b.style.transition='transform .2s ease,opacity .2s';s.b.style.transform='';s.b.style.opacity='';}}
+document.addEventListener('pointerup',swEnd,true);document.addEventListener('pointercancel',swEnd,true);
+document.addEventListener('click',function(e){if(Date.now()-SWK<450&&e.target&&e.target.closest&&e.target.closest('.iqs-ban')){e.stopPropagation();e.preventDefault();}},true);
+/* master: tap a person's photo or name in a chat (or the photo in the chat list) to see their profile and every recorded action - no need to open the master panel */
+function profileSheet(key,name,photo){if(!isMasterSigned())return;var w=overlay('adm mas prof'),pane=mk('div',{class:'iqs-mp'});
+  w.ov.__close=function(){w.ov.classList.remove('in');setTimeout(function(){w.ov.remove();},250);};
+  w.box.append(mk('div',{class:'iqs-head'},mk('button',{class:'iqs-x',type:'button','aria-label':'Close',html:SV.x,onclick:w.ov.__close}),mk('div',{class:'iqs-av'+(photo?' ph':'')},photo?mk('img',{src:photo,alt:''}):(name||key).charAt(0).toUpperCase()),mk('div',{class:'iqs-ht'},mk('b',null,name||key),mk('small',null,key))),pane);
+  userDetail(pane,{e:key,n:name||'',photo:photo||''},null);}
+var _cw=chatWindow;chatWindow=function(o){var r=_cw(o);
+  try{if(o&&o.role==='adm'&&isMasterSigned()){var t=(o.getThread&&o.getThread())||{};[].forEach.call(r.els[0].querySelectorAll('.iqs-av,.iqs-ht'),function(el){el.classList.add('iqs-pf');el.title='Open profile and history';el.addEventListener('click',function(){var t2=(o.getThread&&o.getThread())||t;profileSheet(o.key,t2.name,t2.photo);});});}}catch(e){}
+  return r;};
+document.addEventListener('click',function(e){var a=e.target&&e.target.closest&&e.target.closest('.iqs-ov.adm:not(.mas) .iqs-li .iqs-av');if(!a||!isMasterSigned())return;
+  var li=a.closest('.iqs-li'),b=li.querySelector('.iqs-lt b'),mu=li.querySelector('.iqs-lt small.iqs-mut');if(!b||!mu)return;
+  var key=ekey(mu.textContent.indexOf(' \u00b7 ')>-1?mu.textContent.split(' \u00b7 ')[0]:b.textContent),th=ADMTH.filter(function(t){return t._k===key;})[0]||{};
+  e.stopPropagation();e.preventDefault();profileSheet(key,th.name,th.photo);},true);
 
 /* ---------- start ---------- */
 function boot(){
