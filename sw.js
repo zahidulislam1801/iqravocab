@@ -1,7 +1,9 @@
 /* IQRA VOCAB service worker: instant repeat opens + offline use.
    Place next to index.html. Bump VERSION to force a clean cache after big updates. */
-var VERSION='iq-v1';
-var CORE=['./','index.html','manifest.webmanifest','icon-192.png'];
+var VERSION='iq-v2';
+var CORE=['./','index.html','manifest.webmanifest','icon-192.png',
+  'data/word-smart-1-and-2.js','data/magoosh-1000-and-manhattan-500.js','data/q-bank.js',
+  'data/501-sentence-completion.js','data/barrons-800-and-333.js','data/barrons-1100.js','data/gre-analogy.js'];
 var FONT_HOSTS=['fonts.googleapis.com','fonts.gstatic.com'];
 
 self.addEventListener('install',function(e){
@@ -21,24 +23,3 @@ self.addEventListener('fetch',function(e){
   if(r.method!=='GET')return;
   var u=new URL(r.url);
   if(u.protocol!=='http:'&&u.protocol!=='https:')return;
-  var same=u.origin===self.location.origin;
-  var font=FONT_HOSTS.indexOf(u.hostname)>-1;
-  if(!same&&!font)return;                       /* Firebase, APIs, auth: never touched */
-  if(same&&/firebase-messaging-sw\.js$/.test(u.pathname))return;
-  if(font){                                      /* fonts: cache first */
-    e.respondWith(caches.match(r).then(function(h){
-      return h||fetch(r).then(function(n){var c=n.clone();caches.open(VERSION).then(function(x){x.put(r,c);});return n;});
-    }));
-    return;
-  }
-  /* own files: show cached copy at once, refresh it in the background */
-  e.respondWith(caches.open(VERSION).then(function(cache){
-    return cache.match(r,{ignoreSearch:true}).then(function(hit){
-      var net=fetch(r).then(function(n){
-        if(n&&n.ok)cache.put(r,n.clone());
-        return n;
-      }).catch(function(){return hit||(r.mode==='navigate'?cache.match('index.html'):undefined);});
-      return hit||net;
-    });
-  }));
-});
