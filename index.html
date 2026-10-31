@@ -32711,6 +32711,47 @@ body:has(.iqs-ov) .adm-mfab,body:has(.iqs-ov) .adm-mpanel{display:none}
 .adm-mp-sep{height:1px;margin:4px 10px;background:var(--line,#DCE1EF)}
 .adm-mban{position:fixed;left:50%;top:calc(10px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:2147483000;max-width:calc(100vw - 24px);padding:8px 14px;border-radius:99px;background:var(--surface,#fff);border:1px solid var(--line,#DCE1EF);box-shadow:0 10px 30px -12px rgba(8,14,40,.45);font:600 12px/1.3 var(--f-ui,sans-serif);color:var(--ink-2,#47537A);text-align:center;pointer-events:none}
 </style>
+<style id="iq-chat-offwhite">
+/* off-white chat theme, smart send button, typing dots, top popup notice */
+.iqs-ov{--iw-bg:#F7F4EC;--iw-head:#FCFAF4;--iw-head2:#F0EADB;--iw-ink:#2A2418;--iw-mut:#8A826F;--iw-line:#E2DAC6;--iw-card:#FFFEFA;--iw-me1:#F1E9D7;--iw-me2:#E6DCC4;--iw-meln:#D8CCB0;--iw-bot:#F3F7ED;--iw-botln:#CFE0C4;--iw-in:#F1ECDF;--iw-focus:#B9AA85;--iw-btn1:#FDFBF6;--iw-btn2:#E9DFC8;--iw-btnln:#D3C6A6;--iw-sh:70,55,20}
+html[data-theme="dark"] .iqs-ov{--iw-bg:#1B1913;--iw-head:#26231B;--iw-head2:#1F1C15;--iw-ink:#F1ECDF;--iw-mut:#A39B86;--iw-line:#38342A;--iw-card:#262319;--iw-me1:#3B3627;--iw-me2:#332F21;--iw-meln:#4A4430;--iw-bot:#222A1F;--iw-botln:#34452F;--iw-in:#2B281F;--iw-focus:#8F825F;--iw-btn1:#3B3627;--iw-btn2:#2E2A1E;--iw-btnln:#4A4430;--iw-sh:0,0,0}
+@media(prefers-color-scheme:dark){html:not([data-theme="light"]) .iqs-ov{--iw-bg:#1B1913;--iw-head:#26231B;--iw-head2:#1F1C15;--iw-ink:#F1ECDF;--iw-mut:#A39B86;--iw-line:#38342A;--iw-card:#262319;--iw-me1:#3B3627;--iw-me2:#332F21;--iw-meln:#4A4430;--iw-bot:#222A1F;--iw-botln:#34452F;--iw-in:#2B281F;--iw-focus:#8F825F;--iw-btn1:#3B3627;--iw-btn2:#2E2A1E;--iw-btnln:#4A4430;--iw-sh:0,0,0}}
+.iqs-box{background:var(--iw-bg);color:var(--iw-ink)}
+.iqs-head{position:relative;z-index:5;background:linear-gradient(180deg,var(--iw-head),var(--iw-head2));color:var(--iw-ink);border-bottom:1px solid var(--iw-line);box-shadow:0 8px 22px -18px rgba(var(--iw-sh),.5)}
+.iqs-ht b{color:var(--iw-ink)}.iqs-ht small{color:var(--iw-mut);opacity:1}
+.iqs-x,.iqs-head .iqs-btn{background:rgba(var(--iw-sh),.08);color:var(--iw-ink)}
+.iqs-av{background:linear-gradient(135deg,var(--iw-card),var(--iw-me2));color:var(--iw-ink);box-shadow:0 0 0 2px var(--iw-meln)}
+.iqs-body{background:var(--iw-bg)}
+.iqs-m.me{background:linear-gradient(135deg,var(--iw-me1),var(--iw-me2));color:var(--iw-ink);border:1px solid var(--iw-meln)}
+.iqs-m.them{background:var(--iw-card);color:var(--iw-ink);border:1px solid var(--iw-line)}
+.iqs-m.bot{background:var(--iw-bot);color:var(--iw-ink);border:1px solid var(--iw-botln)}
+.iqs-m .iqs-tm,.iqs-m .iqs-who,.iqs-m .iqs-dur{color:var(--iw-mut);opacity:1}
+.iqs-sep span{background:var(--iw-card);border-color:var(--iw-line);color:var(--iw-mut)}
+.iqs-empty{background:var(--iw-card);border-color:var(--iw-line);color:var(--iw-ink)}
+.iqs-faq{background:linear-gradient(to top,var(--iw-bg) 52%,transparent)}
+.iqs-fq{background:var(--iw-card);border-color:var(--iw-line);color:var(--iw-ink);box-shadow:0 8px 18px -12px rgba(var(--iw-sh),.55)}
+.iqs-fq:hover{background:var(--iw-me1)}
+.iqs-comp{background:var(--iw-head);border-top:1px solid var(--iw-line);box-shadow:0 -10px 24px -20px rgba(var(--iw-sh),.5)}
+.iqs-ta{background:var(--iw-in);color:var(--iw-ink);box-shadow:inset 0 0 0 1px var(--iw-line)}
+.iqs-ta::placeholder{color:var(--iw-mut)}
+.iqs-ta:focus{background:var(--iw-card);border-color:var(--iw-focus);box-shadow:0 0 0 4px rgba(var(--iw-sh),.08)}
+.iqs-ov .iqs-send{flex:none;align-self:flex-end;width:44px;height:44px;min-width:44px;min-height:44px;padding:0;margin:0;border-radius:50%;display:grid;place-items:center;line-height:0;background:linear-gradient(145deg,var(--iw-btn1),var(--iw-btn2));color:var(--iw-ink);border:1px solid var(--iw-btnln);box-shadow:0 8px 16px -8px rgba(var(--iw-sh),.55),inset 0 1px 0 rgba(255,255,255,.55);transition:transform .15s,opacity .2s}
+.iqs-ov .iqs-send svg{display:block;width:20px!important;height:20px!important}
+.iqs-ov .iqs-send:active{transform:scale(.92)}
+.iqs-ta:placeholder-shown~.iqs-send{opacity:.5}
+.iqs-typing{padding:9px 14px 8px}
+.iqs-dots{display:flex;gap:5px;padding:7px 2px 5px}
+.iqs-dots i{width:7px;height:7px;border-radius:50%;background:var(--iw-mut);opacity:.4;animation:iqsDot 1.1s ease-in-out 4}
+.iqs-dots i:nth-child(2){animation-delay:.18s}.iqs-dots i:nth-child(3){animation-delay:.36s}
+@keyframes iqsDot{0%,60%,100%{transform:none;opacity:.35}30%{transform:translateY(-4px);opacity:1}}
+.iqs-head .iqs-tip{position:absolute;left:12px;right:12px;top:calc(100% + 10px);z-index:6;display:flex;align-items:flex-start;gap:10px;padding:11px 14px;border-radius:16px;background:var(--iw-card);color:var(--iw-ink);border:1px solid var(--iw-line);border-left:3px solid #C9A24A;box-shadow:0 18px 36px -18px rgba(var(--iw-sh),.65);font:500 .78rem/1.45 var(--f-ui,sans-serif);cursor:pointer;animation:iqsTipIn .5s .3s cubic-bezier(.2,.9,.3,1.15) both}
+.iqs-head .iqs-tip[hidden]{display:none}
+.iqs-head .iqs-tip.out{animation:iqsTipOut .38s ease-in forwards}
+.iqs-head .iqs-tip i{color:#B58A2A}
+@keyframes iqsTipIn{from{opacity:0;transform:translateY(-16px) scale(.95)}to{opacity:1;transform:none}}
+@keyframes iqsTipOut{from{opacity:1;transform:none}to{opacity:0;transform:translateY(-16px) scale(.95)}}
+@media(prefers-reduced-motion:reduce){.iqs-head .iqs-tip,.iqs-dots i{animation-duration:.01s}}
+</style>
 <script id="iq-support">
 /* ============================================================================================
    CONTACT ADMIN & SUPPORT CENTRE (window.IQSUP) · additive module, nothing existing is edited
@@ -32889,6 +32930,8 @@ function sendUser(m){
     b.set(f.fs.doc(C(f,'support',key,'msgs')),msg);
     var bot=m.bot;if(bot)b.set(f.fs.doc(C(f,'support',key,'msgs')),{from:'bot',kind:'text',text:bot,at:now+1,name:'IQRA assistant',expireAt:th.expireAt});
     return b.commit();});}
+function sendBot(text){return load().then(function(f){var now=Date.now(),key=ME.email,b=f.fs.writeBatch(f.db);
+    b.set(f.fs.doc(C(f,'support',key,'msgs')),{from:'bot',kind:'text',text:text,at:now,name:'IQRA assistant',expireAt:expireFor(TH||null,now)});return b.commit();});}
 function sendAdmin(key,m,tOld){
   return load().then(function(f){var now=Date.now(),t=tOld||{};
     var th=threadBase(f,key,t,now,{lastFrom:'admin',lastText:m.kind==='text'?String(m.text).slice(0,90):(m.kind==='image'?'📷 Photo':'🎤 Voice message'),pending:0,unreadAdmin:false,unreadUser:true,status:'open'});
@@ -32931,7 +32974,7 @@ function chatWindow(o){
     c.append(mk('small',{class:'iqs-tm'},fmtT(m.at)));return c;}
   function paint(){var near=body.scrollHeight-body.scrollTop-body.clientHeight<120||!body.children.length;body.replaceChildren();
     if(!msgs.length)body.append(mk('div',{class:'iqs-empty'},role==='user'?mk('div',null,mk('b',null,'How can we help?'),mk('p',null,'Ask a question or report a problem. Quick answers appear instantly; the admin replies personally when needed.')):mk('p',null,'No messages yet.')));
-    var ld='';msgs.forEach(function(m){var dk=dayKey(m.at);if(dk!==ld){ld=dk;body.append(mk('div',{class:'iqs-sep'},mk('span',null,dayLabel(m.at))));}body.append(bubble(m));});if(near)body.scrollTop=body.scrollHeight;state();}
+    var ld='';msgs.forEach(function(m){var dk=dayKey(m.at);if(dk!==ld){ld=dk;body.append(mk('div',{class:'iqs-sep'},mk('span',null,dayLabel(m.at))));}body.append(bubble(m));});if(typEl)body.append(typEl);if(near||typEl)body.scrollTop=body.scrollHeight;state();}
   function state(){var t=o.getThread&&o.getThread()||{},pend=(+t.pending||0);var lock=false,msg='';
     if(role==='user'){if(pend>=MAXPEND){lock=true;msg='You have sent '+MAXPEND+' messages. Please wait until an admin replies before sending more.';}
       else if(t.status==='closed')msg='This chat was closed by the admin. Send a message to open it again.';}
@@ -32958,15 +33001,21 @@ function chatWindow(o){
     rs=recorder(function(data,dur){recUI(false);sendMedia({kind:'voice',data:data,dur:dur});},function(){recUI(false);});
     if(rs){var cx=mk('button',{class:'iqs-btn ghost sm',type:'button',onclick:function(){clearInterval(timer);rs&&rs.cancel&&rs.cancel();recUI(false);}},'Cancel'),sd=mk('button',{class:'iqs-btn sm',type:'button',onclick:function(){clearInterval(timer);rs&&rs.stop&&rs.stop();rec.replaceChildren(mk('span',null,'Sending…'));}},'Send');
       rec.append(cx,sd);var rt=rec.querySelector('.iqs-rt');clearInterval(timer);timer=setInterval(function(){if(!rs||!rs.t0)return;var s=Math.floor((Date.now()-rs.t0)/1000);rt.textContent=Math.floor(s/60)+':'+('0'+(s%60)).slice(-2);if(s>=60){clearInterval(timer);rs.stop();}},300);}}});
-  var composer=mk('div',{class:'iqs-comp'},rec,mk('div',{class:'iqs-row'},ta,mk('button',{class:'iqs-send',type:'button','aria-label':'Send',html:SV.send,onclick:submitText})));
+  var composer=mk('div',{class:'iqs-comp'},rec,mk('div',{class:'iqs-row'},ta,mk('button',{class:'iqs-send',type:'button','aria-label':'Send',html:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2 11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg>',onclick:submitText})));
   var head=mk('div',{class:'iqs-head'},mk('button',{class:'iqs-x',type:'button','aria-label':role==='adm'?'Back':'Close',html:role==='adm'?SV.back:SV.x,onclick:function(){o.onClose();}}),
     mk('div',{class:'iqs-av'+(o.photo?' ph':'')},o.photo?mk('img',{src:o.photo,alt:''}):(o.title||'A').charAt(0).toUpperCase()),mk('div',{class:'iqs-ht'},mk('b',null,o.title),mk('small',null,o.sub)));
   var extra=o.extraHead?o.extraHead(head):null;
   var tip=null,faq=null;
-  function askFaq(q){if(busy)return;var a=assistant(q);busy=true;sendUser({kind:'text',text:q,bot:a?a.a:'Please type your question below and the admin will reply.',fwd:false}).catch(fail).then(function(){busy=false;});}
+  var typEl=null;
+  function tipOff(){var t=tip;if(!t||t.__off)return;t.__off=1;t.classList.add('out');setTimeout(function(){t.remove();if(tip===t)tip=null;},400);}
+  function askFaq(q){if(busy)return;busy=true;var a=assistant(q),txt=a?a.a:'Please type your question below and the admin will reply.';
+    sendUser({kind:'text',text:q,fwd:false}).then(function(){
+      typEl=mk('div',{class:'iqs-m bot iqs-typing','aria-label':'IQRA assistant is typing'},mk('small',{class:'iqs-who'},'IQRA assistant \u00b7 typing'),mk('div',{class:'iqs-dots'},mk('i'),mk('i'),mk('i')));
+      paint();return new Promise(function(r){setTimeout(r,1000+Math.round(Math.random()*500));});
+    }).then(function(){typEl=null;return sendBot(txt);}).catch(function(e){typEl=null;paint();fail(e);}).then(function(){busy=false;});}
   if(role==='user'){faq=mk('div',{class:'iqs-faq',role:'group','aria-label':'Quick questions'},FAQQ.map(function(q){return mk('button',{class:'iqs-fq',type:'button',onclick:function(){askFaq(q);}},q);}));
-    tip=mk('div',{class:'iqs-tip'},mk('i',{html:SV.chat}),mk('span',null,'Please write your detailed query precisely in one message. You can send up to '+MAXPEND+' messages until the admin replies.'));body.classList.add('has-faq');}
-  var el=[head,extra,body,faq,tip,note,composer].filter(Boolean);
+    tip=mk('div',{class:'iqs-tip'},mk('i',{html:SV.chat}),mk('span',null,'Please write your detailed query precisely in one message. You can send up to '+MAXPEND+' messages until the admin replies.'));tip.addEventListener('click',tipOff);head.append(tip);setTimeout(tipOff,7500);body.classList.add('has-faq');}
+  var el=[head,extra,body,faq,note,composer].filter(Boolean);
   var un=null;
   function listen(){return load().then(function(f){un=f.fs.onSnapshot(C(f,'support',key,'msgs'),function(s){msgs=[];s.forEach(function(d){var x=d.data()||{};x._id=d.id;msgs.push(x);});msgs.sort(function(a,b){return (a.at||0)-(b.at||0);});paint();},function(){});});}
   listen().catch(function(){});
