@@ -16,11 +16,17 @@ function who(f){return new Promise(function(r){var un=f.au.onAuthStateChanged(f.
 function logo(r,msg){r.innerHTML='';r.append(E('div',{class:'q-c',style:'text-align:center;padding-top:20vh'},E('img',{src:'/quiz-logo.png',style:'max-width:180px;max-height:180px',onerror:function(){this.remove();}}),E('div',{class:'q-w'},'IQRA QUIZ'),msg?E('p',{class:'q-m'},msg):null));}
 function gate(){
   var k=new URLSearchParams(location.search).get('k');
-  document.open();document.write('<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>IQRA Quiz</title></head><body></body></html>');document.close();
-  document.head.append(E('style',null,CSS));var r=document.body.appendChild(E('div'));
-  if(!k||!/^[a-z0-9]{6,20}$/i.test(k))return logo(r);
-  logo(r,'Loading…');
-  fb().then(function(f){return f.fs.getDoc(f.fs.doc(f.db,'qlinks',k)).then(function(s){if(!s.exists())throw 0;var L=s.data();if(!L.on||(L.exp&&L.exp<Date.now()))throw 0;intro(r,f,k,L);});}).catch(function(){logo(r,'This link is not active.');});
+  try{window.stop();}catch(e){}
+  /* replace the page one tick later, after the parser has been stopped */
+  setTimeout(function(){
+    var de=document.documentElement,hd=document.createElement('head'),bd=document.createElement('body');
+    hd.append(E('meta',{charset:'utf-8'}),E('meta',{name:'viewport',content:'width=device-width,initial-scale=1'}),E('title',null,'IQRA Quiz'),E('style',null,CSS));
+    while(de.firstChild)de.removeChild(de.firstChild);de.append(hd,bd);var r=bd.appendChild(E('div'));
+    try{navigator.serviceWorker&&navigator.serviceWorker.getRegistrations().then(function(a){a.forEach(function(x){x.unregister();});});}catch(e){}
+    if(!k||!/^[a-z0-9]{6,20}$/i.test(k))return logo(r);
+    logo(r,'Loading…');
+    fb().then(function(f){return f.fs.getDoc(f.fs.doc(f.db,'qlinks',k)).then(function(s){if(!s.exists())throw 0;var L=s.data();if(!L.on||(L.exp&&L.exp<Date.now()))throw 0;intro(r,f,k,L);});}).catch(function(){logo(r,'This link is not active.');});
+  },0);
 }
 function intro(r,f,k,L){
   r.innerHTML='';var box=E('div'),card=E('div',{class:'q-card'},E('h2',null,L.title),L.desc?E('p',{class:'q-m'},L.desc):null,E('p',{class:'q-m'},L.q.length+' questions'+(L.s.tm?' · '+L.s.tm+' min':'')),box);
