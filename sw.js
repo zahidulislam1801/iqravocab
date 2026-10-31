@@ -21,3 +21,24 @@ self.addEventListener('fetch',function(e){
   if(r.method!=='GET')return;
   var u=new URL(r.url);
   if(u.protocol!=='http:'&&u.protocol!=='https:')return;
+  var same=u.origin===self.location.origin;
+  var font=FONT_HOSTS.indexOf(u.hostname)>-1;
+  if(!same&&!font)return;                       /* Firebase, APIs, auth: never touched */
+  if(same&&/firebase-messaging-sw\.js$/.test(u.pathname))return;
+  if(font){                                      /* fonts: cache first */
+    e.respondWith(caches.match(r).then(function(h){
+      return h||fetch(r).then(function(n){var c=n.clone();caches.open(VERSION).then(function(x){x.put(r,c);});return n;});
+    }));
+    return;
+  }
+  /* own files: show cached copy at once, refresh it in the background */
+  e.respondWith(caches.open(VERSION).then(function(cache){
+    return cache.match(r,{ignoreSearch:true}).then(function(hit){
+      var net=fetch(r).then(function(n){
+        if(n&&n.ok)cache.put(r,n.clone());
+        return n;
+      }).catch(function(){return hit||(r.mode==='navigate'?cache.match('index.html'):undefined);});
+      return hit||net;
+    });
+  }));
+});
