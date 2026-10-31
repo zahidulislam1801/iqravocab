@@ -1,9 +1,7 @@
 /* IQRA VOCAB service worker: instant repeat opens + offline use.
    Place next to index.html. Bump VERSION to force a clean cache after big updates. */
-var VERSION='iq-v2';
-var CORE=['./','index.html','manifest.webmanifest','icon-192.png',
-  'data/word-smart-1-and-2.js','data/magoosh-1000-and-manhattan-500.js','data/q-bank.js',
-  'data/501-sentence-completion.js','data/barrons-800-and-333.js','data/barrons-1100.js','data/gre-analogy.js'];
+var VERSION='iq-v3';
+var CORE=['./','index.html','manifest.webmanifest','icon-192.png'];
 var FONT_HOSTS=['fonts.googleapis.com','fonts.gstatic.com'];
 
 self.addEventListener('install',function(e){
