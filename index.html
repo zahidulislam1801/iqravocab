@@ -2289,7 +2289,7 @@ const MODES={
  a4:{w:595.28,h:841.89,name:'A4',def:{word:24,mean:11,ex:10.5},min:{word:16,mean:8,ex:8},max:{word:44,mean:18,ex:18}},
  book:{w:419.53,h:595.28,name:'Booklet (A5)',def:{word:18,mean:9,ex:8.5},min:{word:12,mean:6.5,ex:6.5},max:{word:32,mean:14,ex:14}}};
 const store={get(k,d){try{const v=localStorage.getItem('pdf.'+k);return v==null?d:JSON.parse(v);}catch(e){return d;}},set(k,v){try{localStorage.setItem('pdf.'+k,JSON.stringify(v));}catch(e){}}};
-const st={mode:store.get('mode','a4'),color:store.get('color',false),theme:THEMES.find(t=>t.id===store.get('theme','classic'))||THEMES[0],fold:store.get('fold',true),m:store.get('m',1),adj:store.get('adj',{}),pn:store.get('pn','cont'),pass:store.get('pass',true)};
+const st={mode:store.get('mode','a4'),color:store.get('color',false),theme:THEMES.find(t=>t.id===store.get('theme','classic'))||THEMES[0],fold:store.get('fold',true),m:store.get('m',1),adj:store.get('adj',{}),pn:store.get('pn','cont'),pass:store.get('pass',true),qr:store.get('qr',true)};
 /* master scale x per-section tweak: sizes keep their ratio when the master moves */
 const KEYS=['word','mean','ex'];
 const sizes=()=>{const d=MODES[st.mode].def,a=st.adj[st.mode]||{},o={};KEYS.forEach(k=>o[k]=d[k]*st.m*(a[k]||1));return o;};
@@ -2450,6 +2450,17 @@ function paginate(c){
  else pages.forEach((p,i)=>{p.no=i+1;p.of=pages.length;});
  return pages;
 }
+/* quiz QR on page 1 (top right of the header): a white rounded plate, the code drawn as crisp vector squares, and a two-line caption */
+function qrBadge(c,Q,x,y,s,k,P,T){
+ const n=Q.n,pd=3.2*k,u=(s-2*pd)/(n+2),ox=x+pd+u,oy=y+pd+u,ov=u*.04;
+ shape(c,{x,y,w:s,h:s,r:4.2*k,fill:'#ffffff',stroke:P.line,lw:.6*k});
+ for(let r=0;r<n;r++){const row=Q.m[r];let a=-1;for(let q=0;q<=n;q++){const on=q<n&&row[q];if(on&&a<0)a=q;else if(!on&&a>=0){shape(c,{x:ox+a*u,y:oy+r*u,w:(q-a)*u+ov,h:u+ov,fill:'#0b1220'});a=-1;}}}
+ if(T){const cx=x+s/2;c.textAlign='center';c.fillStyle=P.brand;
+  if(k<.9){c.font=`700 4.4px ${F.ui}`;ls(c,.3);c.fillText('SCAN TO ATTEND REAL QUIZ',cx,y+s+6.8);}
+  else{c.font=`700 ${5.2*k}px ${F.ui}`;ls(c,.45*k);c.fillText('ATTEND REAL QUIZ',cx,y+s+7.4*k);
+   c.fillStyle=P.lab;c.font=`600 ${4.5*k}px ${F.ui}`;ls(c,.15*k);c.fillText('by scanning this QR code',cx,y+s+13.4*k);}
+  ls(c,0);c.textAlign='left';}
+}
 function paint(c,ox,S,pi,pages,P,im,oy){
  const{M,k,mx,hl,foot}=dims(),W=M.w,H=M.h,pg=pages[pi],sec=pg.sec,sz=sizes(),cw=W-2*mx,L=LAYER,
   T=L==='all'||L==='txt',BGL=L==='all'||L==='back';
@@ -2478,9 +2489,16 @@ function paint(c,ox,S,pi,pages,P,im,oy){
  /* header: logo (left) - set number (middle, Times New Roman bold) - book name (right) */
  const ls0=34*k;
  if(T)lockup(c,mx*.55,15*k,ls0,P.L,true);
+ const QRV=(pi===0&&st.qr!==false&&DOC&&DOC.qrUrl&&window.IQQL)?(()=>{try{return IQQL.matrix(DOC.qrUrl);}catch(e){return null;}})():null,QRP=Math.max(46*k,36),RX=W-mx*.55-(QRV?QRP+9*k:0);
  if(T){c.textAlign='center';c.fillStyle=P.ink;c.font=`700 ${26*k}px ${TNR}`;ls(c,0);c.fillText(sec.label,W/2,hl*.64);
-  c.textAlign='right';c.fillStyle=P.brand;c.font=`700 ${8*k}px ${F.ui}`;ls(c,1.6*k);c.fillText(DOC.book.toUpperCase(),W-mx*.55,hl*.46);
-  c.fillStyle=P.lab;c.font=`600 ${7.6*k}px ${F.ui}`;ls(c,1.2*k);c.fillText(sec.sub,W-mx*.55,hl*.46+11*k);ls(c,0);c.textAlign='left';}
+  const lw=QRV?c.measureText(sec.label).width:0,room=QRV?Math.max(30*k,RX-(W/2+lw/2)-8*k):0;
+  const fit=(txt,sz,sp,wt)=>{if(!QRV)return[sz,sp];c.font=`${wt} ${sz}px ${F.ui}`;ls(c,sp);const w=c.measureText(String(txt||'')).width;if(w<=room)return[sz,sp];const f=Math.max(.62,room/w);return[sz*f,sp*f];};
+  c.textAlign='right';c.fillStyle=P.brand;
+  {const bk=DOC.book.toUpperCase(),bf=fit(bk,8*k,1.6*k,700);c.font=`700 ${bf[0]}px ${F.ui}`;ls(c,bf[1]);c.fillText(bk,RX,hl*.46);}
+  c.fillStyle=P.lab;
+  {const sf=fit(sec.sub,7.6*k,1.2*k,600);c.font=`600 ${sf[0]}px ${F.ui}`;ls(c,sf[1]);c.fillText(sec.sub,RX,hl*.46+11*k);}
+  ls(c,0);c.textAlign='left';}
+ if(QRV)qrBadge(c,QRV,W-mx*.55-QRP,3*k,QRP,k,P,T);
  shape(c,{x:mx*.55,y:hl,w:W-mx*1.1,h:1.1*k,fill:P.frame});
  if(L==='all'||L==='txt'||L==='rec')pg.e.forEach(({it,y,part,cont})=>{if(it.k==='day')drawDay(c,it,mx,y,cw,sz,P);else if(it.k==='p')entry(c,it.w,0,mx,y,cw,sz,P,true,'B',false);else entry(c,it.w,it.n-1,mx,y,cw,sz,P,true,part,cont);});
  /* footer: e-mail on the left, page number on the right, same line */
@@ -2707,6 +2725,7 @@ function makeDoc(spec,cx,sel){
  const secs=ss.map(s=>spec.k==='bar'?barSec(s+1,st.pass):wsSec(spec.fi,s));
  DOC={book:cx.book,ref:cx.ref,secs,title:cx.book+(ss.length?' - '+cx.unit+(ss.length>1?'s ':' ')+rangeTxt(ss):''),
   words:secs.reduce((a,s)=>a+s.items.filter(i=>i.k==='w'&&i.n>0).length,0)};
+ try{DOC.qrUrl=window.IQQL&&IQQL.pdfUrl?IQQL.pdfUrl(spec,ss):'';}catch(e){DOC.qrUrl='';}
  DOC.file=cx.ref+'_'+(ss.length?cx.unit.toLowerCase()+(ss.length>1?'s':'')+(ss.length>1&&ss.every((v,i)=>!i||v===ss[i-1]+1)?(ss[0]+1)+'-'+(ss[ss.length-1]+1):ss.length>1?'-'+ss.length+'x':String(ss[0]+1)):'empty');
  return DOC;}
 
@@ -2749,7 +2768,7 @@ function openPanel(spec){
  function toIdle(){stat.classList.remove('ok');stat.textContent=sel.length?'':'Choose at least one '+cx.unit.toLowerCase()+' to create a PDF.';ring.hidden=true;if(typeof dl!=='undefined'){dl.firstChild.innerHTML=ICON_GEN;dl.lastChild.textContent='Generate PDF';if(!dl.dataset.busy)dl.disabled=!sel.length;}}
 
  let job=null,pt=0;
- const sigOf=()=>JSON.stringify([st.mode,st.color,st.color?st.theme.id:0,st.fold,st.m,st.adj[st.mode]||0,sel,st.pn,isBar?st.pass:0,IQV31.sig('pdf')]);
+ const sigOf=()=>JSON.stringify([st.mode,st.color,st.color?st.theme.id:0,st.fold,st.m,st.adj[st.mode]||0,sel,st.pn,isBar?st.pass:0,st.qr,IQV31.sig('pdf')]);
  function startJob(){
   if(!sel.length)return null;
   const sg=sigOf();if(job&&job.sig===sg)return job;if(job)job.abort=true;
@@ -2799,6 +2818,7 @@ function openPanel(spec){
  const resetBtn=el('button',{class:'vc-chip',onclick:()=>{st.m=1;st.adj={};store.set('m',1);store.set('adj',{});sync();redraw();}},'Reset all sizes to default');
  const fineBox=el('div',{class:'vc-finebox',hidden:true},sliders,el('div',{style:'margin-top:6px'},resetBtn));
  const fineBtn=el('button',{class:'vc-chip vc-fine',type:'button','aria-expanded':'false','aria-label':'Individual font sizes',title:'Individual font sizes',onclick:()=>{const o=fineBox.hidden;fineBox.hidden=!o;fineBtn.setAttribute('aria-expanded',String(o));}},el('span',{html:ICON_TUNE,style:'display:inline-flex'}),'Fine-tune');
+ const qrSw=el('button',{class:'vc-sw',role:'switch','aria-checked':String(st.qr!==false),onclick:()=>{st.qr=!(st.qr!==false);qrSw.setAttribute('aria-checked',String(st.qr));store.set('qr',st.qr);sync();redraw();}},el('b',null,'Quiz QR code on the first page (scan to attend this quiz online)'),el('i'));
  const foldSw=el('button',{class:'vc-sw',role:'switch','aria-checked':String(st.fold),onclick:()=>{st.fold=!st.fold;foldSw.setAttribute('aria-checked',String(st.fold));store.set('fold',st.fold);redraw();}},el('b',null,'Ready-to-fold sheets (A4 landscape, 2 pages per side, print on both sides)'),el('i'));
  const note=el('p',{class:'vc-note'});
  function sync(){mR.value=Math.round(st.m*100);mOut.textContent=Math.round(st.m*100)+'%';setP(mR);Object.values(rows).forEach(f=>f());themeSec.hidden=!st.color;foldSw.hidden=st.mode!=='book';
@@ -2823,7 +2843,7 @@ function openPanel(spec){
   el('div',{class:'vc-body'},
    el('div',{class:'vc-stage'},pvw,el('div',{class:'pdf-nav'},prev,pn,next),info),
    el('div',{class:'vc-ctl'},
-    chooser,pnSec,passSw,
+    chooser,pnSec,passSw,qrSw,
     el('div',{class:'vc-sec'},el('label',null,'Print size'),seg([['a4','A4 print'],['book','Booklet']],()=>st.mode,v=>{st.mode=v;store.set('mode',v);cur=0;})),foldSw,note,
     el('div',{class:'vc-sec'},el('label',null,'Colour'),seg([[false,'Black & white'],[true,'Colourful']],()=>st.color,v=>{st.color=v;store.set('color',v);})),themeSec,
     el('div',{class:'vc-sec'},el('div',{class:'vc-reshead'},el('label',null,'Font size'),mOut),el('div',{class:'vc-master'},mR,fineBtn),fineBox),
@@ -3773,6 +3793,7 @@ function patchWord(o,pt){if(!pt)return;if(pt.w!=null)o.w=String(pt.w).toUpperCas
 var IQADM=window.IQADM={
   unlocked:function(){return can('unlock');},
   isMaster:function(){return !!(SESSION&&SESSION.role==='master');},
+  isAdminEmail:function(e){e=String(e||'').trim().toLowerCase();if(!e)return false;try{if(masters().some(function(m){return String(m.e||'').toLowerCase()===e;}))return true;return (ST.admins||[]).some(function(a){return String(a.e||'').toLowerCase()===e;});}catch(x){return false;}},
   vf:function(){return ST.vf||(ST.vf={});},vfSave:function(v){ST.vf=v;save();},bakeJSON:function(){return JSON.stringify(ST);},
   extendFolders:function(F){
     try{
@@ -7595,7 +7616,7 @@ function quizPanel(){
     h('div',null,
       h('div',{class:'qzl'},h('span',null,'4 \u00b7 Question types')),
       h('div',{class:'qztypes'},typeBtns)),
-    h('div',{class:'qzgo'},h('div',null,sum,sub),go_));
+    h('div',{class:'qzgo'},h('div',null,sum,sub),go_),window.IQQL&&IQQL.adminRow?IQQL.adminRow(cfg,CUR):null);
   const box=h('div',{class:'mtbox'+(S.qOpen?' open':'')},h('div',{class:'mtinner'},panel));
   box.inert=!S.qOpen;sync();
   return box;
@@ -10006,7 +10027,7 @@ async function makePdf(mode,d,prog){await fontsReady();const s=SPEC[mode],np=pai
  const dt=new Date().toISOString().replace(/[-:T]/g,'').slice(0,14);pdf.put(inf,'/Title('+(s.n+' - IQRA Vocab').replace(/[()\\]/g,'')+')/Author(Md. Zahidul Islam Rakib)/Producer(IQRA Vocab)/CreationDate(D:'+dt+')');return pdf.build(cat)}
 /* ---------- overlay ---------- */
 let openOv=null;
-function openPanel(mode,preset,scope,opt){if(openOv)return;const st={mode,page:0,scope:scope==null?null:scope,name:WN(),inst:WI(),sets:preset?preset.slice():(mode==='cert'?examSets():dataSets().filter(s=>pass(acc(s)))),busy:false,url:null,fmt:(opt&&opt.fmt)||'pdf',bp:(opt&&opt.bypass)||null};if(!st.sets.length&&!preset&&mode!=='cert')st.sets=dataSets();
+function openPanel(mode,preset,scope,opt){if(openOv)return;try{if((mode==='cert'||mode==='master')&&window.IQQL&&IQQL.certGate&&IQQL.certGate())return;}catch(e){}const st={mode,page:0,scope:scope==null?null:scope,name:WN(),inst:WI(),sets:preset?preset.slice():(mode==='cert'?examSets():dataSets().filter(s=>pass(acc(s)))),busy:false,url:null,fmt:(opt&&opt.fmt)||'pdf',bp:(opt&&opt.bypass)||null};if(!st.sets.length&&!preset&&mode!=='cert')st.sets=dataSets();
  const pv=E('div',{class:'iqc-pv'}),pn=E('span'),nav=E('div',{class:'iqc-nav'}),stt=E('div',{class:'iqc-stt'}),fn=E('div',{class:'iqc-fn'}),gen=E('button',{class:'iqc-btn p',type:'button'},ico('pdf'),'Generate PDF'),sv=E('div',{style:'display:none;gap:8px;grid-template-columns:1fr 1fr'});
  const ring=E('div',{class:'iqc-ring',html:'<svg viewBox="0 0 46 46"><circle cx="23" cy="23" r="19" fill="none" stroke="#e1e6f3" stroke-width="4"/><circle id="iqa" cx="23" cy="23" r="19" fill="none" stroke="#0DBE76" stroke-width="4" stroke-linecap="round" stroke-dasharray="119.4" stroke-dashoffset="119.4" transform="rotate(-90 23 23)"/></svg><b>0%</b>'});
  const mk=()=>E('div',{class:'iqc-ov',role:'dialog','aria-modal':'true','aria-label':'Certificate and reports'});const ov=mk();ov._bp=!!st.bp;
@@ -10143,6 +10164,14 @@ applyFs();
 initSearch();
 touchDay();
 render();
+window.__IQQLB={start:function(fid,sets,o){var k=-1,i,s;for(i=0;i<FOLDERS.length;i++){if(FOLDERS[i]&&FOLDERS[i].id===fid){k=i;break;}}
+  if(k<0)return{ok:false,why:'folder'};useFolder(k);o=o||{};var ok=[];
+  if(sets&&sets.length){sets.forEach(function(x){if(Number.isInteger(x)&&x>=0&&x<SETN&&!lkdSet(x)&&ok.indexOf(x)<0)ok.push(x);});}else{for(s=0;s<SETN;s++)if(!lkdSet(s))ok.push(s);}
+  ok.sort(function(a,b){return a-b;});
+  if(!ok.length){try{render();}catch(e){}return{ok:false,why:'sets'};}
+  var cfg={sets:ok,n:o.n>0?Math.min(o.n,999):20,pace:(o.pace&&PACE[o.pace])?o.pace:'standard',types:Object.assign({gap:true,mean:true,syn:true,ant:true},o.types||{})};
+  var pool=exEligible(cfg);if(!pool.length){try{render();}catch(e){}return{ok:false,why:'empty'};}
+  var n=Math.min(cfg.n,pool.length);exRun(shuffle(pool).slice(0,n),cfg);return{ok:true,n:n};}};
 window.__IQGD={C:C,P:function(){return P;},serialize:serialize,mergeP:mergeP,migrate:migrate,plainOf:plainOf,adopt:adopt,persist:persist,render:render,toast:toast,refreshChip:refreshChip,pausedOk:true};
 cloudInit();
 })();
@@ -33494,4 +33523,229 @@ function start(){
   sched();}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
+</script>
+<script id="iq-quizlink">
+/* ============================================================================================
+   IQRA quiz links (window.IQQL)
+   · every lesson PDF carries a small QR on page 1: it opens  https://iqravocab.pages.dev/?q=<folder>:<sets>
+   · the link is self-contained (no database): folder id + set numbers, e.g.  ?q=word-smart-1:1-5,8
+     optional extras written by an admin:  &n=30 (questions)  &p=fast (pace)  &t=gms (question types g m s a)
+   · opening it shows: sign in (result is saved to the profile) or continue without signing in.
+     A learner who is already signed in goes straight to the quiz.
+   · a learner who came through such a link must be signed in to download a certificate
+   ============================================================================================ */
+(function(){'use strict';
+if(window.IQQL)return;
+var BASE='https://iqravocab.pages.dev/',SS='iq.ql',PWA='iq.pwa';
+var TY={g:'gap',m:'mean',s:'syn',a:'ant'},PACES={relaxed:1,standard:1,fast:1};
+function ls(){try{return localStorage}catch(e){return null}}
+function ss(){try{return sessionStorage}catch(e){return null}}
+function app(){return window.__IQAPP||null}
+function gd(){return window.__GD||null}
+function signed(){try{return !!(gd()&&gd().isOn())}catch(e){return false}}
+function native(){try{return !!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform())}catch(e){return false}}
+function standalone(){try{return !!(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true}catch(e){return false}}
+function android(){return /Android/i.test(navigator.userAgent||'')}
+try{if((standalone()||native())&&ls())ls().setItem(PWA,'1')}catch(e){}
+
+/* ---------------- sets <-> text ("1-5,8,10-12", 1-based) ---------------- */
+function rangesOf(a){a=a.slice().sort(function(x,y){return x-y});var o=[],i=0;
+  while(i<a.length){var j=i;while(j+1<a.length&&a[j+1]===a[j]+1)j++;o.push(j>i?(a[i]+1)+'-'+(a[j]+1):String(a[i]+1));i=j+1}
+  return o.join(',')}
+function parseRanges(t){var out=[];if(!t||t==='*')return out;
+  String(t).split(',').forEach(function(p){var m=/^(\d{1,3})(?:-(\d{1,3}))?$/.exec(p);if(!m)return;
+    var a=+m[1],b=m[2]?+m[2]:a;if(a<1||b<a||b-a>400)return;for(var i=a;i<=b;i++)if(out.indexOf(i-1)<0)out.push(i-1)});
+  return out.sort(function(x,y){return x-y})}
+function link(fid,sets,o){var q='?q='+fid;
+  if(sets&&sets.length)q+=':'+rangesOf(sets);
+  o=o||{};
+  if(o.n&&o.n>0&&o.n!==20)q+='&n='+(o.n|0);
+  if(o.pace&&PACES[o.pace]&&o.pace!=='standard')q+='&p='+o.pace;
+  if(o.types){var t='',all=true;for(var k in TY){if(o.types[TY[k]])t+=k;else all=false}if(!all&&t)q+='&t='+t}
+  return BASE+q}
+function parse(search){var u;try{u=new URLSearchParams(search)}catch(e){return null}
+  var q=u.get('q');if(!q)return null;
+  var m=/^([a-z0-9][a-z0-9-]{0,40})(?::([0-9,\-]{1,160}))?$/.exec(q);if(!m)return{bad:true};
+  var P={fid:m[1],sets:m[2]?parseRanges(m[2]):[],all:!m[2]},n=parseInt(u.get('n'),10);
+  if(n>0)P.n=Math.min(n,999);
+  var p=u.get('p');if(p&&PACES[p])P.pace=p;
+  var t=u.get('t');if(t&&/^[gmsa]{1,4}$/.test(t)){P.types={gap:false,mean:false,syn:false,ant:false};t.split('').forEach(function(c){P.types[TY[c]]=true})}
+  if(u.get('app')==='0')P.noapp=true;
+  return P}
+/* the address printed inside a lesson PDF: spec = the PDF button's spec, sets = 0-based set numbers */
+function pdfUrl(spec,sets){var A=app();if(!A||!A.FOLDERS)return '';
+  var fid=spec.k==='bar'?'barrons-1100':((A.FOLDERS[spec.fi]||{}).id);if(!fid)return '';
+  var f=A.FOLDERS.filter(function(x){return x&&x.id===fid})[0],total=f&&f.sets;
+  var s=(sets||[]).slice();if(!s.length||(total&&s.length>=total))return link(fid,null);
+  return link(fid,s)}
+
+/* ---------------- QR (same encoder the certificates use) ---------------- */
+/* ---------- QR encoder (no external libraries) ---------- */
+const qlUtf8=s=>new TextEncoder().encode(s);
+/* ---- QR code: Reed-Solomon over GF(256) ---- */
+const QL_EXP=new Uint8Array(512),QL_LOG=new Uint8Array(256);(()=>{let x=1;for(let i=0;i<255;i++){QL_EXP[i]=x;QL_LOG[x]=i;x<<=1;if(x&256)x^=0x11d}for(let i=255;i<512;i++)QL_EXP[i]=QL_EXP[i-255]})();
+const qlGmul=(a,b)=>a&&b?QL_EXP[QL_LOG[a]+QL_LOG[b]]:0;
+function qlRsGen(n){let g=[1];for(let i=0;i<n;i++){const r=new Array(g.length+1).fill(0);for(let j=0;j<g.length;j++){r[j]^=g[j];r[j+1]^=qlGmul(g[j],QL_EXP[i])}g=r}return g}
+function qlRsRem(data,n){const g=qlRsGen(n),r=new Array(n).fill(0);for(const d of data){const f=d^r.shift();r.push(0);for(let i=0;i<n;i++)r[i]^=qlGmul(g[i+1],f)}return r}
+const qlQrRaw=v=>{let r=(16*v+128)*v+64;if(v>=2){const a=Math.floor(v/7)+2;r-=(25*a-10)*a-55;if(v>=7)r-=36}return r>>3};
+function qlQrBase(v){const n=v*4+17,m=[],f=[];for(let i=0;i<n;i++){m.push(new Uint8Array(n));f.push(new Uint8Array(n))}
+ const set=(x,y,d)=>{if(x>=0&&y>=0&&x<n&&y<n){m[y][x]=d?1:0;f[y][x]=1}};
+ for(let i=0;i<n;i++){set(6,i,i%2===0);set(i,6,i%2===0)}
+ [[3,3],[n-4,3],[3,n-4]].forEach(([x,y])=>{for(let dy=-4;dy<=4;dy++)for(let dx=-4;dx<=4;dx++){const d=Math.max(Math.abs(dx),Math.abs(dy));set(x+dx,y+dy,d!==2&&d!==4)}});
+ if(v>1){const a=Math.floor(v/7)+2,st=v===32?26:Math.ceil((v*4+4)/(a*2-2))*2,p=[6];for(let q=n-7;p.length<a;q-=st)p.splice(1,0,q);
+  p.forEach((x,i)=>p.forEach((y,j)=>{if((i===0&&j===0)||(i===0&&j===a-1)||(i===a-1&&j===0))return;for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++)set(x+dx,y+dy,Math.max(Math.abs(dx),Math.abs(dy))!==1)}))}
+ if(v>=7){let r=v;for(let i=0;i<12;i++)r=(r<<1)^((r>>>11)*0x1f25);const bits=v<<12|r;for(let i=0;i<18;i++){const b=(bits>>i)&1,a=n-11+i%3,c=Math.floor(i/3);set(a,c,b);set(c,a,b)}}
+ qlQrFmt(m,f,n,0);return{n,m,f}}
+function qlQrFmtBits(mask,ecl){const d=mask|((ecl|0)<<3);let r=d;for(let i=0;i<10;i++)r=(r<<1)^((r>>>9)*0x537);return(d<<10|r)^0x5412}
+function qlQrFmt(m,f,n,mask,ecl){const bits=qlQrFmtBits(mask,ecl),set=(x,y,d)=>{m[y][x]=d?1:0;f[y][x]=1},bt=i=>(bits>>i)&1;
+ for(let i=0;i<=5;i++)set(8,i,bt(i));set(8,7,bt(6));set(8,8,bt(7));set(7,8,bt(8));for(let i=9;i<15;i++)set(14-i,8,bt(i));
+ for(let i=0;i<8;i++)set(n-1-i,8,bt(i));for(let i=8;i<15;i++)set(8,n-15+i,bt(i));set(8,n-8,1)}
+const QL_MASK=[(x,y)=>(x+y)%2===0,(x,y)=>y%2===0,(x,y)=>x%3===0,(x,y)=>(x+y)%3===0,(x,y)=>(Math.floor(x/3)+Math.floor(y/2))%2===0,(x,y)=>x*y%2+x*y%3===0,(x,y)=>(x*y%2+x*y%3)%2===0,(x,y)=>((x+y)%2+x*y%3)%2===0];
+function qlQrPenalty(m,n){let p=0,dark=0;
+ for(let d=0;d<2;d++)for(let a=0;a<n;a++){let run=1,h=0;for(let b=0;b<n;b++){const c=d?m[b][a]:m[a][b];if(b){const q=d?m[b-1][a]:m[a][b-1];if(c===q)run++;else{if(run>=5)p+=run-2;run=1}}
+   h=((h<<1)&0x7ff)|c;if(b>=10&&(h===0x5d||h===0x5d0))p+=40}if(run>=5)p+=run-2}
+ for(let y=0;y<n;y++)for(let x=0;x<n;x++){if(m[y][x])dark++;if(x<n-1&&y<n-1&&m[y][x]===m[y][x+1]&&m[y][x]===m[y+1][x]&&m[y][x]===m[y+1][x+1])p+=3}
+ p+=(Math.ceil(Math.abs(dark*20-n*n*10)/(n*n))-1)*10;return p}
+/* ---- certificate QR: plain text (byte mode), the lightest error correction (level L) and the smallest version that holds it, so the code stays simple and easy to scan ---- */
+const QL_ECL=[0,7,10,15,20,26,18,20,24,30,18,20,24,26,30],QL_BLL=[0,1,1,1,1,1,2,2,2,2,4,4,4,4,4];
+function qlQrBytes(text){const by=Array.from(qlUtf8(text)),dcap=x=>qlQrRaw(x)-QL_ECL[x]*QL_BLL[x];
+ let v=1;while(v<=14&&4+(v<10?8:16)+8*by.length>dcap(v)*8)v++;if(v>14)throw new Error('qr size');
+ const bits=[],put=(x,l)=>{for(let i=l-1;i>=0;i--)bits.push((x>>>i)&1)};put(4,4);put(by.length,v<10?8:16);by.forEach(b=>put(b,8));
+ const cap=dcap(v)*8;put(0,Math.min(4,cap-bits.length));while(bits.length%8)bits.push(0);const dc=[];for(let i=0;i<bits.length;i+=8){let x=0;for(let j=0;j<8;j++)x=x<<1|bits[i+j];dc.push(x)}
+ for(let pd=0xec;dc.length<dcap(v);pd^=0xec^0x11)dc.push(pd);
+ const nb=QL_BLL[v],ec=QL_ECL[v],raw=qlQrRaw(v),sb=Math.floor(raw/nb),ns=nb-raw%nb,blocks=[];let k=0;
+ for(let i=0;i<nb;i++){const len=sb-ec+(i<ns?0:1),d=dc.slice(k,k+len);k+=len;blocks.push({d,e:qlRsRem(d,ec)})}
+ const all=[];for(let i=0;i<sb-ec+1;i++)blocks.forEach(b=>{if(i<b.d.length)all.push(b.d[i])});for(let i=0;i<ec;i++)blocks.forEach(b=>all.push(b.e[i]));
+ const B=qlQrBase(v),n=B.n;let best=null,bp=1e9;
+ for(let mk=0;mk<8;mk++){const m=B.m.map(r=>r.slice()),f=B.f;let i=0;
+  for(let right=n-1;right>=1;right-=2){if(right===6)right=5;for(let vert=0;vert<n;vert++)for(let j=0;j<2;j++){const x=right-j,up=((right+1)&2)===0,y=up?n-1-vert:vert;if(!f[y][x]){let bit=0;if(i<all.length*8)bit=(all[i>>3]>>(7-(i&7)))&1;i++;if(QL_MASK[mk](x,y))bit^=1;m[y][x]=bit}}}
+  const f2=f.map(r=>r.slice());qlQrFmt(m,f2,n,mk,1);const pn=qlQrPenalty(m,n);if(pn<bp){bp=pn;best=m}}
+ return{n,m:best,v}}
+var QC={};
+function matrix(text){if(QC[text])return QC[text];var r=qlQrBytes(text);QC[text]={n:r.n,m:r.m};return QC[text]}
+
+/* ---------------- small UI kit ---------------- */
+var css=document.createElement('style');css.id='iq-ql-css';
+css.textContent='.ql-ov{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:flex-end;justify-content:center;background:rgba(10,16,34,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);padding:0;font-family:inherit;animation:qlF .2s ease}'+
+'@media(min-width:560px){.ql-ov{align-items:center;padding:20px}}'+
+'.ql-card{box-sizing:border-box;width:100%;max-width:440px;background:var(--card,#fff);color:var(--ink,#111A36);border-radius:26px 26px 0 0;padding:22px 20px calc(20px + env(safe-area-inset-bottom,0px));box-shadow:0 -10px 40px rgba(10,16,34,.25);animation:qlU .28s cubic-bezier(.2,.8,.2,1)}'+
+'@media(min-width:560px){.ql-card{border-radius:26px;padding-bottom:22px}}'+
+'.ql-card h3{margin:0 0 6px;font-size:1.28rem;line-height:1.25;font-weight:800;letter-spacing:-.01em}'+
+'.ql-card p{margin:0 0 14px;font-size:.95rem;line-height:1.5;color:var(--ink-2,#46506f)}'+
+'.ql-chip{display:flex;flex-direction:column;gap:2px;margin:0 0 14px;padding:12px 14px;border-radius:16px;background:color-mix(in srgb,#0DBE76 10%,var(--card,#fff));border:1px solid color-mix(in srgb,#0DBE76 28%,transparent)}'+
+'.ql-chip b{font-size:1rem}.ql-chip span{font-size:.86rem;color:var(--ink-2,#46506f)}'+
+'.ql-btn{box-sizing:border-box;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;min-height:50px;margin:0 0 10px;padding:12px 16px;border-radius:16px;border:1.5px solid color-mix(in srgb,var(--ink,#111A36) 16%,transparent);background:transparent;color:inherit;font:inherit;font-weight:700;font-size:1rem;cursor:pointer}'+
+'.ql-btn.p{background:#0DBE76;border-color:#0DBE76;color:#fff}'+
+'.ql-btn:disabled{opacity:.6}.ql-btn small{display:block;font-weight:500;font-size:.78rem;opacity:.85}'+
+'.ql-btn .t{display:flex;flex-direction:column;align-items:center;line-height:1.25}'+
+'.ql-note{margin:4px 0 0;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,#E8A100 14%,var(--card,#fff));font-size:.84rem;line-height:1.45;color:var(--ink,#111A36)}'+
+'.ql-err{margin:0 0 10px;font-size:.88rem;color:#C62828}'+
+'.qlad{margin:12px 0 0;padding:12px;border-radius:16px;border:1px dashed color-mix(in srgb,#0DBE76 55%,transparent);background:color-mix(in srgb,#0DBE76 6%,transparent)}'+
+'.qlad h4{margin:0 0 8px;font-size:.92rem;font-weight:800}'+
+'.qlad .r{display:flex;flex-wrap:wrap;gap:8px}'+
+'.qlad button{font:inherit;font-size:.86rem;font-weight:700;padding:9px 12px;border-radius:12px;border:1px solid color-mix(in srgb,var(--ink,#111A36) 18%,transparent);background:var(--card,#fff);color:inherit;cursor:pointer}'+
+'.qlad input{box-sizing:border-box;width:100%;margin:8px 0 0;padding:9px 10px;border-radius:10px;border:1px solid color-mix(in srgb,var(--ink,#111A36) 18%,transparent);background:var(--card,#fff);color:inherit;font:inherit;font-size:.8rem}'+
+'.qlad canvas{display:block;margin:10px auto 0;border-radius:10px;background:#fff}'+
+'@keyframes qlF{from{opacity:0}to{opacity:1}}@keyframes qlU{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}';
+document.head.appendChild(css);
+
+function E(t,a,k){var e=document.createElement(t);if(a)for(var x in a){if(x==='class')e.className=a[x];else if(x==='text')e.textContent=a[x];else if(x.slice(0,2)==='on')e.addEventListener(x.slice(2),a[x]);else e.setAttribute(x,a[x])}
+  (k||[]).forEach(function(c){if(c!=null)e.appendChild(typeof c==='string'?document.createTextNode(c):c)});return e}
+function sheet(title,text){var ov=E('div',{class:'ql-ov',role:'dialog','aria-modal':'true','aria-label':title}),card=E('div',{class:'ql-card'});
+  card.appendChild(E('h3',{text:title}));if(text)card.appendChild(E('p',{text:text}));ov.appendChild(card);document.body.appendChild(ov);
+  var prev=document.body.style.overflow;document.body.style.overflow='hidden';
+  return{ov:ov,card:card,add:function(n){card.appendChild(n);return n},close:function(){ov.remove();document.body.style.overflow=prev}}}
+function btn(label,sub,cls,fn){var b=E('button',{class:'ql-btn'+(cls?' '+cls:''),type:'button',onclick:fn},[E('span',{class:'t'},[E('span',{text:label}),sub?E('small',{text:sub}):null])]);return b}
+
+/* ---------------- opening a quiz link ---------------- */
+function folderOf(fid){var A=app();if(!A||!A.FOLDERS)return null;return A.FOLDERS.filter(function(f){return f&&f.id===fid})[0]||null}
+function setsText(P,f){if(P.all||!P.sets.length)return 'All sets';var s=P.sets.map(function(x){return x+1});
+  return (f&&f.custom?'Week':'Set')+(s.length>1?'s ':' ')+rangesOf(P.sets)}
+function cleanUrl(){try{history.replaceState(history.state,'',location.pathname+location.hash)}catch(e){}}
+function begin(P){var B=window.__IQQLB;if(!B)return {ok:false,why:'app'};
+  var r=B.start(P.fid,P.all?null:P.sets,{n:P.n,pace:P.pace,types:P.types});if(r.ok)cleanUrl();return r}
+function failSheet(why){var s=sheet('This quiz link cannot be opened',why==='sets'?'The sets in this link are locked or no longer exist.':(why==='empty'?'There are no questions in these sets yet.':'The link is not valid or the book is no longer available.'));
+  s.add(btn('Open IQRA VOCAB',null,'p',function(){s.close();cleanUrl()}))}
+function startNow(P,done){var r=begin(P);if(!r.ok)failSheet(r.why);if(done)done(r)}
+
+function installed(){var t=new Promise(function(res){setTimeout(function(){res(false)},1200)});
+  var q=new Promise(function(res){try{if(navigator.getInstalledRelatedApps){navigator.getInstalledRelatedApps().then(function(l){res(!!(l&&l.length))},function(){res(false)})}else res(false)}catch(e){res(false)}});
+  return Promise.race([q,t]).then(function(v){if(v)return true;try{return !!(ls()&&ls().getItem(PWA)==='1')}catch(e){return false}})}
+function webUrl(P,noapp){var u=link(P.fid,P.all?null:P.sets,{n:P.n,pace:P.pace,types:P.types&&{gap:P.types.gap,mean:P.types.mean,syn:P.types.syn,ant:P.types.ant}});return noapp?u+(u.indexOf('?')>=0?'&':'?')+'app=0':u}
+function appUrl(P){var u=webUrl(P,false),q=u.slice(u.indexOf('?')),fb=webUrl(P,true);
+  return 'intent://quiz'+q+'#Intent;scheme=iqravocab;S.browser_fallback_url='+encodeURIComponent(fb)+';end'}
+/* installed-app choice: only Android browsers, only when the app is known to be installed */
+function appChoice(P,cont){
+  if(native()||standalone()||!android()||P.noapp)return cont();
+  installed().then(function(yes){if(!yes)return cont();
+    var s=sheet('Continue in the app?','IQRA VOCAB is installed on this phone. Where do you want to take this quiz?');
+    s.add(btn('Open in the app','Best experience',' p',function(){s.close();cleanUrl();location.href=appUrl(P)}));
+    s.add(btn('Continue in the browser',null,'',function(){s.close();cont()}))})}
+
+function land(P){
+  if(!P)return;
+  if(P.bad){failSheet('link');return}
+  var f=folderOf(P.fid);if(!f){failSheet('link');return}
+  try{ss()&&ss().setItem(SS,'1')}catch(e){}
+  var chip=function(){return E('div',{class:'ql-chip'},[E('b',{text:f.name||'Quiz'}),E('span',{text:setsText(P,f)+(P.n?' \u00b7 '+P.n+' questions':'')})])};
+  var go=function(){appChoice(P,function(){startNow(P)})};
+  if(signed()){go();return}                       /* already signed in: no login screen */
+  var s=sheet('Attend the quiz','Choose how you want to take it.');
+  s.card.insertBefore(chip(),s.card.children[2]||null);
+  var err=E('p',{class:'ql-err',hidden:''});
+  var bs=btn('Sign in with Google','Your result is saved to your profile and you can download your certificate','p',function(){
+    bs.disabled=true;err.hidden=true;
+    var g=gd();if(!g||!g.connect){bs.disabled=false;err.textContent='Sign-in is not ready yet. Please try again.';err.hidden=false;return}
+    Promise.resolve(g.connect()).then(function(){
+      if(signed()){s.close();go()}else{bs.disabled=false;err.textContent='Sign-in did not finish. Try again, or continue without signing in.';err.hidden=false}
+    },function(){bs.disabled=false;err.textContent='Sign-in did not finish. Try again, or continue without signing in.';err.hidden=false})});
+  var bg=btn('Continue without signing in','Your result is not saved to a profile','',function(){s.close();go()});
+  s.add(bs);s.add(bg);s.add(err);
+  s.add(E('div',{class:'ql-note',text:'Certificates can be downloaded only by signed-in learners. If you want one, sign in before you start.'}))}
+
+/* ---------------- certificates: signed-in only, for people who arrived through a quiz link ---------------- */
+function certGate(){
+  var from=false;try{from=!!(ss()&&ss().getItem(SS)==='1')}catch(e){}
+  if(!from||signed())return false;
+  var s=sheet('Sign in to download your certificate','Certificates are available only to signed-in learners. Sign in with Google and your results stay in your profile.');
+  var err=E('p',{class:'ql-err',hidden:''});
+  s.add(btn('Sign in with Google',null,'p',function(){
+    var g=gd();if(!g||!g.connect){err.textContent='Sign-in is not ready yet. Please try again.';err.hidden=false;return}
+    Promise.resolve(g.connect()).then(function(){if(signed()){s.close();try{ss().removeItem(SS)}catch(e){}var t=E('div',{class:'vc-toast',role:'status',text:'Signed in. Tap the certificate button again.'});document.body.appendChild(t);setTimeout(function(){t.remove()},3200)}else{err.textContent='Sign-in did not finish. Please try again.';err.hidden=false}})}));
+  s.add(btn('Not now',null,'',function(){s.close()}));s.add(err);
+  return true}
+
+/* ---------------- admin: build a link for the sets chosen in the quiz panel ---------------- */
+function isAdmin(){try{if(!window.IQADM)return false;
+  if(IQADM.isMaster()||IQADM.unlocked())return true;
+  /* an admin's e-mail signed in as an ordinary Google user is enough, no admin-centre login needed */
+  return !!(signed()&&IQADM.isAdminEmail&&IQADM.isAdminEmail(ls()&&ls().getItem('gsync.mail')))}catch(e){return false}}
+function drawQr(cv,text,px){var q=matrix(text),n=q.n,u=Math.floor(px/(n+8))||1,W=u*(n+8);cv.width=cv.height=W;var c=cv.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,W,W);c.fillStyle='#0b1220';
+  for(var y=0;y<n;y++)for(var x=0;x<n;x++)if(q.m[y][x])c.fillRect((x+4)*u,(y+4)*u,u,u);cv.style.width=cv.style.height=Math.round(W/(window.devicePixelRatio||1))+'px'}
+function adminRow(cfg,k){
+  if(!isAdmin())return null;var A=app(),f=A&&A.FOLDERS&&A.FOLDERS[k];if(!f||!f.id)return null;
+  var out=E('input',{type:'text',readonly:'',placeholder:'The link appears here','aria-label':'Quiz link'}),cv=E('canvas',{hidden:''}),cur='';
+  var make=function(whole){
+    var o={n:cfg.n,pace:cfg.pace,types:cfg.types};
+    if(!whole&&!cfg.sets.length){out.value='Choose at least one set first.';cur='';cv.hidden=true;return ''}
+    cur=link(f.id,whole?null:cfg.sets,o);out.value=cur;return cur};
+  var copy=function(txt){try{navigator.clipboard.writeText(txt).then(function(){out.select()},function(){out.select();document.execCommand('copy')})}catch(e){out.select();try{document.execCommand('copy')}catch(x){}}};
+  var row=E('div',{class:'r'},[
+    E('button',{type:'button',text:'Copy link (chosen sets)',onclick:function(){var u=make(false);if(u)copy(u)}}),
+    E('button',{type:'button',text:'Copy link (whole folder)',onclick:function(){var u=make(true);if(u)copy(u)}}),
+    E('button',{type:'button',text:'Share',onclick:function(){var u=cur||make(false);if(!u)return;if(navigator.share){navigator.share({title:'IQRA VOCAB quiz',text:'Attend this quiz on IQRA VOCAB',url:u}).catch(function(){})}else copy(u)}}),
+    E('button',{type:'button',text:'Show QR',onclick:function(){var u=cur||make(false);if(!u)return;cv.hidden=false;drawQr(cv,u,200)}})]);
+  return E('div',{class:'qlad'},[E('h4',{text:'Share this quiz (admin)'}),row,out,cv])}
+
+/* ---------------- boot ---------------- */
+function boot(){
+  var P=parse(location.search);if(P)setTimeout(function(){land(P)},350);
+  try{var C=window.Capacitor,AP=C&&C.Plugins&&C.Plugins.App;
+    if(AP&&AP.addListener)AP.addListener('appUrlOpen',function(ev){try{var u=String(ev&&ev.url||''),i=u.indexOf('?');if(i<0)return;var Q=parse(u.slice(i));if(Q)land(Q)}catch(e){}});
+    if(AP&&AP.getLaunchUrl)AP.getLaunchUrl().then(function(r){var u=r&&r.url;if(!u)return;var i=u.indexOf('?');if(i<0)return;var Q=parse(u.slice(i));if(Q&&Q.fid)setTimeout(function(){land(Q)},500)}).catch(function(){})}catch(e){}
+}
+window.IQQL={link:link,parse:parse,pdfUrl:pdfUrl,matrix:matrix,adminRow:adminRow,certGate:certGate,land:land,rangesOf:rangesOf};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})();
+
 </script>
