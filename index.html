@@ -497,8 +497,14 @@ function newQ(){return{id:rid(6),type:'mcq',text:'',opts:['Option 1','Option 2']
 function toast(m){var t=E('div',{style:'position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:2147483600;background:#111A36;color:#fff;padding:10px 16px;border-radius:99px;font:600 13px system-ui;box-shadow:0 12px 30px -10px #000a;max-width:90vw;text-align:center'},m);document.body.append(t);setTimeout(function(){t.remove();},2600);}
 function mergeDocs(list){var pages=[];list.forEach(function(d){pages=pages.concat(d.pages);});return{pages:pages,W:list[0].W,H:list[0].H};}
 function qrDataUrl(url,size){var d=new Doc({size:[size,size],m:0,hdr:false,S:2});return d.qr(url,0,0,size)?d.cv.toDataURL('image/png'):null;}
-function isAdminNow(){try{var A=window.IQADM;if(!A)return false;if((A.isMaster&&A.isMaster())||(A.unlocked&&A.unlocked()))return true;var m=localStorage.getItem('gsync.mail');return !!(A.isAdminEmail&&m&&A.isAdminEmail(m));}catch(e){return false;}}
+var CUREM='';
+function mailIsAdmin(m){try{var A=window.IQADM;m=String(m||'').trim().toLowerCase();return !!(A&&m&&A.isAdminEmail&&A.isAdminEmail(m));}catch(e){return false;}}
+function isAdminNow(){try{var A=window.IQADM;if(!A)return false;if((A.isMaster&&A.isMaster())||(A.unlocked&&A.unlocked()))return true;var m=localStorage.getItem('gsync.mail');return !!((A.isAdminEmail&&m&&A.isAdminEmail(m))||mailIsAdmin(CUREM));}catch(e){return false;}}
 function ensureAdmin(){return fb().then(function(f){return who(f).then(function(u){return u&&u.email?f:signIn(f).then(function(){return f;});});});}
+/* already signed in as an admin (the same Google sign-in the app uses)? then no prompt at all */
+function quietAdmin(){return fb().then(function(f){var ok=function(u){return u&&u.email&&(mailIsAdmin(u.email)||(window.IQADM&&IQADM.isMaster&&IQADM.isMaster()))?f:null;};
+  var rdy=f.auth.authStateReady?f.auth.authStateReady():Promise.resolve();
+  return rdy.then(function(){var r=ok(f.auth.currentUser);if(r)return r;return new Promise(function(res){var un=null,done=false,fin=function(v){if(done)return;done=true;try{un&&un();}catch(e){}res(v);};un=f.au.onAuthStateChanged(f.auth,function(u){if(u&&u.email)fin(ok(u));});setTimeout(function(){fin(null);},3500);});});});}
 function posterDoc(title,url,o){o=o||{};var d=new Doc({paper:o.paper,foot:title}),c=d.c,W=d.W,m=d.m;brandHead(d,'Scan to join');d.y+=40;d.p(title,{s:30,w:700,f:FSE,lh:38,al:'center',gap:6});d.p('Scan the code with your phone camera to start the quiz.',{s:13,col:'#47537A',al:'center',gap:20});var s=300;d.qr(url,(W-s)/2,d.y,s);d.y+=s+22;d.p(url,{s:12,w:600,col:'#0E8F63',al:'center',gap:6});d.p('You will sign in with Google and your result will be saved.',{s:10.5,col:'#76809F',al:'center'});return d;}
 
 function seg(opts,val,on){var w=E('div',{class:'qseg'});function draw(){w.innerHTML='';opts.forEach(function(o){w.append(E('button',{class:val===o[0]?'on':'',onclick:function(){val=o[0];on(val);draw();}},o[1]));});}draw();return w;}
@@ -671,22 +677,24 @@ function pdfPanelAdmin(panel){
   function num(v,min,max,on,w){return E('input',{class:'q-in',type:'number',min:min,max:max,value:v,style:'width:'+(w||84)+'px;flex:none;margin:0',oninput:function(){on(Math.max(min,Math.min(max,+this.value||0)));}});}
   function redraw(){body.innerHTML='';
     if(PQ.dest==='app'){
-      body.append(E('div',{class:'qm',style:'margin:2px 0 6px'},'The QR opens the quiz inside the IQRA VOCAB app.'),row('Questions',num(PQ.n,5,120,function(v){PQ.n=v;})),
-        row('Pace',E('select',{class:'q-in',style:'width:auto;margin:0',onchange:function(){PQ.pace=this.value;}},E('option',{value:'relaxed'},'Relaxed'),E('option',{value:'standard'},'Standard'),E('option',{value:'fast'},'Fast'))));body.lastChild.lastChild.value=PQ.pace;
+      body.append(E('div',{class:'qm',style:'margin:2px 0 6px'},'The QR opens the quiz inside the IQRA VOCAB app.'),row('Questions',num(PQ.n,5,120,function(v){PQ.n=v;touch();})),
+        row('Pace',E('select',{class:'q-in',style:'width:auto;margin:0',onchange:function(){PQ.pace=this.value;touch();}},E('option',{value:'relaxed'},'Relaxed'),E('option',{value:'standard'},'Standard'),E('option',{value:'fast'},'Fast'))));body.lastChild.lastChild.value=PQ.pace;
       var tw=E('div',{class:'qseg'});[['gap','Gap'],['mean','Meaning'],['syn','Synonym'],['ant','Antonym']].forEach(function(t){var b=E('button',{class:PQ.types[t[0]]?'on':'',onclick:function(){PQ.types[t[0]]=!PQ.types[t[0]];if(!PQ.types.gap&&!PQ.types.mean&&!PQ.types.syn&&!PQ.types.ant)PQ.types[t[0]]=true;b.className=PQ.types[t[0]]?'on':'';touch();}},t[1]);tw.append(b);});body.append(row('Question types',tw));
     }else{
       body.append(E('div',{class:'qm',style:'margin:2px 0 6px'},'The QR opens a private IQRA QUIZ link. It is created when you download the PDF.'),row('Questions',num(PQ.n,5,120,function(v){PQ.n=v;touch();})),row('Time limit (min, 0 = none)',num(PQ.tm,0,300,function(v){PQ.tm=v;touch();})),row('Link valid (days, 0 = always)',num(PQ.exp,0,365,function(v){PQ.exp=v;touch();})));
       body.append(row('Exam style',seg([['flow','Animated'],['list','Classic']],PQ.fl,function(v){PQ.fl=v;touch();})),row('Results',seg([['show','Score + answers'],['score','Score only'],['hide','Hidden']],PQ.res,function(v){PQ.res=v;touch();})),toggle('Animations',PQ.an,function(v){PQ.an=v;touch();}),toggle('Passing learners can download a certificate',PQ.cert,function(v){PQ.cert=v;touch();}));}
   }
-  function touch(){var b=panel.querySelector('.vc-sets button, .vc-set'); /* nudge the app to rebuild the preview */ try{panel.dispatchEvent(new Event('input',{bubbles:true}));}catch(e){}}
+  function touch(){clearTimeout(touch.t);touch.t=setTimeout(function(){try{if(sw.getAttribute('aria-checked')==='true'){sw.click();sw.click();}}catch(e){}},350);}   /* the app rebuilds the preview and the PDF only when its own QR switch changes, so flick it off and on to make it read the new destination */
   var dseg=seg([['app','IQRA VOCAB app'],['quiz','IQRA QUIZ site']],PQ.dest,function(v){
-    if(v==='quiz'&&!PQ.ready){toast('Sign in as admin to create quiz links…');ensureAdmin().then(function(f){PQ.f=f;PQ.ready=true;PQ.dest='quiz';redraw();}).catch(function(){PQ.dest='app';toast('Admin sign-in is needed for IQRA QUIZ links');var bs=dseg.querySelectorAll('button');bs[0].className='on';bs[1].className='';redraw();});return;}
-    PQ.dest=v;redraw();});
+    if(v==='quiz'&&!PQ.ready){quietAdmin().then(function(f){if(f)return f;toast('Sign in with the admin Google account to create quiz links…');return ensureAdmin().then(function(f2){return who(f2).then(function(u){return(u&&mailIsAdmin(u.email))||(window.IQADM&&IQADM.isMaster&&IQADM.isMaster())?f2:null;});});}).then(function(f){if(!f)throw new Error('not admin');PQ.f=f;PQ.ready=true;PQ.dest='quiz';redraw();touch();}).catch(function(){PQ.dest='app';toast('Admin sign-in is needed for IQRA QUIZ links');var bs=dseg.querySelectorAll('button');bs[0].className='on';bs[1].className='';redraw();touch();});return;}
+    PQ.dest=v;redraw();touch();});
   host.append(E('div',{style:'font:700 11px var(--f);letter-spacing:.1em;color:#0E8F63;margin-bottom:6px'},'ADMIN · QR CODE DESTINATION'),dseg,body);redraw();
   sw.parentNode.insertBefore(host,sw.nextSibling);
+  quietAdmin().then(function(f){if(f){PQ.f=f;PQ.ready=true;}}).catch(function(){});   /* ready before the first tap: no sign-in prompt for a signed-in admin */
 }
 function hookPdf(){
   installDownloads();
+  try{fb().then(function(f){f.au.onAuthStateChanged(f.auth,function(u){CUREM=u&&u.email?String(u.email).toLowerCase():'';});}).catch(function(){});}catch(e){}   /* know the signed-in account, so an admin signed in as a user gets the admin options */
   var tries=0,iv=setInterval(function(){wrapPdfUrl();if((window.IQQL&&window.IQQL.__iqk)||++tries>40)clearInterval(iv);},500);
   try{var oc=URL.createObjectURL;URL.createObjectURL=function(b){try{if(b&&b.type==='application/pdf'&&PQ.dest==='quiz')flushPdfLink();}catch(e){}return oc.apply(this,arguments);};}catch(e){}
   new MutationObserver(function(){var p=document.querySelector('.pdf-ov .vc-panel');if(p)pdfPanelAdmin(p);}).observe(document.body,{childList:true,subtree:true});
@@ -3643,7 +3651,7 @@ function makeDoc(spec,cx,sel){
  const secs=ss.map(s=>spec.k==='bar'?barSec(s+1,st.pass):wsSec(spec.fi,s));
  DOC={book:cx.book,ref:cx.ref,secs,title:cx.book+(ss.length?' - '+cx.unit+(ss.length>1?'s ':' ')+rangeTxt(ss):''),
   words:secs.reduce((a,s)=>a+s.items.filter(i=>i.k==='w'&&i.n>0).length,0)};
- try{DOC.qrUrl=window.IQQL&&IQQL.pdfUrl?IQQL.pdfUrl(spec,ss):'';}catch(e){DOC.qrUrl='';}
+ try{Object.defineProperty(DOC,'qrUrl',{configurable:true,enumerable:true,get:function(){try{return window.IQQL&&IQQL.pdfUrl?IQQL.pdfUrl(spec,ss):'';}catch(e){return '';}}});}catch(e){DOC.qrUrl='';}   /* read fresh each time: a changed QR destination reaches the preview and the PDF */
  DOC.file=cx.ref+'_'+(ss.length?cx.unit.toLowerCase()+(ss.length>1?'s':'')+(ss.length>1&&ss.every((v,i)=>!i||v===ss[i-1]+1)?(ss[0]+1)+'-'+(ss[ss.length-1]+1):ss.length>1?'-'+ss.length+'x':String(ss[0]+1)):'empty');
  return DOC;}
 
@@ -6753,7 +6761,7 @@ function yConsider(n){if(!n||!n.on||!n.text||n.g||YSHOW||BAR)return;var now=Date
     setTimeout(function(){if(blocked()){tries=0;wait();return;}YSHOW=false;yMark(n.id);showWeekly(n);},600);})();}
 function yListen(){yLoad().then(function(f){f.fs.onSnapshot(yRef(f),function(s){YCUR=s.exists()?s.data():null;if(BAR&&(!YCUR||!YCUR.on))hideBar();try{yConsider(YCUR);}catch(e){}},function(){});}).catch(function(){if(++YTRY<6)setTimeout(yListen,60000);});}
 (function(){var go=function(){setTimeout(yListen,4000);};if(document.readyState==='complete')go();else window.addEventListener('load',go,{once:true});})();
-function ySend(o){return(window.IQNOTICE?IQNOTICE.who():Promise.resolve(null)).then(function(em){if(!em)throw{code:'not-signed-in'};return yLoad();}).then(function(f){var now=Date.now(),d={id:now.toString(36)+Math.random().toString(36).slice(2,5),on:o.on!==false,title:String(o.title||'').trim().slice(0,60),text:String(o.text||'').trim().slice(0,160),cta:String(o.cta||'').trim().slice(0,24),start:now,end:o.ms?now+o.ms:0,rv:!!o.rv,g:o.g?1:0,nid:String(o.nid||''),ch:Array.isArray(o.ch)?o.ch.slice(0,6):[],fq:o.fq&&typeof o.fq==='object'?o.fq:{},by:f.auth.currentUser&&f.auth.currentUser.email||'',t:now};return f.fs.setDoc(yRef(f),d).then(function(){return d;});});}
+function ySend(o){return(window.IQNOTICE?IQNOTICE.who():Promise.resolve(null)).then(function(em){if(!em)throw{code:'not-signed-in'};return yLoad();}).then(function(f){var now=Date.now(),d={id:now.toString(36)+Math.random().toString(36).slice(2,5),on:o.on!==false,title:String(o.title||'').trim().slice(0,60),text:String(o.text||'').trim().slice(0,160),cta:String(o.cta||'').trim().slice(0,24),start:now,end:o.ms?now+o.ms:0,rv:!!o.rv,g:o.g?1:0,nid:String(o.nid||''),ch:Array.isArray(o.ch)?o.ch.slice(0,6):[],fq:o.fq&&typeof o.fq==='object'?o.fq:{},ex:Array.isArray(o.ex)?o.ex.slice(0,60):[],by:f.auth.currentUser&&f.auth.currentUser.email||'',t:now};return f.fs.setDoc(yRef(f),d).then(function(){return d;});});}
 function yStop(){return(window.IQNOTICE?IQNOTICE.who():Promise.resolve(null)).then(function(em){if(!em)throw{code:'not-signed-in'};return yLoad();}).then(function(f){return f.fs.setDoc(yRef(f),{on:false,id:String(Date.now()),t:Date.now(),by:f.auth.currentUser&&f.auth.currentUser.email||''});});}
 function yPreview(o){hideBar();showWeekly({title:o.title,text:o.text,cta:o.cta});}
 /* ---------- review bar invitation: first one 5 days after the first entry, then every 15 days ---------- */
@@ -30052,6 +30060,7 @@ function hide(){
 function show(n,pv){
   hide();
   if(!n||!n.on||!n.text)return;
+  if(!pv){try{var me=String(localStorage.getItem('gsync.mail')||'').trim().toLowerCase();if(me&&Array.isArray(n.ex)&&n.ex.indexOf(me)>-1)return;}catch(e){}}   /* "Everyone except" */
   var now=Date.now();
   if(!pv){
     if(n.end&&now>n.end)return;
@@ -30249,6 +30258,7 @@ function ensure(){var gen=ld(K.g,[]),t=dn(),ch=false;
 /* ---- where a notice goes (paths) and how often each one comes back; chosen by the master in the composers ---- */
 var CHN={inbox:'Inbox',banner:'Banner',popup:'Pop-up',review:'Review bar',bar:'Top bar',push:'Phone push'},FQN={once:'Once',open:'Every time the app opens',h6:'Every 6 hours',d1:'Every day',d3:'Every 3 days',w1:'Every week'},FQMS={h6:216e5,d1:DAY,d3:3*DAY,w1:7*DAY},FQK='gsync.noticeFq',FQ=ld(FQK,null),FQS={};
 function chOf(x){return x&&Array.isArray(x.ch)&&x.ch.length?x.ch:null;}
+function exMe(x){try{var m=String(localStorage.getItem('gsync.mail')||'').trim().toLowerCase();return!!(m&&x&&Array.isArray(x.ex)&&x.ex.indexOf(m)>-1);}catch(e){return false;}}   /* "Everyone except": this person was left out */
 function inboxOn(x){var c=chOf(x);return!c||c.indexOf('inbox')>-1;}
 function kindOf(c){return c.indexOf('banner')>-1?'banner':c.indexOf('popup')>-1?'popup':'quiet';}
 function fqOf(x,c){var f=x&&x.fq&&x.fq[c];return f==='open'||FQMS[f]?f:'once';}
@@ -30366,15 +30376,16 @@ var fb=null,fbP=null,tries=0;
 function load(){if(fb)return Promise.resolve(fb);return fbP||(fbP=Promise.all([import(BASE+'firebase-app.js'),import(BASE+'firebase-auth.js'),import(BASE+'firebase-firestore.js')]).then(function(a){var app=a[0].getApps().length?a[0].getApp():a[0].initializeApp(CFG);fb={au:a[1],fs:a[2],auth:a[1].getAuth(app),db:a[2].getFirestore(app)};return fb;}).catch(function(e){fbP=null;throw e;}));}
 var HOOKS=[];
 function listen(){load().then(function(f){var q=f.fs.query(f.fs.collection(f.db,'notices'),f.fs.orderBy('t','desc'),f.fs.limit(60));
-  f.fs.onSnapshot(q,function(s){var a=[];s.forEach(function(d){var v=d.data();if(d.id==='current'||!v||v.on===false||!(v.kind||v.html))return;v._id=d.id;a.push(v);});
+  f.fs.onSnapshot(q,function(s){var a=[];s.forEach(function(d){var v=d.data();if(d.id==='current'||!v||v.on===false||!(v.kind||v.html))return;v._id=d.id;if(!exMe(v))a.push(v);});
     if(!s.metadata.fromCache||!REM.length){REM=a;if(!sv(K.r,a))sv(K.r,a.filter(function(x){return x.kind!=='article';}));}
     badge();liveCheck();HOOKS.forEach(function(g){try{g();}catch(e){}});},function(){});}).catch(function(){if(++tries<6)setTimeout(listen,60000);});}
 function send(o){return load().then(function(f){var u=f.auth.currentUser;if(!u)throw{code:'not-signed-in'};var now=Date.now(),id='m_'+now.toString(36)+Math.random().toString(36).slice(2,5),art=o.kind==='article',st=o.start||now;
   var d={id:id,on:true,kind:o.kind,label:o.label||'',title:String(o.title||'').trim().slice(0,120),text:String(o.text||'').trim().slice(0,600),color:o.color||'#2338c9',icon:o.icon||'logo',img:o.img||'',url:safeUrl(o.url),cta:String(o.cta||'').slice(0,30),pin:!!o.pin,stay:!!o.stay,push:!!o.push&&!art,start:st,end:o.ms?st+o.ms:0,by:u.email||'',t:now};
   if(art||o.push)d.pushed=false;if(!art&&Array.isArray(o.ch)&&o.ch.length){d.ch=cleanCh(o.ch,o.yours);d.fq=cleanFq(o.fq,d.ch);if(o.yours)d.yours=1;}if(art){d.summary=String(o.summary||'').slice(0,240);d.html=o.html;d.cover=o.cover||'';d.live=!!o.live;d.text='';}
+  if(Array.isArray(o.ex)&&o.ex.length)d.ex=o.ex.map(function(e){return String(e||'').trim().toLowerCase();}).filter(function(e){return /^[^\s@\/]+@[^\s@\/]+\.[^\s@\/]+$/.test(e);}).slice(0,60);
   if(JSON.stringify(d).length>MAXDOC)throw{code:'too-big'};
   var P=f.fs.setDoc(f.fs.doc(f.db,'notices',id),d);
-  if(o.kind==='banner'||o.kind==='popup')P=P.then(function(){return f.fs.setDoc(f.fs.doc(f.db,'notices','current'),{id:String(now),on:true,kind:o.kind,title:d.title.slice(0,80),text:d.text.slice(0,400),color:d.color,start:st,end:d.end,by:d.by,t:now});});
+  if(o.kind==='banner'||o.kind==='popup')P=P.then(function(){return f.fs.setDoc(f.fs.doc(f.db,'notices','current'),{id:String(now),on:true,kind:o.kind,title:d.title.slice(0,80),text:d.text.slice(0,400),color:d.color,start:st,end:d.end,by:d.by,t:now,ex:d.ex||[]});});
   return P.then(function(){return d;});});}
 function remove(x){return load().then(function(f){if(!f.auth.currentUser)throw{code:'not-signed-in'};var P=f.fs.deleteDoc(f.fs.doc(f.db,'notices',x._id));
   if((x.kind==='banner'||x.kind==='popup')&&window.IQNOTICE){var c=IQNOTICE.current();if(c&&String(c.id)===String(x.t))P=P.then(function(){return IQNOTICE.clear();});}return P;});}
@@ -30545,29 +30556,44 @@ function noticeModal(X){var H=X.H,S={aud:'all',to:null,kind:'banner',label:'Noti
   audPaint();fmtPaint();thumb();lab();rp();}
 function yoursAdmin(X){
   var Y=window.IQYOURS;if(!Y||!Y.send||!Y.bar||!window.IQNOTICE)return false;
-  var H=X.H,cur=Y.current()||{},S={aud:'all',to:null,ms:3*DAY,ch:(Array.isArray(cur.ch)&&cur.ch.length?cur.ch:(cur.rv?['bar','review']:['bar'])).filter(function(c){return c==='bar'||c==='popup'||c==='review'||c==='inbox'||c==='push';}),fq:Object.assign({},cur.fq||{})};
+  var H=X.H,cur=Y.current()||{},S={aud:'all',to:null,ms:3*DAY,ch:(Array.isArray(cur.ch)&&cur.ch.length?cur.ch:(cur.rv?['bar','review']:['bar'])).filter(function(c){return c==='bar'||c==='popup'||c==='review'||c==='inbox'||c==='push';}),fq:Object.assign({},cur.fq||{}),ex:[]};
   var ti=H('input',{type:'text',maxlength:'60',placeholder:'Make it yours'}),tx=H('textarea',{maxlength:'160',rows:'3',placeholder:'Be a part of IQRA Vocab'}),cta=H('input',{type:'text',maxlength:'24',placeholder:'Continue'});
   ti.value=cur.title||'Make it yours';tx.value=cur.text||'Be a part of IQRA Vocab';cta.value=cur.cta||'Continue';
   var err=H('div',{class:'adm-err',role:'alert'}),T=tools(X,S,function(){}),root=H('div',{class:'iqs'}),lv=H('small',{class:'iqs-empty'}),picker=personPicker(X,S,err,labY),pw=H('div',{class:'iqs-pw'},picker.el),aud=H('div',{class:'iqs-aud',role:'radiogroup','aria-label':'Who gets it'});
   var note=H('div',{class:'adm-note'},'To withdraw a personal invitation, delete it under Send a notice \u2192 Sent messages \u2192 Individual.'),durC=H('div',{class:'iqs-chips'});
   root.style.setProperty('--ac','#c8922a');
-  var chY=chTiles(H,S,function(){return YCH.filter(function(o){return!(S.aud==='one'&&o[0]==='push');});},function(){fqY.paint();}),fqY=fqBlock(H,S,function(){},['bar','popup','review']);
-  function audP(){if(S.aud==='one')S.ch=S.ch.filter(function(c){return c!=='push';});
-    aud.replaceChildren.apply(aud,[['all','Everyone','Every user, on every device','all'],['one','One person','A private invitation for one learner','one']].map(function(o){return H('button',{type:'button',class:'iqs-tile'+(S.aud===o[0]?' on':''),role:'radio','aria-checked':String(S.aud===o[0]),onclick:function(){S.aud=o[0];if(o[0]==='one')picker.load();audP();}},H('span',{class:'iqs-ti',html:SI[o[3]]}),H('b',null,o[1]),H('small',null,o[2]));}));
-    pw.style.display=S.aud==='one'?'block':'none';note.style.display=S.aud==='one'?'block':'none';chY.paint();fqY.paint();labY();}
+  var chY=chTiles(H,S,function(){return YCH.filter(function(o){return!(S.aud!=='all'&&o[0]==='push');});},function(){fqY.paint();rpY();}),fqY=fqBlock(H,S,function(){rpY();},['bar','popup','review']);
+  /* "Everyone except": pick people to leave out. They are matched by the Google account they signed in with. */
+  var SX={to:null},exL=H('div',{class:'iqs-chips iqs-exl',style:'display:none'}),pickerX=personPicker(X,SX,err,function(){if(!SX.to)return;var m=SX.to;if(!S.ex.some(function(q){return q.e===m.e;}))S.ex.push({e:m.e,n:m.n||''});var xb=pickerX.el.querySelector('.iqs-x');if(xb)xb.click();exP();}),
+    exw=H('div',{class:'iqs-exw',style:'display:none'},H('div',{class:'adm-note'},'Everyone gets it except the people below. They are matched by the Google account they signed in with. Phone push is not available for this choice.'),exL,pickerX.el);
+  function exP(){exL.replaceChildren.apply(exL,S.ex.map(function(m){return H('span',{class:'iqs-chip on'},m.n||m.e,H('button',{type:'button','aria-label':'Put back '+(m.n||m.e),onclick:function(){S.ex=S.ex.filter(function(q){return q.e!==m.e;});exP();}},'×'));}));exL.style.display=S.ex.length?'flex':'none';labY();rpY();}
+  /* live preview: exactly what people will see, for every place that is ticked */
+  var pvY=H('div',{class:'iqs-pv'});
+  function rpY(){var o=objY();o.text=o.text||'Your message appears here.';o.t=Date.now();var pa=[];
+    if(S.ch.indexOf('bar')>-1)pa.push(['Top bar',bannerEl(Object.assign({},o,{label:'Contribute'}),true)]);
+    if(S.ch.indexOf('popup')>-1)pa.push(['Pop-up',popCard(o)]);
+    if(S.ch.indexOf('review')>-1)pa.push(['Review bar',H('div',{class:'iqs-rvm'},H('b',null,'✦ '+String(o.title||'invitation').slice(0,32).toLowerCase()),H('span',null,String(o.text).slice(0,160)))]);
+    if(S.ch.indexOf('inbox')>-1)pa.push(['Inbox',noticeCard(Date.now(),o)]);
+    if(S.ch.indexOf('push')>-1&&S.aud==='all')pa.push(['Phone push',H('div',{class:'iqs-rvm',style:'background:#111a36'},H('b',null,'IQRA VOCAB'),H('span',null,String(o.title||'')+(o.title?': ':'')+String(o.text).slice(0,120)))]);
+    if(!pa.length)pa.push(['',H('small',{class:'iqs-empty'},'Tick a place above to see it here.')]);
+    pvY.replaceChildren.apply(pvY,pa.map(function(q){return H('div',{class:'iqs-pvb'},q[0]?H('small',{class:'iqs-pvl'},q[0]):null,q[1]);}));}
+  function audP(){if(S.aud!=='all')S.ch=S.ch.filter(function(c){return c!=='push';});
+    aud.replaceChildren.apply(aud,[['all','Everyone','Every user, on every device','all'],['except','Everyone except','Leave out the people you choose','x'],['one','One person','A private invitation for one learner','one']].map(function(o){return H('button',{type:'button',class:'iqs-tile'+(S.aud===o[0]?' on':''),role:'radio','aria-checked':String(S.aud===o[0]),onclick:function(){S.aud=o[0];if(o[0]==='one')picker.load();if(o[0]==='except')pickerX.load();audP();}},H('span',{class:'iqs-ti',html:SI[o[3]]}),H('b',null,o[1]),H('small',null,o[2]));}));
+    pw.style.display=S.aud==='one'?'block':'none';exw.style.display=S.aud==='except'?'block':'none';note.style.display=S.aud==='one'?'block':'none';chY.paint();fqY.paint();exP();}
   function durP(){durC.replaceChildren.apply(durC,[[864e5,'1 day'],[3*DAY,'3 days'],[7*DAY,'7 days'],[14*DAY,'14 days'],[0,'Until I stop it']].map(function(o){return H('button',{type:'button',class:'iqs-chip'+(S.ms===o[0]?' on':''),onclick:function(){S.ms=o[0];durP();}},o[1]);}));}
   var sendB=H('button',{class:'iqs-send',type:'button',onclick:goY});
-  function labY(){sendB.replaceChildren(H('span',{html:SI.send}),H('b',null,S.aud==='all'?'Send to everyone':(S.to?'Send to '+FIRST(S.to):'Choose a person')));}
-  function objY(){var ch=S.ch.slice();return{kind:kindOf(ch),label:'Contribute',title:ti.value.trim(),text:tx.value.trim(),cta:cta.value.trim()||'Continue',icon:'\u2728',color:'#e8890c',ms:S.ms,push:ch.indexOf('push')>-1&&S.aud==='all',ch:ch,fq:Object.assign({},S.fq),yours:1};}
+  function labY(){sendB.replaceChildren(H('span',{html:SI.send}),H('b',null,S.aud==='all'?'Send to everyone':S.aud==='except'?'Send to all but '+S.ex.length:(S.to?'Send to '+FIRST(S.to):'Choose a person')));}
+  function objY(){var ch=S.ch.slice();return{kind:kindOf(ch),label:'Contribute',title:ti.value.trim(),text:tx.value.trim(),cta:cta.value.trim()||'Continue',icon:'\u2728',color:'#e8890c',ms:S.ms,push:ch.indexOf('push')>-1&&S.aud==='all',ch:ch,fq:Object.assign({},S.fq),ex:S.aud==='except'?S.ex.map(function(m){return m.e;}):[],yours:1};}
   function paintLv(){var now=Date.now(),a=REM.filter(function(x){return x.yours&&(!x.end||x.end>now);}).sort(function(p,q){return q.t-p.t;})[0]||null,c=Y.current();if(!a&&c&&c.on&&c.text&&(!c.end||c.end>now))a=c;
     lv.textContent=a?'Live now: \u201C'+String(a.text).slice(0,70)+(String(a.text).length>70?'\u2026':'')+'\u201D'+(a.end?' \u00B7 until '+new Date(a.end).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):' \u00B7 until you stop it'):'Nothing is live for everyone right now.';}
   function goY(){err.textContent='';var o=objY();if(!o.text){err.textContent='Write a message first.';tx.focus();return;}
     if(!o.ch.length){err.textContent='Choose at least one place for it to appear.';return;}
     if(S.aud==='one'&&!S.to){err.textContent='Choose who should get it.';return;}
+    if(S.aud==='except'&&!S.ex.length){err.textContent='Choose at least one person to leave out, or pick Everyone.';return;}
     if(S.aud==='one'&&!window.IQUA){err.textContent='Personal messages are not ready yet. Try again in a moment.';return;}
     sendB.disabled=true;var to=S.to,P;
     if(S.aud==='one')P=IQUA.sendPrivate(to.e,o);
-    else{var on=o.ch.indexOf('bar')>-1||o.ch.indexOf('review')>-1;P=send(o).then(function(d){return Y.send({title:o.title,text:o.text,cta:o.cta,ms:o.ms,on:on,g:1,nid:d.id,ch:o.ch,fq:o.fq});});}
+    else{var on=o.ch.indexOf('bar')>-1||o.ch.indexOf('review')>-1;P=send(o).then(function(d){return Y.send({title:o.title,text:o.text,cta:o.cta,ms:o.ms,on:on,g:1,nid:d.id,ch:o.ch,fq:o.fq,ex:o.ex});});}
     P.then(function(){sendB.disabled=false;X.toast(S.aud==='one'?'Sent to '+FIRST(to):'Sent \u2014 users see it now');paintLv();}).catch(function(e){sendB.disabled=false;explain(X,err,e);});}
   function stopY(){err.textContent='';var L=REM.filter(function(x){return x.yours;});
     Y.stop().then(function(){return Promise.all(L.map(function(x){return remove(x);}));}).then(function(){REM=REM.filter(function(x){return!x.yours;});sv(K.r,REM);badge();X.toast('Stopped for everyone');paintLv();}).catch(function(e){explain(X,err,e);});}
@@ -30579,13 +30605,14 @@ function yoursAdmin(X){
   root.append(
     H('div',{class:'iqs-hero'},H('span',{class:'iqs-hi2',html:SI.spark}),H('div',null,H('b',null,'Invite people to contribute'),H('small',null,'The \u201CMake it yours\u201D message. Choose who gets it, where it appears and how often it comes back.'))),
     T.acct(err),
-    sec(1,'Who gets it','Everyone, or one person',[aud,pw]),
+    sec(1,'Who gets it','Everyone, everyone except some people, or one person',[aud,pw,exw]),
     sec(2,'Write it',null,[lab('Title',ti),lab('Message',tx),lab('Button text',cta)]),
     sec(3,'Where it appears','Tick one or more places',[chY.el,fqY.el]),
-    sec(4,'How long',null,[H('div',{class:'iqs-lbl'},H('span',null,'Show for'),durC)]),
+    sec(4,'Live preview','Exactly what people will see',[pvY]),
+    sec(5,'How long',null,[H('div',{class:'iqs-lbl'},H('span',null,'Show for'),durC)]),
     err,H('div',{class:'iqs-foot'},sendB,H('button',{class:'iqs-ghost',type:'button',html:SI.search+'<span>Preview</span>',onclick:prevY}),H('button',{class:'iqs-ghost',type:'button',html:SI.x+'<span>Stop sending</span>',onclick:stopY})),lv,note);
   var m=X.modal('Contribute invitation','bell',root,{big:true});m.card.classList.add('iqs-card');
-  durP();audP();paintLv();return true;}
+  durP();audP();paintLv();ti.oninput=tx.oninput=cta.oninput=rpY;rpY();return true;}
 function articleModal(X){var H=X.H,S={color:'#2338c9',label:'Article',cover:'',live:true},dr=ld(K.f,null),saved=null;
   var ti=H('input',{type:'text',maxlength:'120',placeholder:'Article title'}),sm=H('textarea',{rows:'2',maxlength:'240',placeholder:'Short summary shown in the list (optional)'}),err=H('div',{class:'adm-err',role:'alert'}),T=tools(X,S,function(){}),stat=H('div',{class:'iqi-st2'}),hist=H('div',{class:'adm-list'});
   var ed=H('div',{class:'iqi-ed',contenteditable:'true',spellcheck:'true','data-ph':'Write your article here\u2026'});
@@ -31290,6 +31317,7 @@ function applyGrant(g,fresh){
   try{if(window.IQINBOX&&IQINBOX.setPrivate)IQINBOX.setPrivate(G&&Array.isArray(G.msgs)?G.msgs:[]);}catch(e){}
   if(G&&G.msg&&G.msg.id&&!(Array.isArray(G.msgs)&&G.msgs.some(function(x){return x&&x.id===G.msg.id;}))&&live({until:G.msg.end||0})&&ls(K.ms)!==String(G.msg.id))showMsg(G.msg);}
 function showMsg(m){
+  return;   /* switched off: the blue "Master Admin · message for you" card used to pop up whenever a person signed in. Private messages still arrive in the bell inbox. */
   if(document.querySelector('.iqua-o'))return;
   var done=function(){lw(K.ms,String(m.id));ov.classList.remove('in');setTimeout(function(){ov.remove();},300);};
   var ov=mk('div',{class:'iqua-o',role:'dialog','aria-modal':'true'},mk('div',{class:'iqua-c'},mk('i'),mk('div',null,mk('span',{class:'iqua-by'},'Master Admin \u00b7 message for you'),(function(){var nk='';try{nk=window.IQPROF&&IQPROF.has()?IQPROF.nick():'';}catch(e){}return nk?mk('p',{class:'iqua-hi'},'Hi '+nk+','):null;})(),m.title?mk('h3',null,m.title):null,mk('p',null,m.text||'')),mk('button',{type:'button',onclick:done},'Got it')));
@@ -33646,6 +33674,77 @@ html:root:not(#iqfx) body .qcard .opts{grid-auto-rows:auto!important;height:auto
 html:root:not(#iqfx) body .qcard .opts :is(.opt,.copt){min-height:58px;align-items:center!important}
 html:root:not(#iqfx) body .rvpick .tx{-webkit-line-clamp:unset!important;line-clamp:unset!important;overflow:visible!important;display:block!important;overflow-wrap:anywhere}
 html:root:not(#iqfx) body .rvpick{height:auto!important;min-height:48px;max-height:none!important}
+</style>
+<style id="iq-contribute-isolation-v1">
+/* ===== Contribute / Send-a-notice panel: the Support centre re-used the same .iqs-* class names (aud, av, chip, chips, empty, fq, ht, row, sel, send, sw, tabs, tile, x) and overwrote them,
+   so the audience tiles collapsed to 36px and overlapped the next card, the Send button became a small faded circle and the frequency block turned into a pill.
+   These rules restore the panel's own styling, only inside the panel (.adm-card.iqs-card); the Support centre is not touched. ===== */
+html .adm-card.iqs-card .iqs-aud{width:auto;max-width:none;height:auto}
+html .adm-card.iqs-card .iqs-av{box-shadow:none;overflow:visible}
+html .adm-card.iqs-card .iqs-empty{margin:0;max-width:none;border:0;border-radius:0;background:none;box-shadow:none}
+html .adm-card.iqs-card .iqs-fq{padding:14px 0 0;border:0;border-radius:0;background:none;color:inherit;font:inherit;white-space:normal;cursor:auto;box-shadow:none;flex:none;pointer-events:auto}
+html .adm-card.iqs-card .iqs-fq:hover{background:none}html .adm-card.iqs-card .iqs-fq:active{transform:none}
+html .adm-card.iqs-card .iqs-ht{flex:none;flex-direction:row;min-width:auto}
+html .adm-card.iqs-card .iqs-sel{height:auto;color:inherit;font:inherit}
+html .adm-card.iqs-card .iqs-send{width:auto;height:auto;min-width:0;padding:0 20px}
+html .adm-card.iqs-card .iqs-tabs{border-bottom:0;overflow:visible;gap:0}
+html .adm-card.iqs-card .iqs-chip{font-size:12.5px}
+html .adm-card.iqs-card .iqs-cnt{font:600 11px/1 var(--f-ui,system-ui,sans-serif);letter-spacing:0;color:var(--ink-3,#76809F)}
+html .adm-card.iqs-card .iqs-aud{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+html .adm-card.iqs-card .iqs-tile{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:13px 13px 12px;text-align:left;border-radius:16px;border:1.5px solid var(--line,#DCE1EF);background:var(--bg,#F3F5FB);color:var(--ink,#111A36);cursor:pointer;transition:transform .15s,border-color .2s,background .2s,box-shadow .2s}
+html .adm-card.iqs-card .iqs-tile:active{transform:scale(.985)}
+html .adm-card.iqs-card .iqs-tile .iqs-ti{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;margin-bottom:5px;background:var(--surface,#fff);color:var(--ink-2,#47537A);box-shadow:inset 0 0 0 1px var(--line,#DCE1EF)}
+html .adm-card.iqs-card .iqs-tile .iqs-ti svg{width:19px;height:19px}
+html .adm-card.iqs-card .iqs-tile b{font:700 .95rem/1.2 var(--f-display,system-ui,sans-serif)}
+html .adm-card.iqs-card .iqs-tile small{font:500 .74rem/1.3 var(--f-ui,system-ui,sans-serif);color:var(--ink-3,#76809F)}
+html .adm-card.iqs-card .iqs-tile.on{border-color:var(--ac);background:color-mix(in srgb,var(--ac) 9%,var(--surface,#fff));box-shadow:0 12px 24px -16px var(--ac),0 0 0 3px color-mix(in srgb,var(--ac) 14%,transparent)}
+html .adm-card.iqs-card .iqs-tile.on .iqs-ti{background:var(--ac);color:#fff;box-shadow:none}
+html .adm-card.iqs-card .iqs-tile.on::after{content:"\2713";position:absolute;top:10px;right:11px;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font:800 11px/1 var(--f-ui,system-ui,sans-serif);color:#fff;background:var(--ac)}
+html .adm-card.iqs-card .iqs-p b,html .adm-card.iqs-card .iqs-sel b{display:block;font:700 .9rem/1.2 var(--f-ui,system-ui,sans-serif);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html .adm-card.iqs-card .iqs-p small,html .adm-card.iqs-card .iqs-sel small{display:block;margin-top:2px;font:500 .72rem/1.2 var(--f-ui,system-ui,sans-serif);color:var(--ink-3,#76809F);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html .adm-card.iqs-card .iqs-av{flex:none;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font:800 .95rem/1 var(--f-display,system-ui,sans-serif);color:#fff;background:linear-gradient(145deg,var(--ac),color-mix(in srgb,var(--ac) 55%,#000))}
+html .adm-card.iqs-card .iqs-sel{display:none;align-items:center;gap:11px;padding:9px 10px;border-radius:14px;background:color-mix(in srgb,var(--ac) 10%,var(--surface,#fff));border:1.5px solid var(--ac)}
+html .adm-card.iqs-card .iqs-sel.on{display:flex}
+html .adm-card.iqs-card .iqs-sel div{min-width:0;flex:1}
+html .adm-card.iqs-card .iqs-x{flex:none;width:30px;height:30px;border-radius:50%;border:0;display:grid;place-items:center;background:var(--surface-2,#E9EDF7);color:var(--ink-2,#47537A);cursor:pointer}
+html .adm-card.iqs-card .iqs-x svg{width:15px;height:15px}
+html .adm-card.iqs-card .iqs-empty{display:flex;align-items:center;justify-content:center;gap:8px;padding:16px 10px;text-align:center;color:var(--ink-3,#76809F);font:500 .8rem/1.4 var(--f-ui,system-ui,sans-serif)}
+html .adm-card.iqs-card .iqs-empty svg{width:16px;height:16px}
+html .adm-card.iqs-card .iqs-chips{display:flex;flex-wrap:wrap;gap:7px}
+html .adm-card.iqs-card .iqs-chip{display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:99px;border:1px solid var(--line,#DCE1EF);background:var(--bg,#F3F5FB);color:var(--ink-2,#47537A);font:700 12.5px/1 var(--f-ui,system-ui,sans-serif);cursor:pointer;transition:transform .12s,background .15s,border-color .15s,color .15s}
+html .adm-card.iqs-card .iqs-chip i{width:9px;height:9px;border-radius:50%}
+html .adm-card.iqs-card .iqs-chip:active{transform:scale(.96)}
+html .adm-card.iqs-card .iqs-chip.on{background:var(--ac);border-color:var(--ac);color:#fff;box-shadow:0 8px 16px -10px var(--ac)}
+html .adm-card.iqs-card .iqs-chip.on i{box-shadow:0 0 0 2px rgba(255,255,255,.7)}
+html .adm-card.iqs-card .iqs-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+html .adm-card.iqs-card .iqs-sw{position:relative;flex:none;width:46px;height:28px;border-radius:99px;border:0;padding:0;cursor:pointer;background:color-mix(in srgb,var(--ink,#111A36) 18%,var(--surface,#fff));transition:background .2s}
+html .adm-card.iqs-card .iqs-sw i{position:absolute;left:3px;top:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.3);transition:transform .22s cubic-bezier(.3,.9,.3,1.2)}
+html .adm-card.iqs-card .iqs-sw[aria-checked=true]{background:var(--ac)}
+html .adm-card.iqs-card .iqs-sw[aria-checked=true] i{transform:translateX(18px)}
+html .adm-card.iqs-card .iqs-send{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 20px;border:0;border-radius:16px;color:#fff;font:800 1rem/1 var(--f-display,system-ui,sans-serif);letter-spacing:-.005em;cursor:pointer;background:linear-gradient(135deg,var(--ac),color-mix(in srgb,var(--ac) 62%,#7b5cff));box-shadow:0 16px 28px -14px var(--ac),inset 0 1px 0 rgba(255,255,255,.35);transition:transform .12s,filter .2s,box-shadow .2s}
+html .adm-card.iqs-card .iqs-send svg{width:19px;height:19px}
+html .adm-card.iqs-card .iqs-send:hover{filter:brightness(1.06)}
+html .adm-card.iqs-card .iqs-send:active{transform:translateY(1px) scale(.99)}
+html .adm-card.iqs-card .iqs-send:disabled{opacity:.7;cursor:progress}
+html .adm-card.iqs-card .iqs-send.busy svg{animation:iqsFly .9s ease-in-out infinite}
+html .adm-card.iqs-card .iqs-ht{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+html .adm-card.iqs-card .iqs-tabs{display:inline-flex;padding:3px;border-radius:99px;background:var(--surface-2,#E9EDF7)}
+html .adm-card.iqs-card .iqs-tabs button{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border:0;border-radius:99px;background:transparent;color:var(--ink-2,#47537A);font:700 12.5px/1 var(--f-ui,system-ui,sans-serif);cursor:pointer;transition:background .2s,color .2s}
+html .adm-card.iqs-card .iqs-tabs button i{font-style:normal;min-width:18px;padding:3px 5px;border-radius:99px;font:800 10.5px/1 var(--f-ui,system-ui,sans-serif);text-align:center;background:color-mix(in srgb,var(--ink,#111A36) 10%,transparent)}
+html .adm-card.iqs-card .iqs-tabs button.on{background:var(--surface,#fff);color:var(--ink,#111A36);box-shadow:0 4px 12px -6px rgba(10,15,40,.4)}
+html .adm-card.iqs-card .iqs-hist .iqs-empty{border:1px dashed var(--line,#DCE1EF);border-radius:16px}
+html .adm-ui .adm-card.iqs-card .iqs-send{color:#2a1a02;text-shadow:0 1px 0 rgba(255,246,207,.5);background:linear-gradient(135deg,#f7e3a1 0%,#e0b64d 46%,#b9831f 100%);box-shadow:0 16px 28px -14px rgba(176,138,62,.95),inset 0 1px 0 rgba(255,246,207,.75)}
+html .adm-ui .adm-card.iqs-card .iqs-sw[aria-checked=true]{background:linear-gradient(135deg,#e0b64d,#b9831f)}
+html .adm-ui .adm-card.iqs-card .iqs-tile.on .iqs-ti{color:#2a1a02}
+html .adm-ui .adm-card.iqs-card .iqs-tile.on::after{color:#2a1a02}
+html .adm-card.iqs-card .iqs-aud{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px}
+html .adm-card.iqs-card .iqs-fq{display:flex;flex-direction:column;gap:12px;margin-top:14px;padding-top:14px;border-top:1px dashed var(--line,#DCE1EF)}
+html .adm-card.iqs-card .iqs-fqh{min-width:0}html .adm-card.iqs-card .iqs-fqh small{display:block;white-space:normal;overflow-wrap:anywhere}
+html .adm-card.iqs-card .iqs-exw{display:flex;flex-direction:column;gap:10px}html .adm-card.iqs-card .iqs-exw[style*="none"]{display:none}
+html .adm-card.iqs-card .iqs-exl .iqs-chip button{background:none;border:0;color:inherit;font:700 15px/1 var(--f-ui,system-ui,sans-serif);padding:0 0 0 2px;width:auto;height:auto;cursor:pointer}
+html .adm-card.iqs-card .iqs-send:disabled{opacity:.7;cursor:progress}
+html .adm-card.iqs-card .iqs-foot{flex-wrap:wrap}html .adm-card.iqs-card .iqs-send b{white-space:nowrap}
+@media(max-width:520px){html .adm-card.iqs-card .iqs-foot .iqs-send{flex:1 1 100%}html .adm-card.iqs-card .iqs-foot .iqs-ghost{flex:1 1 40%}}
 </style>
 <style id="iqsup-css">
 /* ===== Contact Admin & Support centre (additive) ===== */
