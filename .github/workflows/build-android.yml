@@ -46,6 +46,8 @@ jobs:
           npm install
           npm install @capacitor/app@$(node -p "require('@capacitor/core/package.json').version.split('.')[0]")
           npm install @capacitor/browser@$(node -p "require('@capacitor/core/package.json').version.split('.')[0]")
+          npm install @capacitor/filesystem@$(node -p "require('@capacitor/core/package.json').version.split('.')[0]")
+          npm install @capacitor/share@$(node -p "require('@capacitor/core/package.json').version.split('.')[0]")
           npx cap add android
           npx cap sync android
 
