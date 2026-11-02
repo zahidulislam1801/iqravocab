@@ -33599,6 +33599,54 @@ html body .vfl-q.exm .vfl-qin{padding-top:24px!important;margin-top:-24px!import
 html body .vfl-q.exm .ex-hr{margin-right:6px}
 html body .vfl-q.exm .ex-slot,html body .vfl-q.exm .ex-hd{overflow:visible!important}
 </style>
+<style id="iq-fixed-question-font-v1">
+/* ===== FIXED QUESTION FONT + NEVER-CLIPPED ANSWERS (final layer; appended, nothing above was touched) =====
+   1) Every question stem (word, sentence, definition, Bangla stem) is Times New Roman at ONE fixed, clamped size.
+      Nothing can shrink it any more: not the auto-fit (--qk, set inline by qFit/pvBalance), not the user zoom (--qzw/--qze/--qzb/--qzs/--vf-z*).
+   2) An answer box grows with its text. No max-height, no fixed height, no line-clamp on answers; the screen scrolls instead of cutting text.
+   Specificity is raised with :not(#iqfx) so later or older rules cannot win; !important beats inline styles set by script. */
+:root{
+  --iq-tnr:"Times New Roman",Times,"Liberation Serif","Nimbus Roman",Tinos,serif;
+  --iq-qw:clamp(36px,10.6vw,50px);      /* the big question word */
+  --iq-qs:clamp(21px,5.9vw,27px);       /* question sentence / definition / classic stem */
+}
+/* ---------- 1. fixed question font : V Flow quiz, exam, practice ---------- */
+html:root:not(#iqfx) body .vfl-q :is(.vfl-qcard,.vfl-opts,.vfl-qin){--qk:1!important;--qzw:1!important;--qze:1!important;--qzb:1!important;--qzs:1!important}
+html:root:not(#iqfx) body .vfl-q .vfl-qcard :is(.qword,.qw,.qhead .qword){
+  font-family:var(--iq-tnr)!important;font-size:var(--iq-qw)!important;font-weight:700!important;line-height:1.12!important;letter-spacing:0!important;zoom:1!important;text-transform:none!important;overflow-wrap:anywhere;word-break:normal}
+html:root:not(#iqfx) body .vfl-q .vfl-qcard :is(.qs,.qs-sent,.qdef){
+  font-family:var(--iq-tnr)!important;font-size:var(--iq-qs)!important;line-height:1.5!important;letter-spacing:0!important;zoom:1!important}
+html:root:not(#iqfx) body .vfl-q .vfl-qcard .qblank{font-family:var(--iq-tnr)!important}
+html:root:not(#iqfx) body .vfl-q .vfl-qcard .qbn{
+  font-family:"Times New Roman",Times,var(--f-bn),serif!important;font-size:var(--iq-qs)!important;line-height:1.55!important;zoom:1!important}
+/* the card itself lets its text decide the height */
+html:root:not(#iqfx) body .vfl-q .vfl-qcard{height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important}
+
+/* ---------- 1b. fixed question font : classic exam / practice / other quiz screens ---------- */
+html:root:not(#iqfx) body :is(.qcard,.wrap:has(>.exhead) .qcard) :is(.exword,.cm-word .word,.sent,.exsent,.deftext,.rex-stem){
+  font-family:var(--iq-tnr)!important;zoom:1!important}
+html:root:not(#iqfx) body :is(.qcard,.wrap:has(>.exhead) .qcard) :is(.exsent,.sent,.deftext,.rex-stem){
+  font-size:var(--iq-qs)!important;line-height:1.55!important}
+html:root:not(#iqfx) body :is(.qcard,.wrap:has(>.exhead) .qcard) :is(.exword,.cm-word .word){
+  font-size:var(--iq-qw)!important;line-height:1.12!important;letter-spacing:0!important}
+
+/* ---------- 2. answers never cut: V Flow ---------- */
+html:root:not(#iqfx) body .vfl-q .vfl-qin :is(.vfl-orow,.vfl-opts){height:auto!important;max-height:none!important;min-height:0!important;overflow:visible!important}
+html:root:not(#iqfx) body .vfl-q .vfl-qin .vfl-orow{align-self:stretch!important}
+html:root:not(#iqfx) body .vfl-q .vfl-qin .vfl-opt{height:auto!important;max-height:none!important;min-height:52px!important;overflow:visible!important;align-items:center!important;padding-block:10px!important}
+html:root:not(#iqfx) body .vfl-q .vfl-qin .vfl-opt .t{min-width:0!important;max-width:100%!important;overflow:visible!important;white-space:normal!important;overflow-wrap:anywhere!important;display:block!important;-webkit-line-clamp:unset!important;line-clamp:unset!important;text-overflow:clip!important;height:auto!important;max-height:none!important}
+html:root:not(#iqfx) body .vfl-q .vfl-qin .vfl-om :is(.om-e,.om-b){overflow:visible!important;-webkit-line-clamp:unset!important;max-height:none!important;display:block!important}
+html:root:not(#iqfx) body .vfl-q .vfl-qin .qbody{height:auto!important;max-height:none!important}
+
+/* ---------- 2b. answers never cut: classic exam / practice / closest meaning / review ---------- */
+html:root:not(#iqfx) body :is(.opt,.copt) :is(.om,.ob,.ow,.t,.cw){-webkit-line-clamp:unset!important;line-clamp:unset!important;max-height:none!important;overflow:visible!important;text-overflow:clip!important;white-space:normal!important;overflow-wrap:anywhere}
+html:root:not(#iqfx) body .opt .om{display:block!important;margin-top:4px}
+html:root:not(#iqfx) body :is(.opt,.copt,.optline,.optw){height:auto!important;max-height:none!important;overflow:visible!important}
+html:root:not(#iqfx) body .qcard .opts{grid-auto-rows:auto!important;height:auto!important;max-height:none!important;overflow:visible!important}
+html:root:not(#iqfx) body .qcard .opts :is(.opt,.copt){min-height:58px;align-items:center!important}
+html:root:not(#iqfx) body .rvpick .tx{-webkit-line-clamp:unset!important;line-clamp:unset!important;overflow:visible!important;display:block!important;overflow-wrap:anywhere}
+html:root:not(#iqfx) body .rvpick{height:auto!important;min-height:48px;max-height:none!important}
+</style>
 <style id="iqsup-css">
 /* ===== Contact Admin & Support centre (additive) ===== */
 .iqsup-row .iqs-dotb,.iqsup-adm .iqs-cnt{margin-left:auto;flex:none;min-width:18px;height:18px;padding:0 5px;border-radius:99px;background:#e0314b;color:#fff;font:700 11px/18px var(--f-ui,sans-serif);text-align:center;font-style:normal}
