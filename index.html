@@ -62,6 +62,7 @@
      browser (bare quiz URL, a ?k= link with mocked Firebase, the studio, the app's PDF panel as admin). Troubleshooting: login fails -> authorized
      domain; "not valid" for a good link -> rules not published or link off/expired; old app still shown -> stale service worker or the Cloudflare
      build command is not "node build_quiz.js".
+   v5 (Nov 2026): lossless indexed-colour PDFs (3x scale, ~95 KB per text page), preview for every PDF, premium certificate/card, OMR sheet with corner markers + built-in OMR scanner (camera or upload), reorganised studio home (tabs, tools), Claude prompt + JSON paste, Scan questions from PDF/photo (pdf.js + Tesseract from CDN), close-match / Banglish short answers (sameShort), copy() fixed, folder-tab removed from cards.
    v4 ADDITIONS (Nov 2026): (1) Admin side menu: the 4th dock tile is now Quiz studio (Settings lives only in Admin centre > Edit & backup). (2) PLAYER 'flow' = app-style animated exam
      (xdots progress, staggered option buttons with letter badges + ripple, snd() tones with a mute button, End-quiz confirm, keys A-E / 1-5 / Enter); result screen = score ring, stats, question map, downloads:
      answer key WITH solutions (keySolDoc), overall report (reportDoc), result card, certificate (only when the pass mark = mastery score is reached; otherwise a locked hint). (3) STUDIO: 'Smart paste'
@@ -73,6 +74,7 @@ var CFG={apiKey:"AIzaSyDNgKIh4CYkbCMbbvsyhb0aCPG4fsSAixs",authDomain:"iqravocab-
 var BASE='https://www.gstatic.com/firebasejs/10.12.2/',QH='iqraquiz.pages.dev',P=null;
 var FONTS='https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Instrument+Sans:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600&family=Newsreader:wght@400;500;600&family=Scheherazade+New:wght@400;700&display=swap';
 var XCSS=".qx .qprog,.qx .qcnt{display:none}.qx .qc{max-width:680px}.xh{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:4px 0 8px}.xqn{font:700 12px var(--f);padding:6px 13px;border-radius:99px;background:var(--act-soft);color:#065339;border:1px solid var(--act-line);letter-spacing:.02em}.xsnd{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--ink2);font:700 15px var(--f);cursor:pointer;display:grid;place-items:center;transition:transform .15s}.xsnd:active{transform:scale(.9)}.xdots{display:flex;gap:5px;margin:2px 0 12px}.xdots i{flex:1;min-width:6px;max-width:34px;height:6px;border-radius:9px;background:#DCE1EF;transition:background .3s,transform .3s}.xdots i.dn{background:var(--act)}.xdots i.cur{background:var(--act-hi);transform:scaleY(1.5);box-shadow:0 0 0 3px rgba(13,190,118,.22);animation:xpl 1.5s ease-in-out infinite}@keyframes xpl{50%{box-shadow:0 0 0 6px rgba(13,190,118,.06)}}.xcard{margin-top:6px;padding:20px 18px 14px;animation:xcard .5s cubic-bezier(.2,.8,.2,1) both}@keyframes xcard{from{opacity:0;transform:translateY(22px) scale(.985)}to{opacity:1;transform:none}}.xq{font:600 clamp(18px,4.6vw,23px)/1.45 \"Newsreader\",\"Iowan Old Style\",Georgia,\"Hind Siliguri\",serif;color:var(--ink);margin:0 0 12px;overflow-wrap:anywhere;white-space:pre-wrap}.xp{display:inline-block;font:700 11px var(--f);letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);margin:0 0 8px}.xopts{display:grid;gap:10px;margin-top:6px}.xo{position:relative;overflow:hidden;display:grid;grid-template-columns:34px 1fr;gap:12px;align-items:start;text-align:left;padding:13px 14px;border-radius:16px;border:1.5px solid var(--line);background:rgba(255,255,255,.92);font:inherit;color:var(--ink);cursor:pointer;animation:xin .45s cubic-bezier(.2,.8,.2,1) both;animation-delay:var(--d,0ms);transition:border-color .15s,background .15s,transform .12s,box-shadow .2s}@keyframes xin{from{opacity:0;transform:translateX(26px)}to{opacity:1;transform:none}}.xo:hover{border-color:var(--act);background:var(--act-soft)}.xo:active{transform:scale(.985)}.xo .k{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font:700 15px var(--fd);background:#EEF1FA;color:var(--ink2);transition:.2s}.xo .t{font:400 1.08rem/1.5 \"Newsreader\",\"Iowan Old Style\",Georgia,\"Hind Siliguri\",serif;align-self:center;overflow-wrap:anywhere}.xo.sel{border-color:var(--act);background:var(--act-soft);box-shadow:0 10px 20px -14px var(--act)}.xo.sel .k{background:var(--act);color:#fff;transform:scale(1.08)}.xrip{position:absolute;border-radius:50%;background:rgba(13,190,118,.28);transform:scale(0);animation:xrp .6s ease-out forwards;pointer-events:none;width:20px;height:20px;margin:-10px 0 0 -10px}@keyframes xrp{to{transform:scale(18);opacity:0}}.xf{display:flex;justify-content:space-between;gap:10px;margin-top:16px}.xb{border:1.5px solid var(--line);background:#fff;color:var(--ink);border-radius:14px;padding:11px 18px;font:700 14px var(--f);cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:transform .12s}.xb:active{transform:scale(.97)}.xb.pri{border:0;background:linear-gradient(135deg,#22D08A,#0DBE76 55%,#09A263);color:#fff;box-shadow:0 10px 18px -10px #0DBE76}.xconf{position:fixed;inset:0;z-index:2147483200;background:rgba(8,12,28,.5);backdrop-filter:blur(3px);display:grid;place-items:center;padding:20px;animation:qaZoom .25s both}.xbox{background:#fff;border-radius:22px;padding:20px;max-width:360px;width:100%;box-shadow:0 30px 80px -20px #000a}.xbox h3{margin:0 0 6px;font:700 19px var(--fd)}.xbox p{margin:0 0 14px;color:var(--ink2)}.xr{display:flex;gap:8px;justify-content:flex-end}.qfig{margin:2px 0 12px;text-align:center}.qfig img{max-width:100%;max-height:320px;border-radius:14px;border:1px solid var(--line);background:#fff}.qcap{font:600 13px var(--f);color:var(--ink2);margin:0 0 6px}.qimg{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0}.qimg img{width:72px;height:72px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}.qimg .q-in{flex:1;min-width:150px;margin:0}.xhero{text-align:center;margin-top:4vh;padding:22px 16px}.xeyebrow{font:700 11px var(--f);letter-spacing:.12em;text-transform:uppercase;color:var(--ink3)}.xring{width:136px;height:136px}.xring b{width:106px;height:106px;font:700 28px var(--fd)}.xhero h2{font:700 24px var(--fd);margin:8px 0 2px}.xscore{font:600 15px var(--f);color:var(--ink2);margin-bottom:8px}.xstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0 8px}.xstats div{background:rgba(255,255,255,.85);border:1px solid var(--line);border-radius:14px;padding:10px 4px;animation:qaRise .5s both}.xstats b{display:block;font:700 20px var(--fd)}.xstats span{font:600 11px var(--f);color:var(--ink3);text-transform:uppercase;letter-spacing:.05em}.xstats .ok b{color:var(--good)}.xstats .no b{color:var(--bad)}.xmap{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin:10px 0}.xmap i{font:700 10px var(--f);font-style:normal;width:24px;height:24px;border-radius:8px;display:grid;place-items:center;color:#fff;animation:qaZoom .4s both}.xmap .ok{background:#0DBE76}.xmap .no{background:#E0587A}.xmap .sk{background:#DCE1EF;color:#47537A}.xdl{display:grid;gap:8px;margin-top:12px}.xdl .q-btn{margin:0;width:100%}.xlock{font:600 13px var(--f);color:var(--ink3);background:#EEF0F7;border:1px dashed var(--line);border-radius:12px;padding:9px 12px}.xrv.ok{border-color:#A8E8CB}.xrv.no{border-color:#F6B8C2}.xrv.skip{border-color:#DCE1EF}.xrow{display:flex;gap:8px;margin-top:6px;align-items:baseline}.xrow span{font:700 11px var(--f);text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);min-width:52px}.xex{margin-top:8px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.8);color:var(--ink2);font-size:14px}.xsm{margin:6px 0}.xsm .q-in{margin:3px 0}";
+var CSS5=".qtabs{display:flex;gap:4px;background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:4px;margin:12px 0 8px}.qtabs button{flex:1;border:0;background:transparent;border-radius:12px;padding:10px 6px;font:700 13px var(--f);color:var(--ink2);cursor:pointer;transition:.15s}.qtabs button.on{background:linear-gradient(135deg,#22D08A,#0DBE76 55%,#09A263);color:#fff;box-shadow:0 8px 14px -10px #0DBE76}\n.qgrid{display:grid;gap:8px;margin-top:10px}.qg2{grid-template-columns:repeat(2,minmax(0,1fr))}.qg3{grid-template-columns:repeat(3,minmax(0,1fr))}.qgrid>.q-btn{margin:0;width:100%;padding:10px 3px;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}\n.qtool{display:flex;flex-direction:column;gap:3px;align-items:flex-start;text-align:left;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.92);padding:12px 12px 11px;cursor:pointer;font-family:inherit;color:var(--ink);box-shadow:0 8px 18px -14px rgba(17,26,54,.4);transition:transform .12s}.qtool:active{transform:scale(.98)}.qtool i{font-style:normal;font-size:20px;line-height:1}.qtool b{font:700 13.5px var(--f)}.qtool span{font:500 11.5px/1.3 var(--f);color:var(--ink3)}\n.qurl{display:block;font:500 12px var(--f);color:var(--ink3);margin:8px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}\n.qpr{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.92);margin:8px 0;flex-wrap:wrap}.qpi{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-size:18px;background:var(--act-soft);flex:none}.qpt{flex:1;min-width:96px}.qpt b{display:block;font:700 14px var(--f)}.qpt small{color:var(--ink3);font-size:12px;line-height:1.3;display:block}.qpb{display:inline-flex;gap:6px;flex:none}.qpb .q-btn,.qpr>.q-btn{margin:0;padding:8px 13px;font-size:13px}\n.qpv{position:fixed;inset:0;z-index:2147483400;background:#0d1226;display:flex;flex-direction:column}.qpvh{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#161d3a;color:#fff;flex-wrap:wrap}.qpvh b{flex:1;min-width:110px;font:700 14px var(--f);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.qpvz{font:700 12px var(--f);min-width:40px;text-align:center}.qpvb{flex:1;overflow:auto;padding:14px 10px 50px;display:flex;flex-direction:column;align-items:center;gap:8px;-webkit-overflow-scrolling:touch}.qpvb canvas{background:#fff;box-shadow:0 18px 40px -16px #000;border-radius:3px;max-width:none;flex:none}.qpvm{color:#cfd6f5;font:600 14px var(--f);padding:40px 0}.qpvn{color:#8f99c9;font:600 11px var(--f);margin-bottom:10px}\n.qsec{font:700 12px var(--f);letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin:18px 2px 6px}\n.qhint{font:500 12.5px/1.45 var(--f);color:var(--ink2);background:rgba(255,255,255,.75);border:1px dashed var(--line);border-radius:14px;padding:10px 12px;margin:8px 0}\n.qcam{position:relative;border-radius:18px;overflow:hidden;background:#000;margin:8px 0}.qcam video{display:block;width:100%;max-height:62vh;object-fit:cover}.qcam .qfr{position:absolute;inset:7%;border:2px dashed rgba(255,255,255,.75);border-radius:10px;pointer-events:none}\n.qchips{display:flex;flex-wrap:wrap;gap:4px;align-items:center}.qch{border:1.5px solid var(--line);background:#fff;border-radius:9px;min-width:30px;padding:4px 7px;font:700 12px var(--f);color:var(--ink2);cursor:pointer}.qch.on{background:var(--act-soft);border-color:var(--act);color:#065339}.qch.bad{background:var(--bad-soft);border-color:#F0A3B0;color:#7B1022}.qch.key{box-shadow:inset 0 0 0 2px #7C8CF0}\n.qscn{width:100%;border-radius:14px;border:1px solid var(--line);background:#fff;display:block;touch-action:none}.qmark{display:flex;align-items:center;gap:8px;font:600 12.5px var(--f);color:var(--ink2);margin:6px 0}\n.qrow2{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}\n";
 var CSS=[
 '.qv{--bg:#F3F5FB;--ink:#111A36;--ink2:#47537A;--ink3:#76809F;--line:#DCE1EF;--act:#0DBE76;--act-hi:#22D08A;--act-deep:#09A263;--act-soft:#E0F8EC;--act-line:#A8E8CB;--bad:#D0304B;--bad-soft:#FFE0E5;--good:#0E8F63;--shadow:0 1px 2px rgba(17,26,54,.06),0 8px 24px -12px rgba(17,26,54,.18);--fd:"Bricolage Grotesque","Instrument Sans","Segoe UI",system-ui,sans-serif;--f:"Instrument Sans","Hind Siliguri","Segoe UI",system-ui,-apple-system,sans-serif;font:15px/1.5 var(--f);color:var(--ink)}',
 '.qv *{box-sizing:border-box}.qv h2,.qv h3,.qv .qhead>div{text-align:left}.qv .qctr h2,.qv .qctr h3{text-align:center}',
@@ -82,9 +84,8 @@ var CSS=[
 '.qpage::after{content:"إقرأ";left:-8px;bottom:-26px;color:hsl(160 78% 46%)}',
 '.qs-ov{position:fixed;inset:0;z-index:2147483000;overflow:auto}',
 '.qc{position:relative;z-index:1;max-width:700px;margin:0 auto;padding:14px 14px 90px}',
-'.qt{--h:226;container-type:inline-size;position:relative;isolation:isolate;border-radius:5px 20px 20px 20px;padding:16px;margin:18px 0 12px;background:linear-gradient(158deg,#fff 38%,hsl(var(--h) 90% 95%) 100%);border:1px solid hsl(var(--h) 52% 76%);box-shadow:0 14px 26px -18px hsl(var(--h) 70% 38%/.55),0 2px 6px -3px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.35)}',
-'.qt::before{content:"";position:absolute;left:-1px;top:-13px;width:92px;height:14px;background:#fff;border:1px solid hsl(var(--h) 52% 76%);border-bottom:0;border-radius:12px 12px 0 0;z-index:-1}',
-'.qt::after{content:"إقرأ";position:absolute;z-index:-1;right:-.5cqw;top:1cqw;pointer-events:none;direction:rtl;white-space:nowrap;font:700 clamp(64px,46cqw,150px)/1.3 "Noorehira","noorhera","Scheherazade New","Amiri",serif;color:hsl(var(--h) 78% 56%);opacity:.16}',
+'.qt{--h:226;container-type:inline-size;position:relative;isolation:isolate;border-radius:20px;overflow:hidden;padding:16px;margin:10px 0;background:linear-gradient(158deg,#fff 38%,hsl(var(--h) 90% 95%) 100%);border:1px solid hsl(var(--h) 52% 76%);box-shadow:0 14px 26px -18px hsl(var(--h) 70% 38%/.55),0 2px 6px -3px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.35)}',
+'.qt::after{content:"إقرأ";position:absolute;z-index:-1;right:-.5cqw;top:1cqw;pointer-events:none;direction:rtl;white-space:nowrap;font:700 clamp(64px,46cqw,150px)/1.3 "Noorehira","noorhera","Scheherazade New","Amiri",serif;color:hsl(var(--h) 78% 56%);opacity:.12}',
 '.qt.h0{--h:226}.qt.h1{--h:160}.qt.h2{--h:332}.qt.h3{--h:28}',
 '.qt h2,.qt h3{font-family:var(--fd);margin:0 0 4px;letter-spacing:-.01em}',
 '.qpill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;margin:2px 4px 2px 0;border-radius:99px;font:600 12px var(--f);background:hsl(var(--h,232) 80% 92%);color:hsl(var(--h,232) 55% 28%);border:1px solid hsl(var(--h,232) 60% 82%)}',
@@ -131,17 +132,33 @@ var CSS=[
 '.qhist{display:flex;align-items:flex-end;gap:4px;height:64px;margin:8px 0 2px}.qhist i{flex:1;background:linear-gradient(#22D08A,#0DBE76);border-radius:6px 6px 0 0;min-height:3px}.qbar2{height:7px;border-radius:5px;background:#E4E8F5;overflow:hidden}.qbar2 i{display:block;height:100%;background:linear-gradient(90deg,#22D08A,#0DBE76)}',
 '.qsearch{margin:6px 0 10px}.qcode{display:block;margin:8px auto}',
 '.qdock{position:sticky;bottom:0;z-index:6;display:flex;gap:6px;flex-wrap:wrap;padding:12px 0 6px;background:linear-gradient(to top,#F3F5FB 60%,transparent)}'
-].join('\n')+XCSS;
+].join('\n')+XCSS+CSS5;
 function fb(){return P||(P=Promise.all([import(BASE+'firebase-app.js'),import(BASE+'firebase-auth.js'),import(BASE+'firebase-firestore.js')]).then(function(a){var app=a[0].getApps().length?a[0].getApp():a[0].initializeApp(CFG);return{au:a[1],fs:a[2],auth:a[1].getAuth(app),db:a[2].getFirestore(app)};}).catch(function(e){P=null;throw e;}));}
 function E(t,a){var e=document.createElement(t),v;for(var k in a||{}){if(k==='value'||k==='checked')v=[k,a[k]];else if(k==='style')e.style.cssText=a[k];else if(k.slice(0,2)==='on')e[k]=a[k];else e.setAttribute(k,a[k]);}for(var i=2;i<arguments.length;i++){var c=arguments[i];if(c==null)continue;e.append(c.nodeType?c:document.createTextNode(c));}if(v)e[v[0]]=v[1];return e;}
 function shuf(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t;}return a;}
 function rid(n){var s='';while(s.length<n)s+=Math.random().toString(36).slice(2);return s.slice(0,n);}
-function grade(q,a){if(q.type==='para')return 0;var p=+q.pts||0;if(q.type==='short'){var v=String(a||'').trim().toLowerCase();return v&&(q.ans||[]).some(function(x){return String(x).trim().toLowerCase()===v;})?p:0;}var A=(q.ans||[]).slice().sort().join(),B=(a||[]).slice().sort().join();return B!==''&&A===B?p:0;}
+/* ===== v5 short answers: typo-tolerant, and Bangla may be typed in English letters (Banglish) ===== */
+var BNV={'\u0985':'o','\u0986':'a','\u0987':'i','\u0988':'i','\u0989':'u','\u098A':'u','\u098B':'ri','\u098F':'e','\u0990':'oi','\u0993':'o','\u0994':'ou','\u09BE':'a','\u09BF':'i','\u09C0':'i','\u09C1':'u','\u09C2':'u','\u09C3':'ri','\u09C7':'e','\u09C8':'oi','\u09CB':'o','\u09CC':'ou'},
+BNC={'\u0995':'k','\u0996':'kh','\u0997':'g','\u0998':'gh','\u0999':'ng','\u099A':'ch','\u099B':'chh','\u099C':'j','\u099D':'jh','\u099E':'n','\u099F':'t','\u09A0':'th','\u09A1':'d','\u09A2':'dh','\u09A3':'n','\u09A4':'t','\u09A5':'th','\u09A6':'d','\u09A7':'dh','\u09A8':'n','\u09AA':'p','\u09AB':'ph','\u09AC':'b','\u09AD':'bh','\u09AE':'m','\u09AF':'j','\u09B0':'r','\u09B2':'l','\u09B6':'sh','\u09B7':'sh','\u09B8':'s','\u09B9':'h','\u09DC':'r','\u09DD':'rh','\u09DF':'y','\u09CE':'t','\u0982':'ng','\u0983':'h','\u0981':''};
+function bn2lat(s){s=String(s).replace(/\u09A1\u09BC/g,'\u09DC').replace(/\u09A2\u09BC/g,'\u09DD').replace(/\u09AF\u09BC/g,'\u09DF');var o='',i,ch,nx;
+  for(i=0;i<s.length;i++){ch=s[i];if(BNC[ch]!=null){o+=BNC[ch];nx=s[i+1];if(nx==='\u09CD'){i++;continue;}if(nx&&BNV[nx]&&nx>='\u09BE'){continue;}if(ch!=='\u0982'&&ch!=='\u0983'&&ch!=='\u0981'&&ch!=='\u09CE')o+='o';}else if(BNV[ch])o+=BNV[ch];else if(ch==='\u09CD')continue;else if(ch>='\u09E6'&&ch<='\u09EF')o+=String.fromCharCode(ch.charCodeAt(0)-2486);else o+=ch;}
+  return o;}
+function nrmS(s){return bn2lat(String(s==null?'':s).normalize('NFC')).toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();}
+function skel(s){return nrmS(s).split(' ').map(function(w){return w.replace(/chh|ch/g,'C').replace(/kh/g,'k').replace(/gh/g,'g').replace(/th/g,'t').replace(/dh/g,'d').replace(/ph|f/g,'p').replace(/bh|v|w/g,'b').replace(/sh/g,'s').replace(/jh|z/g,'j').replace(/q|c/g,'k').replace(/x/g,'ks').replace(/ng/g,'N').replace(/[aeiouy]+/g,'a').replace(/(.)\1+/g,'$1').replace(/a$/,'');}).join('');}
+function lev(a,b){var m=a.length,n=b.length,p=[],i,j,c;if(!m)return n;if(!n)return m;for(j=0;j<=n;j++)p[j]=j;for(i=1;i<=m;i++){var prev=p[0];p[0]=i;for(j=1;j<=n;j++){var t=p[j];p[j]=Math.min(p[j]+1,p[j-1]+1,prev+(a[i-1]===b[j-1]?0:1));prev=t;}}return p[n];}
+function sameShort(acc,val){var A=String(acc==null?'':acc).trim().toLowerCase(),V=String(val==null?'':val).trim().toLowerCase();if(!V)return false;if(A===V)return true;
+  var nA=nrmS(A);if(nA&&nA===nrmS(V))return true;
+  if(/^[\d\s.,:\/-]+$/.test(A))return false;
+  var hb=/[\u0980-\u09FF]/;
+  if(hb.test(A)||hb.test(V)){var x=skel(A),y=skel(V);if(!x||!y)return false;var tol=x.length>=8?2:x.length>=5?1:0;return lev(x,y)<=tol&&Math.abs(x.length-y.length)<=tol+1;}
+  var a=A.replace(/[^\p{L}\p{N}]+/gu,' ').trim(),v=V.replace(/[^\p{L}\p{N}]+/gu,' ').trim();if(a===v)return true;var tl=a.length>=11?2:a.length>=7?1:0;return tl>0&&lev(a,v)<=tl;}
+function grade(q,a){if(q.type==='para')return 0;var p=+q.pts||0;if(q.type==='short'){var v=String(a||'').trim().toLowerCase();return v&&(q.ans||[]).some(function(x){return q.strict?String(x).trim().toLowerCase()===v:sameShort(x,v);})?p:0;}var A=(q.ans||[]).slice().sort().join(),B=(a||[]).slice().sort().join();return B!==''&&A===B?p:0;}
 function optsOf(q){return q.type==='tf'?['True','False']:q.opts||[];}
 function ansText(q){return q.type==='short'?(q.ans||[]).join(' / '):(q.ans||[]).map(function(i){return optsOf(q)[i];}).join(', ');}
 function signIn(f){if(window.IQAUTH&&IQAUTH.signIn)return IQAUTH.signIn(f.au,f.auth);var p=new f.au.GoogleAuthProvider();p.setCustomParameters({prompt:'select_account'});return f.au.signInWithPopup(f.auth,p);}
 function who(f){return new Promise(function(r){var un=f.au.onAuthStateChanged(f.auth,function(u){un();r(u);});});}
-function copy(t){try{var p=copy(t);if(p&&p.catch)p.catch(function(){});}catch(e){}}
+function copy(t){try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).catch(function(){cpOld(t);});return;}}catch(e){}cpOld(t);}
+function cpOld(t){try{var a=document.createElement('textarea');a.value=t;a.setAttribute('readonly','');a.style.cssText='position:fixed;left:-9999px;top:0;opacity:0';document.body.append(a);a.select();document.execCommand('copy');a.remove();}catch(e){}}
 function cut(s,n){s=String(s||'').trim();return s.length>n?s.slice(0,n-1)+'…':s;}
 
 /* ================= PDF engine: canvas pages -> JPEG -> minimal PDF (same idea as the app's own PDF tool) ================= */
@@ -197,8 +214,8 @@ function prep(){
   var img=new Promise(function(res){var i=new Image();i.onload=function(){res(i);};i.onerror=function(){res(null);};i.src='/icon-192.png';});
   return Promise.all([Promise.all(fonts).catch(function(){}),img]).then(function(a){LG=a[1];try{return document.fonts.ready;}catch(e){}});
 }
-function Doc(o){o=o||{};var sz=o.size||PAPER[o.paper]||PAPER.A4;this.W=o.land?sz[1]:sz[0];this.H=o.land?sz[0]:sz[1];this.m=o.m==null?44:o.m;this.S=o.S||2;this.pages=[];this.foot=o.foot||'';this.hdr=o.hdr!==false;this.np();}
-Doc.prototype.np=function(){var cv=document.createElement('canvas');cv.width=Math.round(this.W*this.S);cv.height=Math.round(this.H*this.S);var c=cv.getContext('2d');c.setTransform(this.S,0,0,this.S,0,0);c.fillStyle='#fff';c.fillRect(0,0,this.W,this.H);c.textBaseline='alphabetic';this.c=c;this.cv=cv;this.pages.push(cv);this.y=this.m+(this.pages.length>1&&this.hdr?4:0);};
+function Doc(o){o=o||{};var sz=o.size||PAPER[o.paper]||PAPER.A4;this.W=o.land?sz[1]:sz[0];this.H=o.land?sz[0]:sz[1];this.m=o.m==null?44:o.m;this.S=o.S||3;this.pages=[];this.foot=o.foot||'';this.hdr=o.hdr!==false;this.np();}
+Doc.prototype.np=function(){var S=this.pages.length>=18?Math.min(this.S,2.2):this.S,cv=document.createElement('canvas');cv._S=S;cv.width=Math.round(this.W*S);cv.height=Math.round(this.H*S);var c=cv.getContext('2d');c.setTransform(S,0,0,S,0,0);c.fillStyle='#fff';c.fillRect(0,0,this.W,this.H);c.textBaseline='alphabetic';this.c=c;this.cv=cv;this.pages.push(cv);this.y=this.m+(this.pages.length>1&&this.hdr?4:0);};
 Doc.prototype.room=function(h){if(this.y+h>this.H-this.m-10)this.np();};
 Doc.prototype.set=function(o){this.c.font=(o.w||500)+' '+(o.s||11)+'px '+(o.f||FUI);try{this.c.letterSpacing=(o.ls||0)+'px';}catch(e){}};
 Doc.prototype.wrap=function(t,o,mw){var c=this.c,out=[];this.set(o);String(t==null?'':t).split('\n').forEach(function(par){var cur='';par.split(/(\s+)/).forEach(function(w){if(!w)return;var test=cur+w;if(c.measureText(test).width>mw&&cur.trim()){out.push(cur.trim());cur=w.trim()?w:'';}else cur=test;while(c.measureText(cur).width>mw&&cur.length>1){var k=cur.length;while(k>1&&c.measureText(cur.slice(0,k)).width>mw)k--;out.push(cur.slice(0,k));cur=cur.slice(k);}});out.push(cur.trim());});return out;};
@@ -206,28 +223,94 @@ Doc.prototype.p=function(t,o){o=o||{};var s=o.s||11,lh=o.lh||s*1.45,x=o.x==null?
 Doc.prototype.rr=function(x,y,w,h,r,fill,stroke,lw){var c=this.c;c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();if(fill){c.fillStyle=fill;c.fill();}if(stroke){c.strokeStyle=stroke;c.lineWidth=lw||1;c.stroke();}};
 Doc.prototype.hr=function(col,gap){var c=this.c;this.room(8);c.strokeStyle=col||'#DCE1EF';c.lineWidth=.8;c.beginPath();c.moveTo(this.m,this.y+2);c.lineTo(this.W-this.m,this.y+2);c.stroke();this.y+=gap==null?8:gap;};
 Doc.prototype.qr=function(url,x,y,s,col){var Q=null;try{Q=qrMatrix&&qrMatrix(url);}catch(e){}if(!Q)return false;var c=this.c,n=Q.n,pd=s*.06,u=(s-2*pd)/(n+2);this.rr(x,y,s,s,s*.06,'#fff','#DCE1EF',.8);c.fillStyle=col||'#0b1220';for(var r=0;r<n;r++){var row=Q.m[r],a=-1;for(var q=0;q<=n;q++){var on=q<n&&row[q];if(on&&a<0)a=q;else if(!on&&a>=0){c.fillRect(x+pd+u+a*u,y+pd+u+r*u,(q-a)*u+.25,u+.25);a=-1;}}}return true;};
-Doc.prototype.finish=function(){var N=this.pages.length,self=this;this.pages.forEach(function(cv,i){var c=cv.getContext('2d');c.setTransform(self.S,0,0,self.S,0,0);
-  if(self.hdr){var g=c.createLinearGradient(0,0,self.W,0);g.addColorStop(0,'#22D08A');g.addColorStop(.6,'#0DBE76');g.addColorStop(1,'#6A78E8');c.fillStyle=g;c.fillRect(0,0,self.W,4);
-   c.fillStyle='#76809F';c.font='500 8.5px '+FUI;c.textAlign='left';c.fillText('IQRA QUIZ'+(self.foot?'  ·  '+cut(self.foot,70):''),self.m,self.H-self.m*.55);c.textAlign='right';c.fillText((i+1)+' / '+N,self.W-self.m,self.H-self.m*.55);c.textAlign='left';}});return this;};
-function jpegBytes(cv){return new Promise(function(res){cv.toBlob(function(b){b.arrayBuffer().then(function(a){res(new Uint8Array(a));});},'image/jpeg',.92);});}
-function pdfBlob(doc){
-  return Promise.all(doc.pages.map(jpegBytes)).then(function(imgs){
-    var wPt=doc.W,hPt=doc.H,parts=[],len=0,offs=[];
+Doc.prototype.finish=function(){if(this._fin)return this;this._fin=1;var N=this.pages.length,self=this;this.pages.forEach(function(cv,i){var S=cv._S||self.S,c=cv.getContext('2d');c.setTransform(S,0,0,S,0,0);
+  if(self.hdr){var g=c.createLinearGradient(0,0,self.W,0);g.addColorStop(0,'#0B4F4A');g.addColorStop(.55,'#0DBE76');g.addColorStop(1,'#6A78E8');c.fillStyle=g;c.fillRect(0,0,self.W,5);var gd=c.createLinearGradient(0,0,self.W,0);gd.addColorStop(0,'#8A6417');gd.addColorStop(.5,'#E7C46A');gd.addColorStop(1,'#8A6417');c.fillStyle=gd;c.fillRect(0,5,self.W,.9);
+   var fy=self.H-self.m*.55;c.strokeStyle='#E4E8F5';c.lineWidth=.6;c.beginPath();c.moveTo(self.m,fy-11);c.lineTo(self.W-self.m,fy-11);c.stroke();
+   c.fillStyle='#76809F';c.font='500 8.5px '+FUI;c.textAlign='left';c.textBaseline='alphabetic';c.fillText('IQRA QUIZ'+(self.foot?'  \u00B7  '+cut(self.foot,70):''),self.m,fy);c.textAlign='right';c.fillText('Page '+(i+1)+' of '+N,self.W-self.m,fy);c.textAlign='left';}
+  if(self.fid){var F=omrFid(self.W,self.H);c.fillStyle='#000';F.c.forEach(function(p){c.fillRect(p[0]-F.s/2,p[1]-F.s/2,F.s,F.s);});}});return this;};
+/* ===== v5 PDF encoder: lossless indexed-colour pages (crisp text, tiny files) with a high-quality JPEG fallback for gradient-heavy pages ===== */
+function quantPage(cv){
+  var w=cv.width,h=cv.height,n=w*h,d=cv.getContext('2d').getImageData(0,0,w,h).data,hist=new Uint32Array(32768),i,p,k;
+  for(i=0,p=0;i<n;i++,p+=4)hist[(d[p]>>3)<<10|(d[p+1]>>3)<<5|(d[p+2]>>3)]++;
+  var bins=[];for(k=0;k<32768;k++)if(hist[k])bins.push(k);
+  if(bins.length>6000)return null;                       /* photos / heavy gradients: not suited to a palette */
+  bins.sort(function(a,b){return hist[b]-hist[a];});
+  var pal=[],T=15*15,cr=function(b){return[(b>>10)<<3|4,((b>>5)&31)<<3|4,(b&31)<<3|4];};
+  for(i=0;i<bins.length&&pal.length<96;i++){var c=cr(bins[i]),ok=true;for(var j=0;j<pal.length;j++){var dr=pal[j][0]-c[0],dg=pal[j][1]-c[1],db=pal[j][2]-c[2];if(dr*dr+dg*dg+db*db<T){ok=false;break;}}if(ok)pal.push(c);}
+  var map=new Uint8Array(32768),err=0;
+  for(i=0;i<bins.length;i++){var cc=cr(bins[i]),best=0,bd=1e9;for(var q=0;q<pal.length;q++){var e1=pal[q][0]-cc[0],e2=pal[q][1]-cc[1],e3=pal[q][2]-cc[2],dd=e1*e1+e2*e2+e3*e3;if(dd<bd){bd=dd;best=q;}}map[bins[i]]=best;err+=bd*hist[bins[i]];}
+  if(Math.sqrt(err/n/3)>5.5)return null;
+  var idx=new Uint8Array(n);for(i=0,p=0;i<n;i++,p+=4)idx[i]=map[(d[p]>>3)<<10|(d[p+1]>>3)<<5|(d[p+2]>>3)];
+  /* snap near-white to pure white so the paper stays clean */
+  var hx='';pal.forEach(function(c){var r=c[0],g=c[1],b=c[2];if(r>244&&g>244&&b>244){r=g=b=255;}hx+=('0'+r.toString(16)).slice(-2)+('0'+g.toString(16)).slice(-2)+('0'+b.toString(16)).slice(-2);});
+  return{idx:idx,pal:hx,n:pal.length};
+}
+function deflate(u8){return new Response(new Blob([u8]).stream().pipeThrough(new CompressionStream('deflate'))).arrayBuffer().then(function(a){return new Uint8Array(a);});}
+function pdfPage(cv){
+  var jpg=function(){return new Promise(function(res){cv.toBlob(function(b){b.arrayBuffer().then(function(a){res({w:cv.width,h:cv.height,dict:'/ColorSpace/DeviceRGB/BitsPerComponent 8/Filter/DCTDecode/Interpolate true',bytes:new Uint8Array(a)});});},'image/jpeg',.95);});};
+  if(typeof CompressionStream==='undefined')return jpg();
+  var Q=null;try{Q=quantPage(cv);}catch(e){}
+  if(!Q)return jpg();
+  return deflate(Q.idx).then(function(z){return{w:cv.width,h:cv.height,dict:'/ColorSpace[/Indexed/DeviceRGB '+(Q.n-1)+' <'+Q.pal+'>]/BitsPerComponent 8/Filter/FlateDecode/Interpolate true',bytes:z};},jpg);
+}
+function pdfBlob(doc,meta){meta=meta||{};if(!meta.title)meta.title=doc.title||doc.foot;return Promise.all(doc.pages.map(pdfPage)).then(function(imgs){return assemble(imgs,doc.W,doc.H,meta);});}
+function bulkBlob(n,build,meta){var enc=[],W=0,H=0,i=0;function next(){if(i>=n)return Promise.resolve();var d=build(i++);d.finish();W=d.W;H=d.H;return Promise.all(d.pages.map(pdfPage)).then(function(e){enc=enc.concat(e);d.pages.forEach(function(cv){cv.width=cv.height=1;});return new Promise(function(r){setTimeout(r,0);});}).then(next);}return next().then(function(){return assemble(enc,W,H,meta||{});});}
+function assemble(imgs,wPt,hPt,meta){
+  meta=meta||{};
+  return Promise.resolve(imgs).then(function(imgs){
+    var parts=[],len=0,offs=[];
     function push(x){var b=typeof x==='string'?new Uint8Array(x.length).map(function(_,i){return x.charCodeAt(i)&255;}):x;parts.push(b);len+=b.length;}
     function obj(n,str){offs[n]=len;push(n+' 0 obj\n'+str+'\nendobj\n');}
-    push('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');var N=imgs.length,kids=[];for(var i=0;i<N;i++)kids.push((3+i*3)+' 0 R');
-    obj(1,'<</Type/Catalog/Pages 2 0 R>>');obj(2,'<</Type/Pages/Kids['+kids.join(' ')+']/Count '+N+'>>');
+    function esc(s){return String(s||'').replace(/[^\x20-\x7E]/g,'').replace(/[()\\]/g,'');}
+    push('%PDF-1.5\n%\xE2\xE3\xCF\xD3\n');var N=imgs.length,kids=[];for(var i=0;i<N;i++)kids.push((3+i*3)+' 0 R');
+    obj(1,'<</Type/Catalog/Pages 2 0 R/PageLayout/OneColumn>>');obj(2,'<</Type/Pages/Kids['+kids.join(' ')+']/Count '+N+'>>');
     for(var k=0;k<N;k++){var po=3+k*3,co=po+1,io=po+2,cs='q '+wPt.toFixed(2)+' 0 0 '+hPt.toFixed(2)+' 0 0 cm /Im0 Do Q';
       obj(po,'<</Type/Page/Parent 2 0 R/MediaBox[0 0 '+wPt.toFixed(2)+' '+hPt.toFixed(2)+']/Contents '+co+' 0 R/Resources<</XObject<</Im0 '+io+' 0 R>>>>>>');
       obj(co,'<</Length '+cs.length+'>>\nstream\n'+cs+'\nendstream');
-      offs[io]=len;push(io+' 0 obj\n<</Type/XObject/Subtype/Image/Width '+doc.pages[k].width+'/Height '+doc.pages[k].height+'/ColorSpace/DeviceRGB/BitsPerComponent 8/Filter/DCTDecode/Length '+imgs[k].length+'>>\nstream\n');push(imgs[k]);push('\nendstream\nendobj\n');}
-    var total=3+N*3,xr=len;push('xref\n0 '+total+'\n0000000000 65535 f \n');
+      offs[io]=len;push(io+' 0 obj\n<</Type/XObject/Subtype/Image/Width '+imgs[k].w+'/Height '+imgs[k].h+imgs[k].dict+'/Length '+imgs[k].bytes.length+'>>\nstream\n');push(imgs[k].bytes);push('\nendstream\nendobj\n');}
+    var total=3+N*3;obj(total,'<</Title('+esc(meta.title||'IQRA QUIZ')+')/Producer(IQRA QUIZ)/Creator(IQRA VOCAB)>>');total++;
+    var xr=len;push('xref\n0 '+total+'\n0000000000 65535 f \n');
     for(var n=1;n<total;n++)push(('0000000000'+offs[n]).slice(-10)+' 00000 n \n');
-    push('trailer\n<</Size '+total+'/Root 1 0 R>>\nstartxref\n'+xr+'\n%%EOF');
+    push('trailer\n<</Size '+total+'/Root 1 0 R/Info '+(total-1)+' 0 R>>\nstartxref\n'+xr+'\n%%EOF');
     return new Blob(parts,{type:'application/pdf'});});
 }
 function saveBlob(b,name){var u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=name;document.body.append(a);a.click();setTimeout(function(){a.remove();URL.revokeObjectURL(u);},4000);}
 function makePdf(doc,name){doc.finish();return pdfBlob(doc).then(function(b){saveBlob(b,name);return b;});}
+/* ===== v5 UI helpers: preview viewer for every PDF, Preview + Download button pairs ===== */
+function previewDoc(build,file,title){
+  var sh=E('div',{class:'qv qpv'}),zoom=1,body=E('div',{class:'qpvb'}),zl=E('span',{class:'qpvz'},'100%'),doc=null;
+  function wid(){return Math.round(Math.min(window.innerWidth-20,860)*zoom);}
+  function apply(){[].forEach.call(body.querySelectorAll('canvas'),function(cv){cv.style.width=wid()+'px';cv.style.height='auto';});zl.textContent=Math.round(zoom*100)+'%';}
+  function close(){document.removeEventListener('keydown',esc);sh.remove();}
+  function esc(e){if(e.key==='Escape')close();}
+  var dl=E('button',{class:'q-btn',style:'margin:0;padding:8px 14px',onclick:function(){if(!doc)return;var b=this;b.disabled=true;b.textContent='Saving\u2026';pdfBlob(doc,{title:title||file}).then(function(x){saveBlob(x,file);toast('PDF saved');},function(){toast('Could not create the PDF');}).then(function(){b.disabled=false;b.textContent='Download PDF';});}},'Download PDF');
+  sh.append(E('div',{class:'qpvh'},E('b',null,title||file),E('button',{class:'q-btn g',style:'margin:0;padding:7px 12px',onclick:function(){zoom=Math.max(.4,zoom-.25);apply();}},'\u2212'),zl,E('button',{class:'q-btn g',style:'margin:0;padding:7px 12px',onclick:function(){zoom=Math.min(3,zoom+.25);apply();}},'+'),dl,E('button',{class:'q-btn g',style:'margin:0;padding:8px 14px',onclick:close},'Close')),body);
+  body.append(E('div',{class:'qpvm'},'Preparing preview\u2026'));document.body.append(sh);document.addEventListener('keydown',esc);
+  Promise.resolve().then(prep).then(function(){return build();}).then(function(d){doc=d;d.finish();body.innerHTML='';d.pages.forEach(function(cv,i){body.append(cv);if(d.pages.length>1)body.append(E('div',{class:'qpvn'},'Page '+(i+1)+' of '+d.pages.length));});apply();}).catch(function(e){body.innerHTML='';body.append(E('div',{class:'qpvm'},'Could not build the preview.'));try{console.error(e);}catch(x){}});
+}
+function pdfBtns(build,file,title){
+  return E('span',{class:'qpb'},E('button',{class:'q-btn g',onclick:function(){previewDoc(build,file,title);}},'Preview'),
+    E('button',{class:'q-btn',onclick:function(){var b=this,t=b.textContent;b.disabled=true;b.textContent='Preparing\u2026';Promise.resolve().then(prep).then(function(){return build();}).then(function(d){return makePdf(d,file);}).then(function(){toast('Saved '+file);},function(){toast('Could not create the PDF');}).then(function(){b.disabled=false;b.textContent=t;});}},'Download'));
+}
+function pdfRow(icon,title,desc,build,file){return E('div',{class:'qpr'},E('div',{class:'qpi'},icon),E('div',{class:'qpt'},E('b',null,title),E('small',null,desc)),pdfBtns(build,file,title));}
+/* ===== v5: Claude chat output (JSON) reader + the prompt to use outside ===== */
+var CPROMPT=['You are a careful quiz-question formatter. I will give you questions (typed text, text copied from a PDF or Word file, or photos / screenshots). Convert EVERY question into the JSON format below so I can paste it into my quiz maker.','',
+'OUTPUT RULES','1. Reply with ONE JSON array inside ONE code block (```json ... ```) and nothing else before or after it.','2. Keep the original language and spelling. Bangla stays Bangla (Unicode). Do not translate, shorten or \u201Cimprove\u201D the wording.',
+'3. Remove numbering and option labels: write \u201CWhich planet is red?\u201D not \u201C1. Which planet is red?\u201D, and write an option as \u201CMars\u201D, not \u201CB) Mars\u201D.','4. One object per question:','   {"type":"mcq","text":"question text","opts":["option 1","option 2","option 3","option 4"],"ans":[1],"ex":"one-line explanation (optional)","pts":1}',
+'5. type is one of: "mcq" (one correct option), "multi" (several correct options), "tf" (True/False: no opts, ans [0] = True, [1] = False), "short" (typed answer: no opts, ans = list of accepted answers).','6. For mcq / multi, "ans" holds ZERO-BASED option numbers (A = 0, B = 1, C = 2, D = 3). For "short", "ans" holds strings: include the Bangla spelling AND the English-letter spelling, e.g. ["\u0922\u09BE\u0995\u09BE","Dhaka"].',
+'7. If the source shows the answer (Ans:, \u0989\u09A4\u09CD\u09A4\u09B0:, a tick mark, bold text or an answer key at the end), use it. If it does not, solve the question yourself and add "guessed":true so I can double-check it.','8. If a question has a passage, table or figure, put the passage at the start of "text". If it needs a picture you cannot reproduce, write [picture] in the text.',
+'9. Do not skip, merge or invent questions. If there are more than 40, do the first 40, then wait for me to say \u201Cnext\u201D.','','Here are the questions:'].join('\n');
+function toIdx(v,opts){var a=Array.isArray(v)?v:(v==null||v===''?[]:[v]),out=[];a.forEach(function(x){var n=null;if(typeof x==='number')n=x;else{var t=String(x).trim();if(/^\d+$/.test(t))n=+t;else if(/^[A-Ha-h]$/.test(t))n=t.toLowerCase().charCodeAt(0)-97;else{var k=opts.findIndex(function(o){return String(o).trim().toLowerCase()===t.toLowerCase();});if(k>=0)n=k;}}if(n!=null&&n>=0&&n<opts.length&&out.indexOf(n)<0)out.push(n);});return out;}
+function normQ(o){if(!o||typeof o!=='object')return null;var opts=(o.opts||o.options||o.choices||[]).map(function(x){return String(x==null?'':x).trim();}),ty=String(o.type||'').toLowerCase();
+  if(!/^(mcq|multi|tf|short)$/.test(ty))ty=opts.length?(Array.isArray(o.ans)&&o.ans.length>1?'multi':'mcq'):'short';
+  var q={id:rid(6),type:ty,text:String(o.text||o.question||'').trim(),opts:[],ans:[],pts:+o.pts>0?+o.pts:1,req:true,ex:String(o.ex||o.explanation||'').trim(),fresh:true};if(o.guessed)q.guessed=true;
+  if(ty==='mcq'||ty==='multi'){q.opts=opts.length>=2?opts:opts.concat(['','']).slice(0,2);q.ans=toIdx(o.ans!=null?o.ans:o.answer,q.opts);if(ty==='mcq')q.ans=q.ans.slice(0,1);}
+  else if(ty==='tf'){var a=Array.isArray(o.ans)?o.ans[0]:(o.ans!=null?o.ans:o.answer);q.ans=[/^(1|false|f|no|\u09AD\u09C1\u09B2|\u09AE\u09bf\u09a5\u09cd\u09af\u09be)$/i.test(String(a).trim())?1:0];}
+  else{var s=Array.isArray(o.ans)?o.ans:(o.ans!=null?[o.ans]:(o.answer!=null?[o.answer]:[]));q.ans=s.map(function(x){return String(x).trim();}).filter(Boolean);}
+  return q.text?q:null;}
+function readJsonQ(t){var m=String(t).match(/```(?:json)?\s*([\s\S]*?)```/i),j=(m?m[1]:String(t)).trim();if(!/^[\[{]/.test(j)){var i=j.search(/[\[{]/);if(i<0)return null;j=j.slice(i);}
+  var v=null;for(var tries=0;tries<2&&v==null;tries++){try{v=JSON.parse(tries?j.replace(/,\s*([\]}])/g,'$1').replace(/[\u201C\u201D]/g,'"'):j);}catch(e){}}
+  if(v==null)return null;if(!Array.isArray(v))v=v.questions||v.items||v.q||[v];var out=[];v.forEach(function(o){var q=normQ(o);if(q)out.push(q);});return out.length?out:null;}
 function fname(s){return String(s||'quiz').replace(/[^\w\u0980-\u09FF]+/g,'_').replace(/^_+|_+$/g,'').slice(0,40)||'quiz';}
 function letter(i){return String.fromCharCode(65+i);}
 function qMarks(Z){return Z.q.reduce(function(a,q){return a+(q.type==='para'?0:(+q.pts||0));},0);}
@@ -303,49 +386,117 @@ function solutionDoc(Z,o){o=o||{};var d=new Doc({paper:o.paper,foot:Z.title+' ·
     d.p((i+1)+'.  '+q.text,{s:11,w:600,lh:15});d.p('Answer: '+right,{s:10.5,w:700,col:'#0E8F63',x:m+12,mw:mw-12,lh:14,gap:1});if(q.ex)d.p(q.ex,{s:10,col:'#47537A',x:m+12,mw:mw-12,lh:13});d.y+=4;d.hr('#E4E8F5',6);});
   return d;}
 
-/* ---------- 4. OMR bubble sheet ---------- */
-function omrDoc(Z,o){o=o||{};var d=new Doc({paper:o.paper,foot:Z.title+' · answer sheet'}),c=d.c,m=d.m,mw=d.W-2*m;brandHead(d,'Answer sheet (OMR)');
-  d.p(Z.title,{s:18,w:700,f:FSE,lh:24,gap:4});fieldLines(d,['Name','Roll / ID','Date']);d.p('Fill the bubble completely with a dark pen. One answer per question unless the paper says otherwise.',{s:9.5,col:'#47537A',gap:6});d.hr('#0DBE76',10);
-  var mq=Z.q.map(function(q,i){return{q:q,i:i};}).filter(function(x){return x.q.type==='mcq'||x.q.type==='multi'||x.q.type==='tf';}),nb=Math.min(6,Math.max(2,mq.reduce(function(a,x){return Math.max(a,optsOf(x.q).length);},4))),per=Math.max(10,Math.floor((d.H-d.y-m-10)/24)),cols=Math.max(1,Math.min(4,Math.floor(mw/(nb*20+46)))),cw=mw/cols,top=d.y;
-  mq.forEach(function(x,k){var col=Math.floor(k/per)%cols,row=k%per,pg=Math.floor(k/(per*cols));while(d.pages.length<=pg){d.np();d.y=m+8;}
-    var cv=d.pages[pg],cc=cv.getContext('2d'),y=(pg?m+8:top)+row*24+12,x0=m+col*cw;cc.textBaseline='alphabetic';cc.font='700 10px '+FUI;cc.fillStyle='#47537A';cc.textAlign='right';cc.fillText(String(x.i+1),x0+22,y+3.5);cc.textAlign='center';
-    for(var b=0;b<nb;b++){var bx=x0+36+b*20,on=b<optsOf(x.q).length;cc.beginPath();cc.arc(bx,y,7.6,0,6.2832);cc.strokeStyle=on?'#47537A':'#E4E8F5';cc.lineWidth=.9;cc.stroke();cc.font='600 7.5px '+FUI;cc.fillStyle=on?'#76809F':'#E4E8F5';cc.fillText(letter(b),bx,y+2.7);}cc.textAlign='left';});
-  return d;}
+/* ---------- 4. OMR bubble sheet (v5: fixed geometry + corner markers, so the built-in scanner can read a photo of it) ---------- */
+function fitLine(d,t,o,mw){d.set(o);t=String(t||'');var c=d.c;if(c.measureText(t).width<=mw)return t;while(t.length>3&&c.measureText(t+'\u2026').width>mw)t=t.slice(0,-1);return t.trim()+'\u2026';}
+function omrFid(W,H){var s=18,i=16;return{s:s,c:[[i+s/2,i+s/2],[W-i-s/2,i+s/2],[i+s/2,H-i-s/2],[W-i-s/2,H-i-s/2]]};}
+function omrGeom(Z,paper){
+  var sz=PAPER[paper]||PAPER.A4,W=sz[0],H=sz[1],m=44,items=[];
+  Z.q.forEach(function(q,i){if(q.type==='mcq'||q.type==='multi'||q.type==='tf')items.push({i:i,n:optsOf(q).length});});
+  var nb=Math.min(6,Math.max(2,items.reduce(function(a,x){return Math.max(a,x.n);},4))),top=204,bot=H-56,rowH=24,per=Math.max(8,Math.floor((bot-top)/rowH)),colW=36+nb*20+26,cols=Math.max(1,Math.min(4,Math.floor((W-2*m)/colW))),cap=per*cols,B=[];if(items.length<=cap){per=Math.max(8,Math.ceil(items.length/cols));cap=per*cols;}
+  items.forEach(function(it,k){var pg=Math.floor(k/cap),r=k%cap,col=Math.floor(r/per),row=r%per,x0=m+col*colW,y=top+row*rowH+12;for(var b=0;b<it.n;b++)B.push({pg:pg,qi:it.i,b:b,x:x0+36+b*20,y:y,r:7.6,lx:x0+22});});
+  return{W:W,H:H,m:m,nb:nb,per:per,cols:cols,colW:colW,pages:Math.max(1,Math.ceil(items.length/cap)),items:items,B:B,fid:omrFid(W,H),Q:Z.q,paper:PAPER[paper]?paper:'A4'};}
+function omrDoc(Z,o){o=o||{};var G=omrGeom(Z,o.paper),d=new Doc({paper:G.paper,foot:Z.title+' \u00B7 answer sheet'}),c=d.c,m=d.m,mw=d.W-2*m;d.fid=true;d.title=Z.title+' - answer sheet';
+  brandHead(d,'Answer sheet (OMR)');d.y=m+54;
+  d.p(fitLine(d,Z.title,{s:18,w:700,f:FSE},mw),{s:18,w:700,f:FSE,lh:22,gap:6});
+  fieldLines(d,['Name','Roll / ID','Date']);
+  d.y=Math.max(d.y,m+112);d.p('Fill each bubble completely with a dark pen. One answer per question unless the paper says otherwise.',{s:9,col:'#47537A',lh:12,mw:mw});
+  d.y=Math.max(d.y+2,186);d.hr('#0DBE76',8);
+  while(d.pages.length<G.pages){d.np();d.y=m+8;d.p('Answer sheet \u00B7 '+fitLine(d,Z.title,{s:12,w:700,f:FSE},mw-120),{s:12,w:700,f:FSE,lh:16});}
+  var lastLbl=-1;
+  G.B.forEach(function(b){var cv=d.pages[b.pg],cc=cv.getContext('2d');cc.setTransform(cv._S||d.S,0,0,cv._S||d.S,0,0);cc.textBaseline='alphabetic';
+    if(b.b===0){cc.font='700 10px '+FUI;cc.fillStyle='#47537A';cc.textAlign='right';cc.fillText(String(b.qi+1),b.lx,b.y+3.5);}
+    var on=b.b<optsOf(Z.q[b.qi]).length;cc.beginPath();cc.arc(b.x,b.y,b.r,0,6.2832);cc.strokeStyle=on?'#47537A':'#E4E8F5';cc.lineWidth=.9;cc.stroke();cc.font='600 7.5px '+FUI;cc.fillStyle=on?'#8A93AF':'#E4E8F5';cc.textAlign='center';cc.fillText(letter(b.b),b.x,b.y+2.6);cc.textAlign='left';});
+  d.omr=G;return d;}
 
-/* ---------- 5. result card ---------- */
-function cardDoc(t,r,o){o=o||{};var d=new Doc({size:[430,300],m:18,hdr:false,S:3}),c=d.c,W=d.W,H=d.H,pct=r.total?Math.round(r.score/r.total*100):0,pass=o.pass?pct>=o.pass:true;
-  var g=c.createLinearGradient(0,0,W,H);g.addColorStop(0,'#fff');g.addColorStop(1,'#E4F8EF');c.fillStyle=g;c.fillRect(0,0,W,H);
-  c.save();c.globalAlpha=.09;c.fillStyle='#0DBE76';c.font='700 190px '+FAR;c.textAlign='right';c.direction='rtl';c.fillText('إقرأ',W+10,150);c.restore();c.direction='ltr';
-  d.rr(8,8,W-16,H-16,16,null,'#A8E8CB',1.2);var gg=c.createLinearGradient(0,0,W,0);gg.addColorStop(0,'#22D08A');gg.addColorStop(1,'#6A78E8');c.fillStyle=gg;c.fillRect(22,8,W-44,3);
-  if(LG){c.save();d.rr(22,24,32,32,8,'#0b4f4a');c.beginPath();c.rect(22,24,32,32);c.clip();c.drawImage(LG,22,24,32,32);c.restore();}
-  d.set({s:12,w:700,ls:2.2});c.fillStyle='#0E8F63';c.fillText('IQRA QUIZ',62,38);d.set({s:8.5,w:600,ls:1.4});c.fillStyle='#76809F';c.fillText('RESULT CARD',62,50);
-  var cx=82,cy=148,R=48;c.lineWidth=11;c.strokeStyle='#E4E8F5';c.beginPath();c.arc(cx,cy,R,0,6.2832);c.stroke();c.strokeStyle=pass?'#0DBE76':'#E0589E';c.lineCap='round';c.beginPath();c.arc(cx,cy,R,-1.5708,-1.5708+6.2832*pct/100);c.stroke();c.lineCap='butt';
-  c.textAlign='center';d.set({s:24,w:700,f:FSE});c.fillStyle='#111A36';c.fillText(pct+'%',cx,cy+7);d.set({s:8.5,w:600});c.fillStyle='#76809F';c.fillText(r.score+' / '+r.total+' marks',cx,cy+22);c.textAlign='left';
-  var x=160,y=88;d.set({s:8,w:600,ls:1.2});c.fillStyle='#76809F';c.fillText('PARTICIPANT',x,y);
-  d.y=y+4;d.p(r.name||'—',{s:19,w:700,f:FSE,x:x,mw:W-x-22,lh:23,gap:2});d.p(t.title,{s:10.5,w:600,col:'#47537A',x:x,mw:W-x-22,lh:14,gap:4});
-  var info=[['Time',r.sec!=null?Math.floor(r.sec/60)+' min '+('0'+(r.sec%60)).slice(-2)+' s':'—'],['Date',new Date(r.t||Date.now()).toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'})]];if(o.rank)info.push(['Rank',o.rank+(o.count?' of '+o.count:'')]);
-  var yy=d.y+6;info.forEach(function(p,i){d.set({s:8,w:600,ls:.8});c.fillStyle='#76809F';c.fillText(p[0].toUpperCase(),x+i*86,yy);d.set({s:11,w:700});c.fillStyle='#111A36';c.fillText(p[1],x+i*86,yy+14);});
-  var bw=pass?96:112;d.rr(x,yy+30,bw,22,11,pass?'#E0F8EC':'#FFE0EF',pass?'#A8E8CB':'#F6B8C2',1);d.set({s:10,w:700,ls:.6});c.fillStyle=pass?'#065339':'#8A1B4C';c.textAlign='center';c.fillText(pass?'ACHIEVED ✓':'KEEP PRACTISING',x+bw/2,yy+45);c.textAlign='left';
-  if(o.qr)d.qr(o.qr,W-86,H-86,64);d.set({s:7,w:500});c.fillStyle='#76809F';c.fillText('iqraquiz.pages.dev · IQRA VOCAB',22,H-18);return d;}
+/* ---- OMR scanner core: find the 4 corner markers, map the page to the photo (homography), measure how dark every bubble is ---- */
+function solveH(src,dst){var A=[],i,j,k;for(i=0;i<4;i++){var x=src[i][0],y=src[i][1],u=dst[i][0],v=dst[i][1];A.push([x,y,1,0,0,0,-u*x,-u*y,u]);A.push([0,0,0,x,y,1,-v*x,-v*y,v]);}
+  for(i=0;i<8;i++){var p=i;for(j=i+1;j<8;j++)if(Math.abs(A[j][i])>Math.abs(A[p][i]))p=j;var t=A[i];A[i]=A[p];A[p]=t;if(Math.abs(A[i][i])<1e-9)return null;
+    for(j=i+1;j<8;j++){var f=A[j][i]/A[i][i];for(k=i;k<9;k++)A[j][k]-=f*A[i][k];}}
+  var h=new Array(8);for(i=7;i>=0;i--){var s=A[i][8];for(j=i+1;j<8;j++)s-=A[i][j]*h[j];h[i]=s/A[i][i];}h.push(1);return h;}
+function projH(h,x,y){var w=h[6]*x+h[7]*y+h[8];return[(h[0]*x+h[1]*y+h[2])/w,(h[3]*x+h[4]*y+h[5])/w];}
+function omrScan(src,G,pg){
+  var sw=src.width||src.naturalWidth,sh=src.height||src.naturalHeight,sc=Math.min(1,1700/Math.max(sw,sh)),w=Math.round(sw*sc),h=Math.round(sh*sc),cv=document.createElement('canvas');cv.width=w;cv.height=h;
+  var c=cv.getContext('2d',{willReadFrequently:true});c.fillStyle='#fff';c.fillRect(0,0,w,h);c.drawImage(src,0,0,w,h);var id=c.getImageData(0,0,w,h).data,n=w*h,g=new Uint8Array(n),i,x,y;
+  for(i=0;i<n;i++){var p=i*4;g[i]=(id[p]*77+id[p+1]*150+id[p+2]*29)>>8;}
+  var I=new Float64Array((w+1)*(h+1));for(y=0;y<h;y++){var row=0;for(x=0;x<w;x++){row+=g[y*w+x];I[(y+1)*(w+1)+x+1]=I[y*(w+1)+x+1]+row;}}
+  var R=Math.max(12,Math.round(w/14)),bin=new Uint8Array(n);
+  for(y=0;y<h;y++){var y0=Math.max(0,y-R),y1=Math.min(h,y+R+1);for(x=0;x<w;x++){var x0=Math.max(0,x-R),x1=Math.min(w,x+R+1),s=I[y1*(w+1)+x1]-I[y0*(w+1)+x1]-I[y1*(w+1)+x0]+I[y0*(w+1)+x0],mean=s/((x1-x0)*(y1-y0));bin[y*w+x]=g[y*w+x]<mean*.72&&g[y*w+x]<150?1:0;}}
+  /* connected components -> square, solid, corner-most blobs */
+  var seen=new Uint8Array(n),stack=new Int32Array(n),cand=[];
+  for(i=0;i<n;i++){if(!bin[i]||seen[i])continue;var sp=0,area=0,mnx=w,mxx=0,mny=h,mxy=0,sx=0,sy=0;stack[sp++]=i;seen[i]=1;
+    while(sp){var q=stack[--sp],qx=q%w,qy=(q/w)|0;area++;sx+=qx;sy+=qy;if(qx<mnx)mnx=qx;if(qx>mxx)mxx=qx;if(qy<mny)mny=qy;if(qy>mxy)mxy=qy;
+      if(qx>0&&bin[q-1]&&!seen[q-1]){seen[q-1]=1;stack[sp++]=q-1;}if(qx<w-1&&bin[q+1]&&!seen[q+1]){seen[q+1]=1;stack[sp++]=q+1;}if(qy>0&&bin[q-w]&&!seen[q-w]){seen[q-w]=1;stack[sp++]=q-w;}if(qy<h-1&&bin[q+w]&&!seen[q+w]){seen[q+w]=1;stack[sp++]=q+w;}}
+    var bw=mxx-mnx+1,bh=mxy-mny+1,fill=area/(bw*bh);
+    if(area>40&&bw>w*.012&&bw<w*.14&&bh>w*.012&&bh<w*.14&&bw/bh>.6&&bw/bh<1.67&&fill>.8)cand.push({x:sx/area,y:sy/area,a:area,bw:bw});}
+  if(cand.length<4)return{ok:false,why:'corners'};
+  var corners=[[0,0],[w,0],[0,h],[w,h]],found=[];
+  for(var k=0;k<4;k++){var best=null,bd=1e18;cand.forEach(function(cd){var qx=cd.x<w/2?0:1,qy=cd.y<h/2?0:1;if(qx!==(k%2)||qy!==(k>>1))return;var dd=Math.pow(cd.x-corners[k][0],2)+Math.pow(cd.y-corners[k][1],2);if(dd<bd){bd=dd;best=cd;}});if(!best)return{ok:false,why:'corners'};found.push(best);}
+  var Hh=solveH(G.fid.c,found.map(function(f){return[f.x,f.y];}));if(!Hh)return{ok:false,why:'corners'};
+  var a0=projH(Hh,100,100),a1=projH(Hh,110,100),pxPt=Math.hypot(a1[0]-a0[0],a1[1]-a0[1])/10;
+  if(Math.abs(found[0].bw/pxPt-G.fid.s)>G.fid.s*.6)return{ok:false,why:'corners'};
+  var ans={},fr={},flags={},res=[];
+  G.B.forEach(function(b){if(b.pg!==pg)return;var P=projH(Hh,b.x,b.y),Q=projH(Hh,b.x+10,b.y),Rr=projH(Hh,b.x,b.y+10),rx=Math.hypot(Q[0]-P[0],Q[1]-P[1])/10,ry=Math.hypot(Rr[0]-P[0],Rr[1]-P[1])/10,r=b.r*(rx+ry)/2*.62,cnt=0,tot=0;
+    for(var yy=Math.floor(P[1]-r);yy<=P[1]+r;yy++)for(var xx=Math.floor(P[0]-r);xx<=P[0]+r;xx++){if(xx<0||yy<0||xx>=w||yy>=h)continue;if((xx-P[0])*(xx-P[0])+(yy-P[1])*(yy-P[1])>r*r)continue;tot++;if(bin[yy*w+xx])cnt++;}
+    (fr[b.qi]=fr[b.qi]||[])[b.b]=tot?cnt/tot:0;res.push({qi:b.qi,b:b.b,x:P[0],y:P[1],r:b.r*(rx+ry)/2});});
+  G.items.forEach(function(it){var f=fr[it.i];if(!f)return;var q=G.Q[it.i],mx=0,mi=-1,sel=[];f.forEach(function(v,j){if(v>mx){mx=v;mi=j;}if(v>=.42)sel.push(j);});
+    if(q.type==='multi'){ans[it.i]=sel;if(!sel.length)flags[it.i]='blank';}
+    else if(mx<.42){ans[it.i]=[];flags[it.i]='blank';}
+    else{var two=sel.filter(function(j){return f[j]>=mx*.72;});if(two.length>1){ans[it.i]=[];flags[it.i]='multi';}else ans[it.i]=[mi];}});
+  return{ok:true,cv:cv,ans:ans,fr:fr,flags:flags,pos:res,corners:found};}
 
-/* ---------- 6. certificate (IQRA VOCAB style) ---------- */
-function certDoc(t,r,o){o=o||{};var d=new Doc({paper:o.paper,land:true,m:0,hdr:false,S:2}),c=d.c,W=d.W,H=d.H,pct=r.total?Math.round(r.score/r.total*100):0;
-  var g=c.createLinearGradient(0,0,W,H);g.addColorStop(0,'#FFFFFF');g.addColorStop(.6,'#F3FBF7');g.addColorStop(1,'#E4F8EF');c.fillStyle=g;c.fillRect(0,0,W,H);
-  c.save();c.direction='rtl';c.font='700 330px '+FAR;c.globalAlpha=.075;c.fillStyle='#0DBE76';c.textAlign='left';c.fillText('إقرأ',-14,H-18);c.globalAlpha=.06;c.fillStyle='#6A78E8';c.textAlign='right';c.font='700 250px '+FAR;c.fillText('إقرأ',W+10,230);c.restore();c.direction='ltr';
-  var gg=c.createLinearGradient(0,0,W,0);gg.addColorStop(0,'#0DBE76');gg.addColorStop(.5,'#6A78E8');gg.addColorStop(1,'#0DBE76');c.strokeStyle=gg;c.lineWidth=3.2;d.rr(20,20,W-40,H-40,14,null,gg,3.2);d.rr(31,31,W-62,H-62,9,null,'#A8E8CB',.9);
-  [[40,40],[W-40,40],[40,H-40],[W-40,H-40]].forEach(function(p){c.fillStyle='#0DBE76';c.beginPath();c.arc(p[0],p[1],3.4,0,6.2832);c.fill();});
-  if(LG){var s=58;c.save();d.rr(W/2-s/2,52,s,s,15,'#0b4f4a');c.beginPath();c.rect(W/2-s/2,52,s,s);c.clip();c.drawImage(LG,W/2-s/2,52,s,s);c.restore();}
-  c.textAlign='center';d.set({s:38,w:700,f:FSE,ls:8});c.fillStyle='#111A36';c.fillText('CERTIFICATE',W/2,150);d.set({s:12.5,w:700,ls:5});c.fillStyle='#0E8F63';c.fillText('OF ACHIEVEMENT',W/2,172);
-  d.set({s:11.5,w:500,f:FSE});c.fillStyle='#47537A';c.fillText('This certificate is proudly presented to',W/2,212);
-  d.set({s:38,w:700,f:FSE});c.fillStyle='#111A36';var nm=r.name||'—';while(c.measureText(nm).width>W-180&&nm.length>6)nm=nm.slice(0,-2);c.fillText(nm,W/2,262);var nw=Math.min(c.measureText(nm).width+60,W-140);c.strokeStyle='#0DBE76';c.lineWidth=1.2;c.beginPath();c.moveTo(W/2-nw/2,276);c.lineTo(W/2+nw/2,276);c.stroke();
-  d.set({s:12,w:500,f:FSE});c.fillStyle='#47537A';c.fillText('for successfully completing the quiz',W/2,306);
-  d.set({s:21,w:700,f:FSE});c.fillStyle='#0E8F63';var tt=t.title;while(c.measureText(tt).width>W-200&&tt.length>8)tt=tt.slice(0,-2);c.fillText(tt,W/2,338);
-  d.set({s:14,w:700});c.fillStyle='#111A36';c.fillText('Score  '+r.score+' / '+r.total+'   ·   '+pct+'%',W/2,368);
-  var date=new Date(r.t||Date.now()).toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'}),y=H-86;
-  c.strokeStyle='#9aa3bd';c.lineWidth=.8;c.beginPath();c.moveTo(80,y);c.lineTo(230,y);c.stroke();c.beginPath();c.moveTo(W-310,y);c.lineTo(W-160,y);c.stroke();
-  d.set({s:11,w:700});c.fillStyle='#111A36';c.fillText(date,155,y-6);c.fillText('IQRA QUIZ',W-235,y-6);d.set({s:8.5,w:600,ls:1.2});c.fillStyle='#76809F';c.fillText('DATE',155,y+13);c.fillText('ISSUED BY IQRA VOCAB',W-235,y+13);
-  if(o.id){d.set({s:8.5,w:600,ls:.8});c.fillStyle='#76809F';c.fillText('Certificate ID: '+o.id,W/2,H-52);}
-  if(o.qr){d.qr(o.qr,W/2-30,H-132,60);d.set({s:7,w:600,ls:.6});c.fillStyle='#76809F';c.fillText('SCAN TO VERIFY',W/2,H-64);}
+/* ---------- 5. result card (v5 premium) ---------- */
+function goldG(c,x0,y0,x1,y1){var g=c.createLinearGradient(x0,y0,x1,y1);g.addColorStop(0,'#8A6417');g.addColorStop(.28,'#E7C46A');g.addColorStop(.5,'#FFF2B8');g.addColorStop(.72,'#C99A32');g.addColorStop(1,'#8A6417');return g;}
+function logoDisc(d,cx,cy,r,ring){var c=d.c;if(ring){c.beginPath();c.arc(cx,cy,r+3.2,0,6.2832);c.fillStyle=goldG(c,cx-r,cy-r,cx+r,cy+r);c.fill();}c.save();c.beginPath();c.arc(cx,cy,r,0,6.2832);c.closePath();c.fillStyle='#0b4f4a';c.fill();c.clip();if(LG)c.drawImage(LG,cx-r,cy-r,r*2,r*2);c.restore();}
+function cardDoc(t,r,o){o=o||{};var d=new Doc({size:[430,300],m:18,hdr:false,S:4}),c=d.c,W=d.W,H=d.H,pct=r.total?Math.round(r.score/r.total*100):0,pass=o.pass?pct>=o.pass:true;d.title=t.title+' - result card';
+  var g=c.createLinearGradient(0,0,W,H);g.addColorStop(0,'#FFFFFF');g.addColorStop(.6,'#F5FBF8');g.addColorStop(1,'#E3F6EC');c.fillStyle=g;c.fillRect(0,0,W,H);
+  c.save();c.globalAlpha=.07;c.fillStyle='#0DBE76';c.font='700 200px '+FAR;c.textAlign='right';c.direction='rtl';c.fillText('\u0625\u0642\u0631\u0623',W+14,222);c.restore();c.direction='ltr';
+  var hg=c.createLinearGradient(0,0,W,0);hg.addColorStop(0,'#08403C');hg.addColorStop(.6,'#0B5A4C');hg.addColorStop(1,'#117A5C');c.fillStyle=hg;c.fillRect(0,0,W,58);c.fillStyle=goldG(c,0,0,W,0);c.fillRect(0,58,W,2.2);
+  logoDisc(d,34,29,17,true);d.set({s:14,w:700,ls:3});c.fillStyle='#fff';c.fillText('IQRA QUIZ',62,27);d.set({s:8,w:700,ls:2.4});c.fillStyle='#E7C46A';c.fillText('RESULT CARD',62,41);
+  c.textAlign='right';d.set({s:8.5,w:600,ls:.6});c.fillStyle='#CFEFE2';c.fillText(new Date(r.t||Date.now()).toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'}),W-18,34);c.textAlign='left';
+  var cx=84,cy=158,R=50;c.lineWidth=12;c.lineCap='round';c.strokeStyle='#E4E8F5';c.beginPath();c.arc(cx,cy,R,0,6.2832);c.stroke();
+  var pg=c.createLinearGradient(cx-R,cy-R,cx+R,cy+R);if(pass){pg.addColorStop(0,'#22D08A');pg.addColorStop(1,'#09A263');}else{pg.addColorStop(0,'#F08AB8');pg.addColorStop(1,'#C93D82');}c.strokeStyle=pg;c.beginPath();c.arc(cx,cy,R,-1.5708,-1.5708+6.2832*Math.max(.004,pct/100));c.stroke();c.lineCap='butt';
+  c.textAlign='center';d.set({s:26,w:700,f:FSE});c.fillStyle='#111A36';c.fillText(pct+'%',cx,cy+6);d.set({s:8.5,w:600});c.fillStyle='#76809F';c.fillText(r.score+' / '+r.total+' marks',cx,cy+21);c.textAlign='left';
+  var x=164,y=92;d.set({s:7.5,w:700,ls:1.6});c.fillStyle='#B8892B';c.fillText('PARTICIPANT',x,y);
+  d.y=y+4;d.p(r.name||'\u2014',{s:19,w:700,f:FSE,x:x,mw:W-x-20,lh:23,gap:1});d.p(t.title,{s:10,w:600,col:'#47537A',x:x,mw:W-x-20,lh:13,gap:4});
+  var info=[['TIME',r.sec!=null?Math.floor(r.sec/60)+' min '+('0'+(r.sec%60)).slice(-2)+' s':'\u2014']];if(o.rank)info.push(['RANK',o.rank+(o.count?' of '+o.count:'')]);
+  var yy=Math.max(d.y+6,196);info.forEach(function(p,i){d.set({s:7.5,w:700,ls:1.2});c.fillStyle='#76809F';c.fillText(p[0],x+i*96,yy);d.set({s:11.5,w:700});c.fillStyle='#111A36';c.fillText(p[1],x+i*96,yy+14);});
+  var bw=pass?104:122,by=yy+26;d.rr(x,by,bw,22,11,pass?'#E0F8EC':'#FFE0EF',pass?'#A8E8CB':'#F6B8C2',1);d.set({s:9.5,w:700,ls:.8});c.fillStyle=pass?'#065339':'#8A1B4C';c.textAlign='center';c.fillText(pass?'ACHIEVED \u2713':'KEEP PRACTISING',x+bw/2,by+14.5);c.textAlign='left';
+  c.fillStyle=goldG(c,0,0,W,0);c.fillRect(0,H-26,W,1.2);c.fillStyle='#F3F8F6';c.fillRect(0,H-25,W,25);
+  if(o.qr)d.qr(o.qr,W-80,H-100,62);d.set({s:7.5,w:600,ls:.6});c.fillStyle='#47537A';c.fillText('iqraquiz.pages.dev  \u00B7  IQRA VOCAB',18,H-9);return d;}
+
+/* ---------- 6. certificate (v5 premium: ivory, deep green and gold) ---------- */
+function arcText(c,t,cx,cy,r,a0,span,font,col){c.save();c.font=font;c.fillStyle=col;c.textAlign='center';c.textBaseline='middle';var n=t.length;for(var i=0;i<n;i++){var a=a0+span*(n===1?.5:i/(n-1));c.save();c.translate(cx+r*Math.cos(a),cy+r*Math.sin(a));c.rotate(a+Math.PI/2);c.fillText(t[i],0,0);c.restore();}c.restore();}
+function guilloche(c,cx,cy,R,n,col,alpha,lw){c.save();c.globalAlpha=alpha;c.strokeStyle=col;c.lineWidth=lw||.45;for(var k=0;k<n;k++){c.beginPath();for(var a=0;a<=6.2832+.02;a+=.02){var rr=R*(.62+.38*Math.cos(a*7+k*6.2832/n*3))*(1-k*.014);var x=cx+rr*Math.cos(a+k*.04),y=cy+rr*Math.sin(a+k*.04);if(a===0)c.moveTo(x,y);else c.lineTo(x,y);}c.closePath();c.stroke();}c.restore();}
+function scallop(c,cx,cy,R,n,amp){c.beginPath();for(var i=0;i<=n*8;i++){var a=i/(n*8)*6.2832,rr=R+amp*Math.cos(a*n);var x=cx+rr*Math.cos(a),y=cy+rr*Math.sin(a);if(i===0)c.moveTo(x,y);else c.lineTo(x,y);}c.closePath();}
+function star(c,cx,cy,R,r,n){c.beginPath();for(var i=0;i<n*2;i++){var a=-1.5708+i*Math.PI/n,rr=i%2?r:R;var x=cx+rr*Math.cos(a),y=cy+rr*Math.sin(a);if(i===0)c.moveTo(x,y);else c.lineTo(x,y);}c.closePath();}
+function certDoc(t,r,o){o=o||{};var d=new Doc({paper:o.paper,land:true,m:0,hdr:false,S:3.4}),c=d.c,W=d.W,H=d.H,pct=r.total?Math.round(r.score/r.total*100):0,GD='#B8892B',GR='#0B4F4A';d.title=r.name+' - certificate';
+  var g=c.createLinearGradient(0,0,W,H);g.addColorStop(0,'#FFFEFA');g.addColorStop(.55,'#FBF8EE');g.addColorStop(1,'#F2F7EE');c.fillStyle=g;c.fillRect(0,0,W,H);
+  guilloche(c,W/2,H/2+8,250,26,'#0B7A5A',.07,.5);guilloche(c,70,70,110,14,GD,.16,.45);guilloche(c,W-70,H-70,110,14,GD,.16,.45);guilloche(c,W-70,70,90,10,'#0B7A5A',.1,.45);guilloche(c,70,H-70,90,10,'#0B7A5A',.1,.45);
+  c.save();c.direction='rtl';c.font='700 340px '+FAR;c.globalAlpha=.05;c.fillStyle=GR;c.textAlign='center';c.fillText('\u0625\u0642\u0631\u0623',W/2,H/2+120);c.restore();c.direction='ltr';
+  c.fillStyle=GR;d.rr(14,14,W-28,H-28,8,GR);c.fillStyle=g;d.rr(23,23,W-46,H-46,4,'#FFFDF8');c.strokeStyle=goldG(c,0,0,W,H);c.lineWidth=2.2;d.rr(29,29,W-58,H-58,3,null,goldG(c,0,0,W,H),2.2);c.lineWidth=.7;d.rr(36,36,W-72,H-72,2,null,'#D9B65E',.7);
+  guilloche(c,W/2,H/2+8,250,26,'#0B7A5A',.06,.5);
+  [[36,36,1,1],[W-36,36,-1,1],[36,H-36,1,-1],[W-36,H-36,-1,-1]].forEach(function(p){c.save();c.translate(p[0],p[1]);c.scale(p[2],p[3]);c.strokeStyle=goldG(c,0,0,60,60);c.lineWidth=1.6;c.beginPath();c.arc(0,0,38,0,1.5708);c.stroke();c.lineWidth=.8;c.beginPath();c.arc(0,0,28,0,1.5708);c.stroke();c.fillStyle=goldG(c,0,0,12,12);c.beginPath();c.moveTo(7,0);c.lineTo(14,7);c.lineTo(7,14);c.lineTo(0,7);c.closePath();c.fill();c.restore();});
+  c.textAlign='center';logoDisc(d,W/2,86,26,true);
+  d.set({s:11,w:700,ls:7});c.fillStyle=GD;c.fillText('IQRA QUIZ',W/2,136);
+  d.set({s:50,w:700,f:FSE,ls:11});c.fillStyle='#111A36';c.fillText('CERTIFICATE',W/2+5,192);
+  c.strokeStyle=goldG(c,W/2-210,0,W/2+210,0);c.lineWidth=1;[[-1],[1]].forEach(function(s){c.beginPath();c.moveTo(W/2+s[0]*28,214);c.lineTo(W/2+s[0]*150,214);c.stroke();});c.fillStyle=goldG(c,W/2-8,206,W/2+8,222);c.beginPath();c.moveTo(W/2,207);c.lineTo(W/2+7,214);c.lineTo(W/2,221);c.lineTo(W/2-7,214);c.closePath();c.fill();
+  d.set({s:12.5,w:700,ls:6});c.fillStyle='#0E8F63';c.fillText('OF ACHIEVEMENT',W/2+3,238);
+  d.set({s:13,w:500,f:FSE});c.fillStyle='#47537A';c.fillText('This certificate is proudly presented to',W/2,272);
+  d.set({s:44,w:700,f:FSE});c.fillStyle='#111A36';var nm=r.name||'\u2014',fs=44;while(c.measureText(nm).width>W-250&&fs>22){fs-=2;d.set({s:fs,w:700,f:FSE});}c.fillText(nm,W/2,322);var nw=Math.min(c.measureText(nm).width+90,W-170);
+  c.strokeStyle=goldG(c,W/2-nw/2,0,W/2+nw/2,0);c.lineWidth=1.4;c.beginPath();c.moveTo(W/2-nw/2,334);c.quadraticCurveTo(W/2-nw/4,338,W/2,334);c.quadraticCurveTo(W/2+nw/4,330,W/2+nw/2,334);c.stroke();
+  d.set({s:13,w:500,f:FSE});c.fillStyle='#47537A';c.fillText('for successfully completing the quiz',W/2,362);
+  d.set({s:23,w:700,f:FSE});c.fillStyle='#0E8F63';var tt=t.title,ts=23;while(c.measureText(tt).width>W-260&&ts>13){ts-=1;d.set({s:ts,w:700,f:FSE});}c.fillText(tt,W/2,392);
+  var lab='Score  '+r.score+' / '+r.total+'    \u00B7    '+pct+'%'+(pct>=90?'    \u00B7    Distinction':''),pw;d.set({s:12.5,w:700,ls:.6});pw=c.measureText(lab).width+40;d.rr(W/2-pw/2,405,pw,26,13,'#FFF8E3','#E0C06A',1);c.fillStyle='#6B4E10';c.fillText(lab,W/2,422.5);
+  var date=new Date(r.t||Date.now()).toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'}),y=H-96;
+  c.strokeStyle='#9aa3bd';c.lineWidth=.8;c.beginPath();c.moveTo(96,y);c.lineTo(250,y);c.stroke();c.beginPath();c.moveTo(W-330,y);c.lineTo(W-176,y);c.stroke();
+  d.set({s:12,w:700,f:FSE});c.fillStyle='#111A36';c.fillText(date,173,y-7);d.set({s:26,w:600,f:'"Newsreader",Georgia,serif'});c.font='italic 600 24px '+FSE;c.fillStyle='#0B4F4A';c.fillText('IQRA Quiz',W-253,y-5);
+  d.set({s:8,w:700,ls:1.6});c.fillStyle='#76809F';c.fillText('DATE',173,y+14);c.fillText('ISSUED BY IQRA VOCAB',W-253,y+14);
+  var sx=W/2,sy=H-98;c.fillStyle='#0E7A56';[-1,1].forEach(function(s){c.beginPath();c.moveTo(sx+s*10,sy+18);c.lineTo(sx+s*28,sy+46);c.lineTo(sx+s*17,sy+41);c.lineTo(sx+s*10,sy+50);c.lineTo(sx+s*2,sy+28);c.closePath();c.fill();c.strokeStyle='#D9B65E';c.lineWidth=.8;c.stroke();});
+  c.save();c.shadowColor='rgba(120,84,10,.35)';c.shadowBlur=8;c.shadowOffsetY=2;scallop(c,sx,sy,40,26,2.6);c.fillStyle=goldG(c,sx-40,sy-40,sx+40,sy+40);c.fill();c.restore();
+  c.beginPath();c.arc(sx,sy,33,0,6.2832);c.strokeStyle='#8A6417';c.lineWidth=.9;c.stroke();c.beginPath();c.arc(sx,sy,29.5,0,6.2832);c.fillStyle='#0B4F4A';c.fill();c.strokeStyle='#F7E3A1';c.lineWidth=.9;c.stroke();
+  star(c,sx,sy+1,17,7.5,8);c.fillStyle=goldG(c,sx-16,sy-16,sx+16,sy+16);c.fill();arcText(c,'VERIFIED \u00B7 IQRA QUIZ',sx,sy,36.5,-2.62,2.1,'700 5.4px '+FUI,'#F3DFA0');
+  if(o.qr){var qs=56;d.qr(o.qr,W-98-qs,H-78-qs,qs);d.set({s:6.5,w:700,ls:1});c.fillStyle='#76809F';c.fillText('SCAN TO VERIFY',W-98-qs/2,H-72);}
+  if(o.id){d.set({s:8,w:600,ls:.9});c.fillStyle='#76809F';c.fillText('Certificate ID  '+o.id,W/2,H-42);}
   c.textAlign='left';return d;}
 
 /* ================= quiz site: logo curtain + quiz player (also used for the studio's demo preview) ================= */
@@ -454,16 +605,15 @@ function intro(r,f,k,L){
   who(f).then(function(u){if(u)return go(u);box.append(E('button',{class:'q-btn big',style:'margin-top:14px',onclick:function(){signIn(f).then(function(x){box.innerHTML='';go(x.user);}).catch(function(){});}},'Continue with Google'));});
 }
 function actions(host,L,S,resp,ctx){
-  var pct=resp.total?Math.round(resp.score/resp.total*100):0,pass=!S.pass||pct>=S.pass;
-  function run(btn,label,fn){btn.onclick=function(){if(btn.disabled)return;btn.disabled=true;btn.textContent='Preparing…';Promise.resolve().then(fn).catch(function(){toast('Could not create the PDF');}).then(function(){btn.disabled=false;btn.textContent=label;});};return btn;}
-  var A0={};try{A0=JSON.parse(resp.a||'{}');}catch(e){}
-  if(S.res==='show')host.append(run(E('button',{class:'q-btn g'},'Answer key with solutions (PDF)'),'Answer key with solutions (PDF)',function(){return prep().then(function(){return makePdf(keySolDoc(L),'answer_key_'+fname(L.title)+'.pdf');});}));
-  if(S.res!=='hide')host.append(run(E('button',{class:'q-btn g'},'Overall report (PDF)'),'Overall report (PDF)',function(){return prep().then(function(){return makePdf(reportDoc(L,resp,A0,S,{tq:ctx.tq}),'report_'+fname(resp.name)+'.pdf');});}));
+  var pct=resp.total?Math.round(resp.score/resp.total*100):0,pass=!S.pass||pct>=S.pass,A0={};try{A0=JSON.parse(resp.a||'{}');}catch(e){}
+  function row(ic,t,d,build,file){host.append(pdfRow(ic,t,d,build,file));}
+  if(S.res==='show')row('\u2705','Answer key with solutions','Every answer explained',function(){return keySolDoc(L);},'answer_key_'+fname(L.title)+'.pdf');
+  if(S.res!=='hide')row('\uD83D\uDCCA','Overall report','Score, question map and review',function(){return reportDoc(L,resp,A0,S,{tq:ctx.tq});},'report_'+fname(resp.name)+'.pdf');
   if(S.cert&&!pass&&!ctx.pv)host.append(E('div',{class:'xlock'},'\uD83D\uDD12 Certificate unlocks when the mastery score of '+S.pass+'% is reached.'));
-  if(S.res!=='hide'&&S.card)host.append(run(E('button',{class:'q-btn g'},'Download result card'),'Download result card',function(){return prep().then(function(){return makePdf(cardDoc(L,resp,{pass:S.pass,qr:ctx.pv?null:'https://'+QH+'/?k='+ctx.k}),'result_card_'+fname(resp.name)+'.pdf');});}));
-  if(S.cert&&(pass||ctx.pv))host.append(run(E('button',{class:'q-btn'},ctx.pv&&!pass?'Certificate (demo preview)':'Download certificate'),ctx.pv&&!pass?'Certificate (demo preview)':'Download certificate',function(){
+  if(S.res!=='hide'&&S.card)row('\uD83C\uDFC5','Result card','Share your score',function(){return cardDoc(L,resp,{pass:S.pass,qr:ctx.pv?null:'https://'+QH+'/?k='+ctx.k});},'result_card_'+fname(resp.name)+'.pdf');
+  if(S.cert&&(pass||ctx.pv))row('\uD83C\uDF93',ctx.pv&&!pass?'Certificate (demo preview)':'Certificate','Premium, with a verify QR',function(){
     var id=ctx.k+'_'+ctx.u.uid,url='https://'+QH+'/?v='+id,w=ctx.pv?Promise.resolve():ctx.f.fs.setDoc(ctx.f.fs.doc(ctx.f.db,'qverify',id),{code:ctx.k,uid:ctx.u.uid,name:resp.name,title:L.title,score:resp.score,total:resp.total,pct:pct,at:resp.t||Date.now(),t:Date.now()}).then(function(){return true;},function(){return false;});
-    return Promise.all([w,prep()]).then(function(a){return makePdf(certDoc(L,resp,{id:ctx.k.toUpperCase()+'-'+String(ctx.u.uid).slice(0,6).toUpperCase(),qr:(ctx.pv||a[0]===false)?null:url}),'certificate_'+fname(resp.name)+'.pdf');});}));
+    return Promise.all([w,prep()]).then(function(a){return certDoc(L,resp,{id:ctx.k.toUpperCase()+'-'+String(ctx.u.uid).slice(0,6).toUpperCase(),qr:(ctx.pv||a[0]===false)?null:url});});},'certificate_'+fname(resp.name)+'.pdf');
 }
 function confetti(){
   var cv=E('canvas',{class:'qfx'}),c=cv.getContext('2d'),W=cv.width=innerWidth,H=cv.height=innerHeight,P=[],cols=['#22D08A','#6A78E8','#E0589E','#F0A15A','#0DBE76','#FFD166'];
@@ -632,46 +782,164 @@ function studio(){
   box.append(E('div',{class:'qm',style:'padding:30px 0;text-align:center'},'Loading…'));
   fb().then(function(f){return who(f).then(function(u){return u&&u.email?f:signIn(f).then(function(){return f;});});}).then(home).catch(fail);
 
-  function home(f,filter){
-    var C=f.fs.collection;filter=(filter||'').toLowerCase();
+  var homeTab='quizzes';
+  function demo(Z){if(!Z.q.length){toast('This quiz has no questions yet');return;}var pv=E('div',{class:'qv qpage qs-ov',style:'z-index:2147483300'});document.body.append(pv);
+    take(pv,null,'demo',{title:Z.title,desc:Z.desc,s:Z.s,q:JSON.parse(JSON.stringify(Z.q))},{uid:'demo',email:'demo@iqra.quiz',displayName:'Demo learner'},'Demo learner',{onClose:function(){pv.remove();}});}
+  function pickQuiz(Qs,cb){if(!Qs.length){toast('Create a quiz first');return;}if(Qs.length===1){cb(Qs[0]);return;}var s=sheet('Choose a quiz','Which quiz is this for?');Qs.forEach(function(Z,i){s.sh.append(E('button',{class:'qtool',style:'width:100%;margin:8px 0',onclick:function(){s.close();cb(Z);}},E('b',null,Z.title),E('span',null,Z.q.length+' questions')));});}
+  function home(f,filter,tab){
+    if(tab)homeTab=tab;var C=f.fs.collection;filter=(filter||'').toLowerCase();
     Promise.all([f.fs.getDocs(C(f.db,'quizzes')),f.fs.getDocs(C(f.db,'qlinks'))]).then(function(x){
       var Qs=[],Ls=[];x[0].forEach(function(d){Qs.push(Object.assign({},d.data(),{id:d.id}));});x[1].forEach(function(d){Ls.push(Object.assign({},d.data(),{id:d.id}));});
-      Qs.sort(function(a,b){return b.t-a.t;});Ls.sort(function(a,b){return b.t-a.t;});box.innerHTML='';box.append(head('Quiz studio',Qs.length+' quizzes · '+Ls.length+' links'));
-      var sr=E('input',{class:'q-in qsearch',placeholder:'Search quizzes and links…',value:filter,oninput:function(){var v=this.value;clearTimeout(sr._t);sr._t=setTimeout(function(){home(f,v);},250);}});
-      box.append(E('button',{class:'q-btn big',onclick:function(){edit(f,blank());}},'+ New quiz'),sr);
-      var hit=function(t){return !filter||String(t).toLowerCase().indexOf(filter)>=0;};Qs=Qs.filter(function(z){return hit(z.title);});Ls=Ls.filter(function(l){return hit(l.title);});
-      if(!Qs.length)box.append(E('p',{class:'qm',style:'text-align:center;margin:26px 0'},filter?'No quiz matches.':'No quizzes yet. Create your first one.'));
-      Qs.forEach(function(Z,i){var S=SD(Z.s);box.append(E('div',{class:'qt h'+(i%4)},E('h3',null,Z.title),E('div',null,E('span',{class:'qpill'},Z.q.length+' questions'),S.tm?E('span',{class:'qpill'},S.tm+' min'):null,E('span',{class:'qpill'},S.fl==='flow'?'animated':'classic'),S.cert?E('span',{class:'qpill on'},'certificate'):null),E('div',{style:'margin-top:8px'},
-        E('button',{class:'q-btn',onclick:function(){linkSheet(f,Z);}},'Make link'),
-        E('button',{class:'q-btn g',onclick:function(){edit(f,JSON.parse(JSON.stringify(Z)));}},'Edit'),
-        E('button',{class:'q-btn g',onclick:function(){printSheet(f,Z,Ls.filter(function(l){return l.qid===Z.id&&l.on;})[0]);}},'Print & PDF'),
-        E('button',{class:'q-btn g',onclick:function(){var C2=JSON.parse(JSON.stringify(Z));C2.id=rid(14);C2.title=Z.title+' (copy)';C2.t=Date.now();f.fs.setDoc(f.fs.doc(f.db,'quizzes',C2.id),{title:C2.title,desc:C2.desc,s:C2.s,q:C2.q,t:C2.t}).then(function(){toast('Duplicated');home(f,filter);}).catch(fail);}},'Duplicate'),
-        E('button',{class:'q-btn r',onclick:function(){if(confirm('Delete this quiz? Existing links keep working.'))f.fs.deleteDoc(f.fs.doc(f.db,'quizzes',Z.id)).then(function(){home(f,filter);});}},'Delete'))));});
-      if(Ls.length)box.append(E('h3',{style:'font-family:var(--fd);margin:20px 0 8px'},'Links'));
-      Ls.forEach(function(L,i){var url='https://'+QH+'/?k='+L.id;box.append(E('div',{class:'qt h'+((i+1)%4)},E('h3',null,L.title),E('div',null,E('span',{class:'qpill '+(L.on?'on':'off')},L.on?'Active':'Switched off'),E('span',{class:'qpill'},L.exp?'Ends '+new Date(L.exp).toLocaleDateString():'No expiry')),E('div',{class:'qm',style:'margin:6px 0;word-break:break-all'},url),
-        E('button',{class:'q-btn',onclick:function(){copy(url);toast('Link copied');}},'Copy link'),
-        E('button',{class:'q-btn g',onclick:function(){qrSheet(L.title,url);}},'QR code'),
-        E('button',{class:'q-btn g',onclick:function(){results(f,L);}},'Results'),
-        E('button',{class:'q-btn g',onclick:function(){f.fs.updateDoc(f.fs.doc(f.db,'qlinks',L.id),{on:!L.on}).then(function(){home(f,filter);});}},L.on?'Switch off':'Switch on'),
-        E('button',{class:'q-btn r',onclick:function(){if(confirm('Delete this link?'))f.fs.deleteDoc(f.fs.doc(f.db,'qlinks',L.id)).then(function(){home(f,filter);});}},'Delete')));});
+      Qs.sort(function(a,b){return b.t-a.t;});Ls.sort(function(a,b){return b.t-a.t;});var allQ=Qs.slice();box.innerHTML='';
+      box.append(head('Quiz studio',Qs.length+(Qs.length===1?' quiz':' quizzes')+' \u00B7 '+Ls.length+(Ls.length===1?' link':' links')));
+      box.append(E('button',{class:'q-btn big',onclick:function(){edit(f,blank());}},'+ New quiz'));
+      var tools=E('div',{class:'qgrid qg2'});
+      [['\uD83D\uDCF7','OMR scanner','Grade answered sheets with the camera',function(){pickQuiz(allQ,function(Z){scanSheet(Z);});}],
+       ['\uD83E\uDDFE','Scan questions','From a PDF, page or photo',function(){edit(f,blank(),'scan');}],
+       ['\u2728','Smart paste','Paste text or Claude\u2019s output',function(){edit(f,blank(),'paste');}],
+       ['\uD83E\uDDE0','Claude prompt','Copy the ready-made prompt',function(){promptSheet();}]].forEach(function(t){tools.append(E('button',{class:'qtool',onclick:t[3]},E('i',null,t[0]),E('b',null,t[1]),E('span',null,t[2])));});
+      box.append(tools);
+      box.append(E('div',{class:'qtabs'},E('button',{class:homeTab==='quizzes'?'on':'',onclick:function(){home(f,filter,'quizzes');}},'Quizzes \u00B7 '+Qs.length),E('button',{class:homeTab==='links'?'on':'',onclick:function(){home(f,filter,'links');}},'Links \u00B7 '+Ls.length)));
+      var sr=E('input',{class:'q-in qsearch',placeholder:homeTab==='quizzes'?'Search quizzes\u2026':'Search links\u2026',value:filter,oninput:function(){var v=this.value;clearTimeout(sr._t);sr._t=setTimeout(function(){home(f,v);},250);}});box.append(sr);
+      var hit=function(t){return !filter||String(t).toLowerCase().indexOf(filter)>=0;};
+      if(homeTab==='quizzes'){Qs=Qs.filter(function(z){return hit(z.title);});
+        if(!Qs.length)box.append(E('p',{class:'qm',style:'text-align:center;margin:26px 0'},filter?'No quiz matches.':'No quizzes yet. Create your first one.'));
+        Qs.forEach(function(Z,i){var S=SD(Z.s),lk=Ls.filter(function(l){return l.qid===Z.id&&l.on;})[0];
+          box.append(E('div',{class:'qt h'+(i%4)},E('h3',null,Z.title),E('div',null,E('span',{class:'qpill'},Z.q.length+' questions'),S.tm?E('span',{class:'qpill'},S.tm+' min'):null,E('span',{class:'qpill'},S.fl==='flow'?'animated':'classic'),S.cert?E('span',{class:'qpill on'},'certificate'):null,lk?E('span',{class:'qpill on'},'link live'):null),
+            E('div',{class:'qgrid qg3'},E('button',{class:'q-btn',onclick:function(){linkSheet(f,Z);}},'Make link'),E('button',{class:'q-btn g',onclick:function(){edit(f,JSON.parse(JSON.stringify(Z)));}},'Edit'),E('button',{class:'q-btn g',onclick:function(){printSheet(f,Z,lk);}},'PDF & Print')),
+            E('div',{class:'qgrid qg3',style:'margin-top:8px'},E('button',{class:'q-btn g',onclick:function(){demo(Z);}},'\u25B6 Preview'),E('button',{class:'q-btn g',onclick:function(){scanSheet(Z);}},'Scan OMR'),E('button',{class:'q-btn g',onclick:function(){moreQuiz(f,Z,filter);}},'More \u2026'))));});}
+      else{Ls=Ls.filter(function(l){return hit(l.title);});
+        if(!Ls.length)box.append(E('p',{class:'qm',style:'text-align:center;margin:26px 0'},filter?'No link matches.':'No links yet. Open a quiz and tap Make link.'));
+        Ls.forEach(function(L,i){var url='https://'+QH+'/?k='+L.id;box.append(E('div',{class:'qt h'+((i+1)%4)},E('h3',null,L.title),E('div',null,E('span',{class:'qpill '+(L.on?'on':'off')},L.on?'Active':'Switched off'),E('span',{class:'qpill'},L.exp?'Ends '+new Date(L.exp).toLocaleDateString():'No expiry')),E('span',{class:'qurl'},url),
+          E('div',{class:'qgrid qg3'},E('button',{class:'q-btn',onclick:function(){copy(url);toast('Link copied');}},'Copy link'),E('button',{class:'q-btn g',onclick:function(){qrSheet(L.title,url);}},'QR code'),E('button',{class:'q-btn g',onclick:function(){results(f,L);}},'Results')),
+          E('div',{class:'qgrid qg2',style:'margin-top:8px'},E('button',{class:'q-btn g',onclick:function(){f.fs.updateDoc(f.fs.doc(f.db,'qlinks',L.id),{on:!L.on}).then(function(){home(f,filter);});}},L.on?'Switch off':'Switch on'),E('button',{class:'q-btn r',onclick:function(){if(confirm('Delete this link?'))f.fs.deleteDoc(f.fs.doc(f.db,'qlinks',L.id)).then(function(){home(f,filter);});}},'Delete'))));});}
     }).catch(fail);
   }
-  function qrSheet(title,url){var s=sheet('QR code',title),img=qrDataUrl(url,240);
-    if(img)s.sh.append(E('img',{src:img,class:'qcode',style:'width:240px;height:240px;border-radius:16px;border:1px solid var(--line)'}));else s.sh.append(E('p',{class:'qm'},'The QR encoder is not available in this app version.'));
-    s.sh.append(E('div',{class:'qm',style:'text-align:center;word-break:break-all;margin:6px 0'},url),E('div',{style:'text-align:center'},E('button',{class:'q-btn',onclick:function(){copy(url);toast('Link copied');}},'Copy link'),
-      img?E('button',{class:'q-btn g',onclick:function(){var a=E('a',{href:img,download:'quiz_qr.png'});a.click();}},'Save PNG'):null,
-      E('button',{class:'q-btn g',onclick:function(){prep().then(function(){return makePdf(posterDoc(title,url),'quiz_poster_'+fname(title)+'.pdf');});}},'Poster PDF')));}
+  function moreQuiz(f,Z,filter){var s=sheet('More',Z.title);
+    s.sh.append(E('button',{class:'q-btn big g',onclick:function(){s.close();var C2=JSON.parse(JSON.stringify(Z));C2.id=rid(14);C2.title=Z.title+' (copy)';C2.t=Date.now();f.fs.setDoc(f.fs.doc(f.db,'quizzes',C2.id),{title:C2.title,desc:C2.desc,s:C2.s,q:C2.q,t:C2.t}).then(function(){toast('Duplicated');home(f,filter);}).catch(fail);}},'Duplicate this quiz'),
+      E('button',{class:'q-btn big r',onclick:function(){if(confirm('Delete this quiz? Existing links keep working.')){s.close();f.fs.deleteDoc(f.fs.doc(f.db,'quizzes',Z.id)).then(function(){home(f,filter);});}}},'Delete this quiz'));}
+  function qrSheet(title,url){var s=sheet('QR code',title),img=qrDataUrl(url,260);
+    if(img)s.sh.append(E('img',{src:img,class:'qcode',style:'width:240px;height:240px;border-radius:16px;border:1px solid var(--line);image-rendering:pixelated'}));else s.sh.append(E('p',{class:'qm'},'The QR encoder is not available in this app version.'));
+    s.sh.append(E('div',{class:'qm',style:'text-align:center;word-break:break-all;margin:6px 0'},url),E('div',{class:'qgrid qg2'},E('button',{class:'q-btn',onclick:function(){copy(url);toast('Link copied');}},'Copy link'),img?E('button',{class:'q-btn g',onclick:function(){var a=E('a',{href:img,download:'quiz_qr.png'});document.body.append(a);a.click();a.remove();}},'Save PNG'):null),
+      pdfRow('\uD83D\uDDBC\uFE0F','QR poster','A4 poster to print and display',function(){return posterDoc(title,url);},'quiz_poster_'+fname(title)+'.pdf'));}
   function linkSheet(f,Z){
     var s=sheet('Make a quiz link',Z.title),days=0,box2=E('div');s.sh.append(E('p',{class:'qm',style:'margin:0 0 6px'},'The link keeps a snapshot of the quiz as it is now.'),E('div',{class:'qm',style:'margin-top:10px'},'Link valid for'),seg([[0,'No expiry'],[1,'1 day'],[7,'7 days'],[30,'30 days']],0,function(v){days=v;}),box2);
     box2.append(E('button',{class:'q-btn big',onclick:function(){var code=rid(8).replace(/[^a-z0-9]/g,'a');
-      f.fs.setDoc(f.fs.doc(f.db,'qlinks',code),{on:true,exp:days?Date.now()+days*864e5:0,qid:Z.id,title:Z.title,desc:Z.desc||'',s:Z.s,q:Z.q,t:Date.now()}).then(function(){var url='https://'+QH+'/?k='+code;copy(url);s.close();toast('Link ready and copied');qrSheet(Z.title,url);home(f);}).catch(fail);},},'Create link'));}
+      f.fs.setDoc(f.fs.doc(f.db,'qlinks',code),{on:true,exp:days?Date.now()+days*864e5:0,qid:Z.id,title:Z.title,desc:Z.desc||'',s:Z.s,q:Z.q,t:Date.now()}).then(function(){var url='https://'+QH+'/?k='+code;copy(url);s.close();toast('Link ready and copied');qrSheet(Z.title,url);home(f,'','links');}).catch(fail);}},'Create link'));}
   function printSheet(f,Z,L){
-    var s=sheet('Print & PDF',Z.title),o={paper:'A4',shuffle:false,set:'',qr:true,names:true},url=L?'https://'+QH+'/?k='+L.id:'';
-    s.sh.append(E('div',{class:'qm'},'Paper size'),seg([['A4','A4'],['Letter','Letter']],'A4',function(v){o.paper=v;}),E('div',{style:'margin-top:6px'},toggle('Write the name / roll / date lines',true,function(v){o.names=v;}),toggle('Shuffle the questions and call it Set B',false,function(v){o.shuffle=v;o.set=v?'B':'';}),url?toggle('Put a QR code that opens the live quiz link',true,function(v){o.qr=v;}):E('p',{class:'qm'},'Make a link first to add a QR code to the paper.')));
-    function go(label,fn,file){return E('button',{class:'q-btn big g',onclick:function(){var b=this;b.disabled=true;prep().then(function(){return makePdf(fn(),file);}).then(function(){toast(label+' ready');},function(){toast('Could not create the PDF');}).then(function(){b.disabled=false;});}},label);}
-    var opt=function(){return {paper:o.paper,shuffle:o.shuffle,set:o.set,names:o.names,qr:(o.qr&&url)?url:null};};
-    s.sh.append(go('Question paper',function(){return paperDoc(Z,opt());},'paper_'+fname(Z.title)+'.pdf'),go('Answer key',function(){return keyDoc(Z,opt());},'answer_key_'+fname(Z.title)+'.pdf'),go('Solution sheet (with explanations)',function(){return solutionDoc(Z,opt());},'solutions_'+fname(Z.title)+'.pdf'),go('OMR answer sheet',function(){return omrDoc(Z,opt());},'omr_'+fname(Z.title)+'.pdf'));
-    if(url)s.sh.append(go('QR poster',function(){return posterDoc(Z.title,url,opt());},'poster_'+fname(Z.title)+'.pdf'));}
+    var s=sheet('PDF & Print',Z.title),o={paper:'A4',shuffle:false,set:'',qr:true,names:true},url=L?'https://'+QH+'/?k='+L.id:'';
+    s.sh.append(E('div',{class:'qsec'},'Options'),E('div',{class:'qm'},'Paper size'),seg([['A4','A4'],['Letter','Letter']],'A4',function(v){o.paper=v;}),E('div',{style:'margin-top:6px'},toggle('Write the name / roll / date lines',true,function(v){o.names=v;}),toggle('Shuffle the questions and call it Set B',false,function(v){o.shuffle=v;o.set=v?'B':'';}),url?toggle('Put a QR code that opens the live quiz link',true,function(v){o.qr=v;}):E('p',{class:'qm'},'Make a link first to add a QR code to the paper.')));
+    var opt=function(){return{paper:o.paper,shuffle:o.shuffle,set:o.set,names:o.names,qr:(o.qr&&url)?url:null};},nm=fname(Z.title);
+    s.sh.append(E('div',{class:'qsec'},'Documents \u00B7 every one has a preview'),
+      pdfRow('\uD83D\uDCDD','Question paper','Print-ready exam paper',function(){return paperDoc(Z,opt());},'paper_'+nm+'.pdf'),
+      pdfRow('\u2705','Answer key','Compact grid of correct answers',function(){return keyDoc(Z,opt());},'answer_key_'+nm+'.pdf'),
+      pdfRow('\uD83D\uDCA1','Solution sheet','Answers with explanations',function(){return solutionDoc(Z,opt());},'solutions_'+nm+'.pdf'),
+      pdfRow('\u2B55','OMR answer sheet','Bubble sheet the scanner can read',function(){return omrDoc(Z,opt());},'omr_'+nm+'.pdf'));
+    if(url)s.sh.append(pdfRow('\uD83D\uDDBC\uFE0F','QR poster','Poster that opens the live quiz',function(){return posterDoc(Z.title,url,opt());},'poster_'+nm+'.pdf'));
+    s.sh.append(E('div',{class:'qsec'},'After the exam'),E('button',{class:'qtool',style:'width:100%',onclick:function(){s.close();scanSheet(Z,o.paper);}},E('i',null,'\uD83D\uDCF7'),E('b',null,'Scan answered OMR sheets'),E('span',null,'Open the camera or upload photos; marks are graded for you')));}
+  /* ---- OMR scanner (camera or photo upload) ---- */
+  function scanSheet(Z,paper0){
+    var pv=E('div',{class:'qv qpage qs-ov',style:'z-index:2147483300'}),bx=E('div',{class:'qc'});pv.append(bx);document.body.append(pv);
+    var paper=paper0||'A4',pg=0,list=[],G=omrGeom(Z,paper),stream=null,timer=0;
+    function stop(){clearInterval(timer);timer=0;if(stream){try{stream.getTracks().forEach(function(t){t.stop();});}catch(e){}stream=null;}}
+    function close(){stop();pv.remove();}
+    function hd(sub,back){bx.innerHTML='';bx.append(E('div',{class:'qhead'},E('img',{src:'/icon-192.png',alt:''}),E('div',null,E('h2',null,'OMR scanner'),E('div',{class:'qm'},sub)),E('button',{class:'q-btn g',style:'margin:0',onclick:back||close},back?'\u2039 Back':'Close')));}
+    function start(){stop();G=omrGeom(Z,paper);hd(cut(Z.title,34)+' \u00B7 '+G.items.length+' graded questions');
+      if(!G.items.length){bx.append(E('div',{class:'qt h2'},E('h3',null,'No bubble questions'),E('p',{class:'qm'},'Only multiple choice, checkbox and True / False questions can be scanned.')));return;}
+      var st=E('div',{class:'qt h1'},E('b',null,'1 \u00B7 Sheet'),E('div',{class:'qm',style:'margin:2px 0'},'Paper size of the printed sheet'),seg([['A4','A4'],['Letter','Letter']],paper,function(v){paper=v;G=omrGeom(Z,paper);pg=0;start();}));
+      if(G.pages>1){st.append(E('div',{class:'qm',style:'margin-top:6px'},'This sheet has '+G.pages+' pages. Which page are you scanning?'),seg(Array.apply(null,{length:G.pages}).map(function(_,i){return[i,'Page '+(i+1)];}),pg,function(v){pg=v;}));}
+      bx.append(st);
+      var file=E('input',{type:'file',accept:'image/*',multiple:true,style:'display:none',onchange:function(){var fs=[].slice.call(this.files||[]);this.value='';if(fs.length)many(fs);}}),
+          shot=E('input',{type:'file',accept:'image/*',capture:'environment',style:'display:none',onchange:function(){var fs=[].slice.call(this.files||[]);this.value='';if(fs.length)many(fs);}});
+      bx.append(E('div',{class:'qt h0'},E('b',null,'2 \u00B7 Scan'),E('div',{class:'qhint'},'Lay the sheet flat in good light. All 4 black corner squares must be inside the picture. Keep the page upright.'),
+        E('div',{class:'qgrid qg2'},E('button',{class:'q-btn',onclick:live},'\uD83D\uDCF7 Live camera'),E('button',{class:'q-btn g',onclick:function(){shot.click();}},'Take a photo'),E('button',{class:'q-btn g',style:'grid-column:1/-1',onclick:function(){file.click();}},'Upload photo(s) from the device')),file,shot));
+      if(list.length){var tb=E('div',{class:'qt h3'},E('b',null,'Scanned sheets \u00B7 '+list.length));list.forEach(function(r,i){tb.append(E('div',{class:'qrow2',style:'padding:5px 0;border-bottom:1px solid var(--line)'},E('span',null,(i+1)+'. '+(r.name||'No name')),E('span',{class:'qpill'},r.s+' / '+r.t),E('button',{class:'q-btn g',style:'margin:0;padding:5px 9px',onclick:function(){list.splice(i,1);start();}},'\u00D7')));});
+        tb.append(E('div',{class:'qgrid qg2'},E('button',{class:'q-btn',onclick:csv},'Download CSV'),E('button',{class:'q-btn r',onclick:function(){if(confirm('Clear the scanned list?')){list=[];start();}}},'Clear list')));bx.append(tb);}}
+    function csv(){var h=['Name','Score','Total','Percent'].concat(G.items.map(function(it){return 'Q'+(it.i+1);})),rows=list.map(function(r){return[r.name,r.s,r.t,r.t?Math.round(r.s/r.t*100):0].concat(G.items.map(function(it){return(r.ans[it.i]||[]).map(letter).join('');}));});
+      var txt=[h].concat(rows).map(function(r){return r.map(function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';}).join(',');}).join('\n');var a=E('a',{href:URL.createObjectURL(new Blob(['\ufeff'+txt],{type:'text/csv'})),download:'omr_results_'+fname(Z.title)+'.csv'});document.body.append(a);a.click();a.remove();}
+    function img(fileObj){return new Promise(function(res,rej){var u=URL.createObjectURL(fileObj),im=new Image();im.onload=function(){res({im:im,u:u});};im.onerror=function(){rej();};im.src=u;});}
+    var queue=[];function many(fs){queue=fs.slice();nextQ();}
+    function nextQ(){if(!queue.length)return;var fo=queue.shift();img(fo).then(function(o){URL.revokeObjectURL(o.u);done(o.im);}).catch(function(){toast('Could not open that image');nextQ();});}
+    function done(src){var res=null;try{res=omrScan(src,G,pg);}catch(e){res={ok:false,why:'error'};}if(!res.ok){fail2(src);return;}review(res);}
+    function fail2(src){hd('Could not read the sheet',start);bx.append(E('div',{class:'qt h2'},E('h3',null,'The 4 corner squares were not found'),E('p',{class:'qm'},'Make sure the whole page is in the picture, flat, upright and well lit, with no shadow across the black squares. Also check the paper size and page number above.'),E('button',{class:'q-btn big',onclick:function(){queue.length?nextQ():start();}},queue.length?'Skip to the next photo':'Try again')));}
+    function live(){if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){toast('Camera is not available here. Use \u201CTake a photo\u201D.');return;}
+      navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080}},audio:false}).then(function(s){stream=s;hd('Point at the sheet. It scans by itself.',start);
+        var vd=E('video',{playsinline:'',muted:'',autoplay:''});vd.srcObject=s;vd.muted=true;var msg=E('div',{class:'qhint',style:'text-align:center'},'Looking for the 4 black corner squares\u2026');
+        bx.append(E('div',{class:'qcam'},vd,E('div',{class:'qfr'})),msg,E('div',{class:'qgrid qg2'},E('button',{class:'q-btn',onclick:function(){grab(true);}},'Capture now'),E('button',{class:'q-btn g',onclick:start},'Stop camera')));
+        var hits=0,busy=false;function grab(force){if(busy||!vd.videoWidth)return;busy=true;var cv=document.createElement('canvas'),k=Math.min(1,1300/Math.max(vd.videoWidth,vd.videoHeight));cv.width=Math.round(vd.videoWidth*k);cv.height=Math.round(vd.videoHeight*k);cv.getContext('2d').drawImage(vd,0,0,cv.width,cv.height);
+          var r=null;try{r=omrScan(cv,G,pg);}catch(e){}busy=false;if(r&&r.ok){hits++;msg.textContent='Sheet found \u2013 hold still\u2026';if(hits>=2||force){stop();review(r);}}else{hits=0;if(force){msg.textContent='Corner squares not found yet. Move closer or improve the light.';}}}
+        timer=setInterval(function(){grab(false);},900);}).catch(function(){toast('Camera permission was not given. Use \u201CTake a photo\u201D instead.');});}
+    function review(res){stop();hd('Check the result, fix anything, then save',start);var ans={},name='';G.items.forEach(function(it){ans[it.i]=(res.ans[it.i]||[]).slice();});
+      var cvs=E('canvas',{class:'qscn'}),sum=E('div'),grid=E('div'),nm=E('input',{class:'q-in',placeholder:'Student name (optional)',oninput:function(){name=this.value;}});
+      function score(){var s=0,t=0;G.items.forEach(function(it){var q=Z.q[it.i];t+=+q.pts||0;s+=grade(q,ans[it.i]);});return{s:s,t:t};}
+      function paint(){var w=Math.min(window.innerWidth-28,680),k=w/res.cv.width;cvs.width=w;cvs.height=Math.round(res.cv.height*k);var c=cvs.getContext('2d');c.drawImage(res.cv,0,0,cvs.width,cvs.height);
+        res.pos.forEach(function(p){var q=Z.q[p.qi],on=ans[p.qi].indexOf(p.b)>=0,key=(q.ans||[]).indexOf(p.b)>=0;if(on){c.lineWidth=3;c.strokeStyle=key?'#0DBE76':'#E0304B';c.beginPath();c.arc(p.x*k,p.y*k,p.r*k*1.3,0,6.3);c.stroke();}else if(key){c.lineWidth=1.6;c.setLineDash([3,3]);c.strokeStyle='#4F6BF0';c.beginPath();c.arc(p.x*k,p.y*k,p.r*k*1.2,0,6.3);c.stroke();c.setLineDash([]);}});
+        var r=score(),pc=r.t?Math.round(r.s/r.t*100):0;sum.innerHTML='';sum.append(E('div',{class:'qring',style:'--p:'+pc},E('b',null,pc+'%')),E('div',{style:'text-align:center;font:700 17px var(--fd)'},r.s+' / '+r.t+' marks'));
+        grid.innerHTML='';G.items.forEach(function(it){var q=Z.q[it.i],chips=E('div',{class:'qchips'});
+          for(var b=0;b<it.n;b++)(function(b){var on=ans[it.i].indexOf(b)>=0,key=(q.ans||[]).indexOf(b)>=0;chips.append(E('button',{class:'qch'+(on?(key?' on':' bad'):(key?' key':'')),onclick:function(){var a=ans[it.i];if(q.type==='multi'){var ix=a.indexOf(b);if(ix>=0)a.splice(ix,1);else a.push(b);}else ans[it.i]=a[0]===b?[]:[b];paint();}},letter(b)));})(b);
+          var fl=!ans[it.i].length?(res.flags[it.i]==='multi'?'two marks':'blank'):'';grid.append(E('div',{class:'qrow2',style:'padding:5px 0;border-bottom:1px solid var(--line);flex-wrap:nowrap'},E('span',{class:'qnum'},it.i+1),chips,fl?E('span',{class:'qpill off'},fl):E('span',null)));});}
+      bx.append(E('div',{class:'qt h1'},E('b',null,'Scan result'),cvs,E('div',{class:'qm',style:'margin:6px 0'},'Green ring = correct, red = wrong, dashed blue = the right answer you missed.'),sum),E('div',{class:'qt h0'},E('b',null,'Detected answers'),E('div',{class:'qm',style:'margin:2px 0 6px'},'Tap a letter to correct a reading.'),grid),
+        E('div',{class:'qt h3'},nm,E('div',{class:'qgrid qg2'},E('button',{class:'q-btn',onclick:function(){var r=score();list.push({name:name,ans:JSON.parse(JSON.stringify(ans)),s:r.s,t:r.t});toast('Saved to the list');if(queue.length)nextQ();else start();}},'Save & next sheet'),E('button',{class:'q-btn g',onclick:start},'Discard')),
+          pdfRow('\uD83C\uDFC5','Result card','Preview or download for this student',function(){var r=score();return cardDoc({title:Z.title},{name:name||'Student',score:r.s,total:r.t,sec:null,t:Date.now()},{pass:(Z.s&&Z.s.pass)||0});},'result_card_'+fname(name||'student')+'.pdf')));
+      paint();}
+    start();}
+  /* find the question blocks of a page automatically (no internet needed): split columns, then split by white gaps */
+  function detectBlocks(src){
+    var sc=Math.min(1,700/src.width),w=Math.max(40,Math.round(src.width*sc)),h=Math.max(40,Math.round(src.height*sc)),cv=document.createElement('canvas');cv.width=w;cv.height=h;var c=cv.getContext('2d',{willReadFrequently:true});c.fillStyle='#fff';c.fillRect(0,0,w,h);c.drawImage(src,0,0,w,h);
+    var d=c.getImageData(0,0,w,h).data,ink=new Uint8Array(w*h),x,y,tot=0;for(y=0;y<h;y++)for(x=0;x<w;x++){var p=(y*w+x)*4,g=(d[p]*77+d[p+1]*150+d[p+2]*29)>>8;if(g<165){ink[y*w+x]=1;tot++;}}
+    var cp=new Int32Array(w);for(y=0;y<h;y++)for(x=0;x<w;x++)cp[x]+=ink[y*w+x];
+    var cut=w,best=0,run=0,start=0;for(x=Math.round(w*.3);x<Math.round(w*.7);x++){if(cp[x]<=1){if(!run)start=x;run++;if(run>best){best=run;cut=start+(run>>1);}}else run=0;}
+    var cols=(best>=w*.02&&cut>w*.25&&cut<w*.75)?[[0,cut],[cut,w]]:[[0,w]],out=[];
+    cols.forEach(function(cl){var rp=new Int32Array(h),x0=cl[0],x1=cl[1];for(y=0;y<h;y++){var n=0;for(x=x0;x<x1;x++)n+=ink[y*w+x];rp[y]=n;}
+      var lines=[],inl=false,ls=0;for(y=0;y<=h;y++){var on=y<h&&rp[y]>0;if(on&&!inl){inl=true;ls=y;}else if(!on&&inl){inl=false;if(y-ls>=3)lines.push([ls,y]);}}
+      if(!lines.length)return;var hs=lines.map(function(l){return l[1]-l[0];}).sort(function(a,b){return a-b;}),med=hs[hs.length>>1]||8,gap=Math.max(med*1.15,7),blocks=[],cur=[lines[0][0],lines[0][1]];
+      for(var i=1;i<lines.length;i++){if(lines[i][0]-cur[1]>gap){blocks.push(cur);cur=[lines[i][0],lines[i][1]];}else cur[1]=lines[i][1];}blocks.push(cur);
+      blocks.forEach(function(b){var mnx=x1,mxx=x0,cnt=0;for(y=b[0];y<b[1];y++)for(x=x0;x<x1;x++)if(ink[y*w+x]){cnt++;if(x<mnx)mnx=x;if(x>mxx)mxx=x;}
+        if(cnt<25||b[1]-b[0]<6||mxx-mnx<12)return;var pad=3;out.push({x:Math.max(0,(mnx-pad)/sc),y:Math.max(0,(b[0]-pad)/sc),w:Math.min(src.width,(mxx-mnx+2*pad)/sc),h:(b[1]-b[0]+2*pad)/sc});});});
+    return out;}
+  function promptSheet(){var s=sheet('Claude prompt','Use Claude chat outside the app for cleaner questions'),ta=E('textarea',{class:'q-in',rows:9,readonly:'',style:'font-size:12.5px'},CPROMPT);ta.value=CPROMPT;
+    s.sh.append(E('div',{class:'qhint'},'1. Copy this prompt into a Claude chat.  2. Add your questions below it (type, paste, or attach the PDF / photo).  3. Copy Claude\u2019s JSON answer.  4. Open Smart paste here and paste it. Everything is filled in for you, with the correct answers ticked.'),ta,
+      E('div',{class:'qgrid qg2'},E('button',{class:'q-btn',onclick:function(){copy(CPROMPT);toast('Prompt copied');}},'Copy prompt'),E('button',{class:'q-btn g',onclick:function(){ta.select();}},'Select all')));}
+  /* ---- Scan questions from a PDF page or photo: draw a box around a question, it is read automatically ---- */
+  function lensSheet(onItems){
+    var PDFJS='https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/',TESS='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+    var pv=E('div',{class:'qv qpage qs-ov',style:'z-index:2147483300'}),bx=E('div',{class:'qc'});pv.append(bx);document.body.append(pv);
+    var st={cv:null,regs:[],pdf:null,cur:0,lang:'ben+eng',keep:false};
+    function close(){pv.remove();}
+    function loadScript(src){return new Promise(function(res,rej){if(document.querySelector('script[src="'+src+'"]'))return res();var s=document.createElement('script');s.src=src;s.onload=res;s.onerror=function(){rej(new Error('script'));};document.head.append(s);});}
+    function hd(sub){bx.innerHTML='';bx.append(E('div',{class:'qhead'},E('img',{src:'/icon-192.png',alt:''}),E('div',null,E('h2',null,'Scan questions'),E('div',{class:'qm'},sub)),E('button',{class:'q-btn g',style:'margin:0',onclick:close},'Close')));}
+    function fromImage(fo){return new Promise(function(res,rej){var u=URL.createObjectURL(fo),im=new Image();im.onload=function(){var k=Math.min(1,2000/Math.max(im.width,im.height)),cv=document.createElement('canvas');cv.width=Math.round(im.width*k);cv.height=Math.round(im.height*k);cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);URL.revokeObjectURL(u);res(cv);};im.onerror=function(){rej();};im.src=u;});}
+    function renderPage(n){return st.pdf.getPage(n+1).then(function(p){var vp=p.getViewport({scale:1}),k=Math.min(2.6,1500/vp.width),v=p.getViewport({scale:k}),cv=document.createElement('canvas');cv.width=Math.round(v.width);cv.height=Math.round(v.height);return p.render({canvasContext:cv.getContext('2d'),viewport:v}).promise.then(function(){st.cv=cv;st.regs=[];st.cur=n;stage();});});}
+    function openFile(fo){hd('Opening\u2026');bx.append(E('div',{class:'qhint'},'Opening the file\u2026'));
+      if(/pdf$/i.test(fo.type)||/\.pdf$/i.test(fo.name)){loadScript(PDFJS+'pdf.min.js').then(function(){window.pdfjsLib.GlobalWorkerOptions.workerSrc=PDFJS+'pdf.worker.min.js';return fo.arrayBuffer();}).then(function(b){return window.pdfjsLib.getDocument({data:b}).promise;}).then(function(d){st.pdf=d;return renderPage(0);}).catch(function(){start('Could not open that PDF (reading PDFs needs an internet connection).');});}
+      else{st.pdf=null;fromImage(fo).then(function(cv){st.cv=cv;st.regs=[];stage();}).catch(function(){start('Could not open that image.');});}}
+    function start(msg){hd('Pick a PDF, a photo or the camera');var pdf=E('input',{type:'file',accept:'application/pdf,image/*',style:'display:none',onchange:function(){var fo=this.files&&this.files[0];this.value='';if(fo)openFile(fo);}}),cam=E('input',{type:'file',accept:'image/*',capture:'environment',style:'display:none',onchange:function(){var fo=this.files&&this.files[0];this.value='';if(fo)openFile(fo);}});
+      bx.append(msg?E('div',{class:'qhint'},msg):E('span'),E('div',{class:'qt h0'},E('b',null,'Like Google Lens for questions'),E('div',{class:'qm',style:'margin:4px 0 8px'},'Open a PDF page or photo, the questions on the page are found for you. Tap the ones you want and they are read and turned into questions automatically.'),
+        E('div',{class:'qgrid qg2'},E('button',{class:'q-btn',onclick:function(){cam.click();}},'\uD83D\uDCF7 Camera'),E('button',{class:'q-btn g',onclick:function(){pdf.click();}},'\uD83D\uDCC4 PDF or image')),pdf,cam),
+        E('div',{class:'qhint'},'Tip: each block is one question with its options. The text is read on this device after the reading model is downloaded once, so an internet connection is needed the first time.'));}
+    function stage(){if(!st.cands||st.candFor!==st.cv){st.cands=detectBlocks(st.cv);st.candFor=st.cv;st.regs=[];}
+      hd(st.pdf?'PDF page '+(st.cur+1)+' of '+st.pdf.numPages:'Tap the questions you want');var cv=E('canvas',{class:'qscn'}),w=Math.min(window.innerWidth-28,720),k=w/st.cv.width;cv.width=w;cv.height=Math.round(st.cv.height*k);var c=cv.getContext('2d');
+      function paint(){c.drawImage(st.cv,0,0,cv.width,cv.height);st.cands.forEach(function(r){var on=st.regs.indexOf(r)>=0;c.fillStyle=on?'rgba(13,190,118,.26)':'rgba(79,107,240,.07)';c.fillRect(r.x*k,r.y*k,r.w*k,r.h*k);c.strokeStyle=on?'#0DBE76':'rgba(79,107,240,.55)';c.lineWidth=on?3:1.2;c.setLineDash(on?[]:[5,4]);c.strokeRect(r.x*k,r.y*k,r.w*k,r.h*k);c.setLineDash([]);});
+        st.regs.forEach(function(r,i){c.fillStyle='#0DBE76';c.fillRect(r.x*k,r.y*k,22,20);c.fillStyle='#fff';c.font='700 13px sans-serif';c.textAlign='center';c.fillText(String(i+1),r.x*k+11,r.y*k+15);});upd();}
+      cv.onclick=function(e){var b=cv.getBoundingClientRect(),px=(e.clientX-b.left)*(cv.width/b.width)/k,py=(e.clientY-b.top)*(cv.height/b.height)/k,hit=null;st.cands.forEach(function(r){if(px>=r.x&&px<=r.x+r.w&&py>=r.y&&py<=r.y+r.h&&(!hit||r.w*r.h<hit.w*hit.h))hit=r;});if(!hit)return;var i=st.regs.indexOf(hit);if(i>=0)st.regs.splice(i,1);else st.regs.push(hit);paint();};
+      var go=E('button',{class:'q-btn big',onclick:run},'Read');function upd(){go.textContent=st.regs.length?'Read '+st.regs.length+' selected question'+(st.regs.length>1?'s':''):'Tap a question to select it';}
+      function join(){if(st.regs.length<2){toast('Select two or more neighbouring blocks to join them');return;}var x0=1e9,y0=1e9,x1=0,y1=0;st.regs.forEach(function(r){x0=Math.min(x0,r.x);y0=Math.min(y0,r.y);x1=Math.max(x1,r.x+r.w);y1=Math.max(y1,r.y+r.h);});var m={x:x0,y:y0,w:x1-x0,h:y1-y0};st.cands=st.cands.filter(function(r){return st.regs.indexOf(r)<0;});st.cands.push(m);st.regs=[m];paint();}
+      var nav=st.pdf?E('div',{class:'qgrid qg2'},E('button',{class:'q-btn g',onclick:function(){if(st.cur>0)renderPage(st.cur-1);}},'\u2039 Previous page'),E('button',{class:'q-btn g',onclick:function(){if(st.cur<st.pdf.numPages-1)renderPage(st.cur+1);}},'Next page \u203A')):E('span');
+      var lang=E('select',{class:'q-in',style:'width:auto;margin:0',onchange:function(){st.lang=this.value;}},E('option',{value:'ben+eng'},'Bangla + English'),E('option',{value:'eng'},'English only'),E('option',{value:'ben'},'Bangla only'));lang.value=st.lang;
+      bx.append(E('div',{class:'qhint'},st.cands.length?'Found '+st.cands.length+' blocks. Tap each question you want (green = selected). If one question is split in two, select both and press Join.':'No text blocks found on this page.'),E('div',{class:'qt h1',style:'padding:10px'},cv),E('div',{class:'qgrid qg3'},E('button',{class:'q-btn g',onclick:function(){st.regs=st.cands.slice();paint();}},'Select all'),E('button',{class:'q-btn g',onclick:function(){st.regs=[];paint();}},'Clear'),E('button',{class:'q-btn g',onclick:join},'Join selected')),nav,
+        E('div',{class:'qmark'},E('span',null,'Language'),lang),toggle('Also keep the cropped picture with each question',st.keep,function(v){st.keep=v;}),go,E('button',{class:'q-btn g big',onclick:function(){start();}},'Choose another file'));paint();}
+    function crop(r){var cv=document.createElement('canvas'),k=Math.min(2,1700/Math.max(r.w,r.h));cv.width=Math.max(8,Math.round(r.w*k));cv.height=Math.max(8,Math.round(r.h*k));var c=cv.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,cv.width,cv.height);c.drawImage(st.cv,r.x,r.y,r.w,r.h,0,0,cv.width,cv.height);return cv;}
+    function pic(cv){var k=Math.min(1,900/Math.max(cv.width,cv.height)),o=document.createElement('canvas');o.width=Math.round(cv.width*k);o.height=Math.round(cv.height*k);o.getContext('2d').drawImage(cv,0,0,o.width,o.height);return o.toDataURL('image/jpeg',.74);}
+    function run(){var regs=st.regs.slice();if(!regs.length){toast('Tap a question first');return;}regs.sort(function(a,b){return a.x>st.cv.width/2&&b.x<=st.cv.width/2?1:(b.x>st.cv.width/2&&a.x<=st.cv.width/2?-1:a.y-b.y);});
+      hd('Reading '+regs.length+' region'+(regs.length>1?'s':''));var msg=E('div',{class:'qhint'},'Loading the reading model\u2026');bx.append(msg);var items=[],worker=null,offline=false;
+      function finish(){if(worker)try{worker.terminate();}catch(e){}if(!items.length){start('Nothing could be read. Try drawing the box a little bigger.');return;}if(offline)toast('Reading text needs internet \u2013 pictures were added instead');close();onItems(items);}
+      function one(i){if(i>=regs.length)return finish();var cv=crop(regs[i]);msg.textContent='Reading region '+(i+1)+' of '+regs.length+'\u2026';
+        var p=worker?worker.recognize(cv).then(function(r){return r.data.text||'';}):Promise.reject();
+        p.catch(function(){offline=true;return '';}).then(function(text){text=String(text).replace(/\r/g,'').replace(/[ \t]+\n/g,'\n').trim();var a=text?parseQ(text):[];
+          if(a.length){a.forEach(function(q,j){q.fresh=true;if(st.keep&&j===0)q.img=pic(cv);items.push(q);});}
+          else{var q=newQ();q.opts=['',''];q.ans=[];q.text=text||'(see the picture)';q.fresh=true;q.img=pic(cv);items.push(q);}one(i+1);});}
+      loadScript(TESS).then(function(){return window.Tesseract.createWorker(st.lang,1,{logger:function(m){if(m&&m.status&&msg.isConnected)msg.textContent=(m.status==='recognizing text'?'Reading\u2026 '+Math.round((m.progress||0)*100)+'%':String(m.status).replace(/^./,function(c){return c.toUpperCase();})+'\u2026');}});}).then(function(w){worker=w;one(0);}).catch(function(){offline=true;one(0);});}
+    start();}
   function results(f,L){
     box.innerHTML='';box.append(E('div',{class:'qm',style:'padding:30px 0;text-align:center'},'Loading…'));var S=SD(L.s);
     f.fs.getDocs(f.fs.collection(f.db,'qresp',L.id,'r')).then(function(sn){var R=[];sn.forEach(function(d){R.push(d.data());});R.sort(function(a,b){return b.score-a.score||a.sec-b.sec;});
@@ -685,23 +953,27 @@ function studio(){
       if(n&&an.some(function(x){return x.pct!=null;})){var det=E('div',{class:'qt h1'},E('b',null,'Question analysis'),E('div',{class:'qm',style:'margin:2px 0 6px'},'Share of people who answered correctly. Low numbers = hard questions.'));an.forEach(function(x,i){if(x.pct==null)return;det.append(E('div',{style:'margin:6px 0'},E('div',{class:'qrow',style:'justify-content:space-between;flex-wrap:nowrap'},E('span',{style:'font-size:13px'},(i+1)+'. '+cut(x.q.text,52)),E('b',{style:'font-size:13px'},x.pct+'%')),E('div',{class:'qbar2'},E('i',{style:'width:'+x.pct+'%'}))));});box.append(det);}
       var bar=E('div',{style:'margin:6px 0'});
       bar.append(E('button',{class:'q-btn',onclick:function(){var csv='Rank,Name,Email,Score,Total,Percent,Seconds\n'+R.map(function(x,i){return [i+1,x.name,x.email,x.score,x.total,pc(x),x.sec].map(function(v){return '"'+String(v).replace(/"/g,'""')+'"';}).join(',');}).join('\n');var a=E('a',{href:URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv'})),download:'results.csv'});a.click();}},'Download CSV'),
-        E('button',{class:'q-btn g',onclick:function(){if(!n)return;toast('Preparing result cards…');prep().then(function(){var ds=R.map(function(x,i){var d=cardDoc(L,x,{rank:i+1,count:n,pass:S.pass,qr:'https://'+QH+'/?k='+L.id});d.finish();return d;});return pdfBlob(mergeDocs(ds));}).then(function(b){saveBlob(b,'result_cards_'+fname(L.title)+'.pdf');});}},'All result cards (PDF)'),
-        E('button',{class:'q-btn g',onclick:function(){var ok=R.filter(function(x){return !S.pass||pc(x)>=S.pass;});if(!ok.length)return toast('Nobody has reached the pass mark yet');toast('Preparing '+ok.length+' certificates…');prep().then(function(){return Promise.all(ok.map(function(x){var id=L.id+'_'+x.uid;return f.fs.setDoc(f.fs.doc(f.db,'qverify',id),{code:L.id,uid:x.uid,name:x.name,title:L.title,score:x.score,total:x.total,pct:pc(x),at:x.t||Date.now(),t:Date.now()}).then(function(){return true;},function(){return false;});}));}).then(function(w){var ds=ok.map(function(x,i){var d=certDoc(L,x,{id:L.id.toUpperCase()+'-'+String(x.uid).slice(0,6).toUpperCase(),qr:w[i]?'https://'+QH+'/?v='+L.id+'_'+x.uid:null});d.finish();return d;});return pdfBlob(mergeDocs(ds));}).then(function(b){saveBlob(b,'certificates_'+fname(L.title)+'.pdf');});}},'All certificates (PDF)'));
+        E('button',{class:'q-btn g',onclick:function(){if(!n)return;toast('Preparing result cards…');prep().then(function(){return bulkBlob(R.length,function(i){return cardDoc(L,R[i],{rank:i+1,count:n,pass:S.pass,qr:'https://'+QH+'/?k='+L.id});},{title:L.title+' result cards'});}).then(function(b){saveBlob(b,'result_cards_'+fname(L.title)+'.pdf');});}},'All result cards (PDF)'),
+        E('button',{class:'q-btn g',onclick:function(){var ok=R.filter(function(x){return !S.pass||pc(x)>=S.pass;});if(!ok.length)return toast('Nobody has reached the pass mark yet');toast('Preparing '+ok.length+' certificates…');prep().then(function(){return Promise.all(ok.map(function(x){var id=L.id+'_'+x.uid;return f.fs.setDoc(f.fs.doc(f.db,'qverify',id),{code:L.id,uid:x.uid,name:x.name,title:L.title,score:x.score,total:x.total,pct:pc(x),at:x.t||Date.now(),t:Date.now()}).then(function(){return true;},function(){return false;});}));}).then(function(w){return bulkBlob(ok.length,function(i){var x=ok[i];return certDoc(L,x,{id:L.id.toUpperCase()+'-'+String(x.uid).slice(0,6).toUpperCase(),qr:w[i]?'https://'+QH+'/?v='+L.id+'_'+x.uid:null});},{title:L.title+' certificates'});}).then(function(b){saveBlob(b,'certificates_'+fname(L.title)+'.pdf');});}},'All certificates (PDF)'));
       box.append(bar);
-      R.forEach(function(x,i){box.append(E('div',{class:'qt h'+(i%4),style:'padding:12px 14px'},E('div',{class:'qrow',style:'justify-content:space-between;flex-wrap:nowrap'},E('div',null,E('b',null,(i+1)+'. '+x.name),E('div',{class:'qm'},x.email)),E('span',{class:'qpill'},x.score+' / '+x.total+' · '+pc(x)+'%')),
-        E('button',{class:'q-btn g',style:'margin-top:6px',onclick:function(){prep().then(function(){return makePdf(cardDoc(L,x,{rank:i+1,count:n,pass:S.pass,qr:'https://'+QH+'/?k='+L.id}),'result_card_'+fname(x.name)+'.pdf');});}},'Result card'),
-        E('button',{class:'q-btn g',style:'margin-top:6px',onclick:function(){var id=L.id+'_'+x.uid;f.fs.setDoc(f.fs.doc(f.db,'qverify',id),{code:L.id,uid:x.uid,name:x.name,title:L.title,score:x.score,total:x.total,pct:pc(x),at:x.t||Date.now(),t:Date.now()}).then(function(){return true;},function(){return false;}).then(function(w){return prep().then(function(){return makePdf(certDoc(L,x,{id:L.id.toUpperCase()+'-'+String(x.uid).slice(0,6).toUpperCase(),qr:w?'https://'+QH+'/?v='+id:null}),'certificate_'+fname(x.name)+'.pdf');});});}},'Certificate'),
-        E('button',{class:'q-btn r',style:'margin-top:6px',onclick:function(){if(confirm('Delete so this person can retake?'))f.fs.deleteDoc(f.fs.doc(f.db,'qresp',L.id,'r',x.uid)).then(function(){results(f,L);});}},'Reset')));});
+      R.forEach(function(x,i){var id=L.id+'_'+x.uid,rec={code:L.id,uid:x.uid,name:x.name,title:L.title,score:x.score,total:x.total,pct:pc(x),at:x.t||Date.now(),t:Date.now()};
+        function certBuild(){return f.fs.setDoc(f.fs.doc(f.db,'qverify',id),rec).then(function(){return true;},function(){return false;}).then(function(w){return prep().then(function(){return certDoc(L,x,{id:L.id.toUpperCase()+'-'+String(x.uid).slice(0,6).toUpperCase(),qr:w?'https://'+QH+'/?v='+id:null});});});}
+        box.append(E('div',{class:'qt h'+(i%4)},E('div',{class:'qrow2',style:'flex-wrap:nowrap'},E('div',{style:'min-width:0'},E('b',null,(i+1)+'. '+x.name),E('div',{class:'qm',style:'overflow:hidden;text-overflow:ellipsis'},x.email)),E('span',{class:'qpill'},x.score+' / '+x.total+' \u00B7 '+pc(x)+'%')),
+          pdfRow('\uD83C\uDFC5','Result card','Preview or download',function(){return cardDoc(L,x,{rank:i+1,count:n,pass:S.pass,qr:'https://'+QH+'/?k='+L.id});},'result_card_'+fname(x.name)+'.pdf'),
+          pdfRow('\uD83C\uDF93','Certificate','Premium certificate with verify QR',certBuild,'certificate_'+fname(x.name)+'.pdf'),
+          E('button',{class:'q-btn r',style:'margin-top:4px',onclick:function(){if(confirm('Delete so this person can retake?'))f.fs.deleteDoc(f.fs.doc(f.db,'qresp',L.id,'r',x.uid)).then(function(){results(f,L);});}},'Reset')));});
     }).catch(fail);
   }
   /* ---- Smart paste: offline reader or AI, then a review screen with a tick box beside every option ---- */
-  function smartSheet(Z,sync,after){
+  function smartSheet(Z,sync,after,mode){
     var SS=sheet('Smart paste','Paste questions in any shape. Options and answers are recognised for you.'),sh=SS.sh,body=E('div'),KEY='iqq.ai.key',MOD='iqq.ai.model',SIM='iqq.ai.sim',ls=function(k,v){try{if(v===undefined)return localStorage.getItem(k)||'';localStorage.setItem(k,v);}catch(e){return '';}};
     var st={text:'',items:[]};sh.append(body);
+    function scanIt(){lensSheet(function(it){st.items=it;review();});}
     function paste(){body.innerHTML='';
-      var ta=E('textarea',{class:'q-in',rows:10,placeholder:'1. Which planet is the Red Planet?\nA) Venus  B) Mars  C) Jupiter  D) Saturn\nAns: B\n\n\u09E8. \u09AC\u09BE\u0982\u09B2\u09BE\u09A6\u09C7\u09B6\u09C7\u09B0 \u099C\u09BE\u09A4\u09C0\u09AF\u09BC \u09AB\u09B2 \u0995\u09C0?\n\u0995. \u0986\u09AE  \u0996. \u0995\u09BE\u0981\u09A0\u09BE\u09B2 \u2713  \u0997. \u09B2\u09BF\u099A\u09C1  \u0998. \u09AA\u09C7\u09AF\u09BC\u09BE\u09B0\u09BE',oninput:function(){st.text=this.value;}},st.text);
-      var go=E('button',{class:'q-btn big',onclick:function(){var t=st.text.trim();if(!t){toast('Paste some text first');return;}var a=parseQ(t);if(!a.length){alert('No questions recognised. Put each question on its own line, then its options (A) B) C) or \u0995) \u0996) \u0997)) and an Ans: line.');return;}st.items=a;review();}},'Read questions');
-      body.append(ta,E('p',{class:'qm',style:'margin:8px 0'},'Recognises numbered questions, A) B) C) or \u0995) \u0996) \u0997) options (even on one line), plain option lines, Ans: / \u0989\u09A4\u09CD\u09A4\u09B0: lines, an answer list at the end (1-B 2-C), \u2713 marks and **bold** answers. You can fix anything before adding.'),go);}
+      var ta=E('textarea',{class:'q-in',rows:9,placeholder:'Paste questions here, in any shape.\n\n1. Which planet is the Red Planet?\nA) Venus  B) Mars  C) Jupiter\nAns: B\n\nor paste the JSON that Claude gave you.',oninput:function(){st.text=this.value;}});ta.value=st.text;
+      var go=E('button',{class:'q-btn big',onclick:function(){var t=st.text.trim();if(!t){toast('Paste some text first');return;}var a=readJsonQ(t)||parseQ(t);if(!a.length){alert('No questions recognised. Put each question on its own line, then its options (A) B) C) or \u0995) \u0996) \u0997)) and an Ans: line.');return;}st.items=a;review();}},'Read questions');
+      body.append(E('div',{class:'qgrid qg2'},E('button',{class:'q-btn g',onclick:function(){copy(CPROMPT);toast('Claude prompt copied');}},'\uD83E\uDDE0 Copy Claude prompt'),E('button',{class:'q-btn g',onclick:scanIt},'\uD83E\uDDFE Scan PDF / photo')),ta,
+        E('div',{class:'qhint'},'Best result: copy the Claude prompt, run it in Claude chat with your questions, then paste Claude\u2019s answer here. Plain text works too (numbered questions, A) B) C) or \u0995) \u0996) \u0997) options, Ans: lines, answer lists, ticks). You can fix everything before adding.'),go);}
     function review(){body.innerHTML='';var it=st.items;
       body.append(E('div',{class:'qm',style:'margin:2px 0 8px'},it.length+' question'+(it.length===1?'':'s')+' found. Tick the correct answer beside each option, fix anything, then add them.'));
       it.forEach(function(q,n){var ty=E('select',{class:'q-in',style:'margin:0;width:auto'},E('option',{value:'mcq'},'Multiple choice'),E('option',{value:'multi'},'Checkboxes'),E('option',{value:'tf'},'True / False'),E('option',{value:'short'},'Short answer'));ty.value=q.type;
@@ -718,7 +990,7 @@ function studio(){
           if(cl.type==='mcq'||cl.type==='multi'){var map={},no=[];cl.opts.forEach(function(o,j){if(String(o).trim()){map[j]=no.length;no.push(String(o).trim());}});cl.ans=cl.ans.filter(function(j){return map[j]!=null;}).map(function(j){return map[j];});cl.opts=no;if(no.length<2||!cl.ans.length){alert('Question '+(i+1)+' needs at least two options and a ticked correct answer.');return;}}
           else if(cl.type==='short'&&!cl.ans.length){alert('Question '+(i+1)+' needs an accepted answer.');return;}out.push(cl);}
           sync();Z.q=Z.q.concat(out);SS.close();after(out.length);}},'Add '+it.length+' question'+(it.length===1?'':'s')+' to quiz'),E('button',{class:'q-btn g',onclick:paste},'\u2190 Back to paste')));}
-    paste();}
+    paste();if(mode==='scan')setTimeout(scanIt,60);}
   function importSheet(Z,sync,after){
     var SRC=getSources(),st={si:-1,sets:{},kind:'mix'};
     var shade=E('div',{class:'qshade',onclick:function(e){if(e.target===shade)shade.remove();}}),sh=E('div',{class:'qsheet qv'});shade.append(sh);ov.append(shade);
@@ -745,7 +1017,7 @@ function studio(){
     }
     draw();
   }
-  function edit(f,Z){
+  function edit(f,Z,kind){
     Z.s=Object.assign({},blank().s,Z.s);box.innerHTML='';box.append(head('Edit quiz','Questions, settings, style and import',function(){home(f);}));
     var ti=E('input',{class:'q-in',value:Z.title,placeholder:'Quiz title'}),de=E('textarea',{class:'q-in',rows:2,placeholder:'Description (optional)'},Z.desc||''),ins=E('textarea',{class:'q-in',rows:3,placeholder:'Instructions shown before the quiz starts (optional)'},Z.s.ins||''),
       tm=E('input',{class:'q-in',type:'number',min:0,value:Z.s.tm,style:'width:90px;flex:none'}),pass=E('input',{class:'q-in',type:'number',min:0,max:100,value:Z.s.pass,style:'width:90px;flex:none'}),
@@ -759,7 +1031,14 @@ function studio(){
     function preview(){sync();if(!Z.q.length){toast('Add at least one question first');return;}var pv=E('div',{class:'qv qpage qs-ov',style:'z-index:2147483300'});document.body.append(pv);
       take(pv,null,'demo',{title:Z.title,desc:Z.desc,s:Z.s,q:JSON.parse(JSON.stringify(Z.q))},{uid:'demo',email:'demo@iqra.quiz',displayName:'Demo learner'},'Demo learner',{onClose:function(){pv.remove();}});}
     var list=E('div'),cnt=E('div',{class:'qm',style:'margin:2px 0 8px'});
-    box.append(cnt,list,E('div',{class:'qdock'},E('button',{class:'q-btn',onclick:save},'Save quiz'),E('button',{class:'q-btn g',onclick:function(){Z.q.push(newQ());draw();}},'+ Question'),E('button',{class:'q-btn',onclick:function(){smartSheet(Z,sync,function(n){draw();toast(n+' questions added');});}},'\u2728 Smart paste'),E('button',{class:'q-btn g',onclick:function(){importSheet(Z,sync,function(n){ti.value=Z.title;tm.value=Z.s.tm;draw();toast(n+' questions added');});}},'Import from app')));
+    box.append(cnt,list,E('div',{class:'qdock'},E('button',{class:'q-btn',onclick:save},'Save quiz'),E('button',{class:'q-btn g',onclick:function(){addSheet();}},'+ Add questions'),E('button',{class:'q-btn g',onclick:function(){preview();}},'\u25B6 Preview')));
+    function addSheet(){var S2=sheet('Add questions','Choose how to add them');function row(ic,t,d,fn){S2.sh.append(E('button',{class:'qtool',style:'width:100%;flex-direction:row;align-items:center;gap:12px;margin:8px 0',onclick:function(){S2.close();fn();}},E('i',null,ic),E('div',null,E('b',null,t),E('span',{style:'display:block'},d))));}
+      var aft=function(n){ti.value=Z.title;tm.value=Z.s.tm;draw();toast(n+' questions added');};
+      row('\u270D\uFE0F','Write a question','Add one blank question',function(){Z.q.push(newQ());draw();});
+      row('\u2728','Smart paste','Paste text, or the answer from Claude chat',function(){smartSheet(Z,sync,aft);});
+      row('\uD83E\uDDFE','Scan from PDF / photo','Draw a box on a question; it is read for you',function(){smartSheet(Z,sync,aft,'scan');});
+      row('\uD83D\uDCE5','Import from the app','Word books, folders and ready banks',function(){importSheet(Z,sync,aft);});
+      row('\uD83E\uDDE0','Claude prompt','Copy the prompt for Claude chat',promptSheet);}
     function draw(){cnt.textContent=Z.q.length+(Z.q.length===1?' question':' questions');list.innerHTML='';Z.q.forEach(function(q,n){
       var ty=E('select',{class:'q-in',style:'margin:0'},E('option',{value:'mcq'},'Multiple choice'),E('option',{value:'multi'},'Checkboxes'),E('option',{value:'tf'},'True / False'),E('option',{value:'short'},'Short answer'),E('option',{value:'para'},'Paragraph (not graded)'));ty.value=q.type;
       ty.onchange=function(){q.type=ty.value;q.ans=q.type==='tf'||q.type==='mcq'||q.type==='multi'?[0]:[];if(!q.opts||q.opts.length<2)q.opts=['Option 1','Option 2'];draw();};
@@ -767,12 +1046,14 @@ function studio(){
       if(q.type==='mcq'||q.type==='multi'){q.opts.forEach(function(o,i){c.append(E('div',{class:'qrow'},E('input',{type:q.type==='multi'?'checkbox':'radio',name:'a'+q.id,style:'accent-color:#0DBE76;width:18px;height:18px',checked:q.ans.indexOf(i)>=0,onchange:function(){if(q.type==='multi'){q.ans=this.checked?q.ans.concat(i):q.ans.filter(function(x){return x!==i;});}else q.ans=[i];}}),E('input',{class:'q-in',value:o,oninput:function(){q.opts[i]=this.value;}}),E('button',{class:'q-btn g',style:'margin:0',onclick:function(){if(q.opts.length<3)return;q.opts.splice(i,1);q.ans=q.ans.filter(function(x){return x!==i;}).map(function(x){return x>i?x-1:x;});draw();}},'✕')));});c.append(E('button',{class:'q-btn g',onclick:function(){q.opts.push('Option '+(q.opts.length+1));draw();}},'+ Option'),E('div',{class:'qm'},'Tick the correct answer(s).'));}
       if(q.type==='tf'){var tf=E('select',{class:'q-in',style:'width:100%'},E('option',{value:'0'},'Correct answer: True'),E('option',{value:'1'},'Correct answer: False'));tf.value=String(q.ans[0]||0);tf.onchange=function(){q.ans=[+tf.value];};c.append(tf);}
       if(q.type==='short')c.append(E('input',{class:'q-in',placeholder:'Accepted answers, separated by commas',value:(q.ans||[]).join(', '),oninput:function(){q.ans=this.value.split(',').map(function(x){return x.trim();}).filter(Boolean);}}));
+      if(q.type==='short')c.append(E('div',{class:'qm',style:'margin:2px 0'},'Close spellings are accepted automatically, even Bangla typed in English letters.'),toggle('Strict spelling for this question',!!q.strict,function(v){q.strict=v;}));
       c.append(E('div',{class:'qrow'},q.type==='para'?null:E('span',{class:'qm'},'Points'),q.type==='para'?null:E('input',{class:'q-in',type:'number',min:0,value:q.pts,style:'width:70px;flex:none',oninput:function(){q.pts=+this.value||0;}}),E('label',{class:'qo',style:'margin:4px 0;padding:6px 10px'},E('input',{type:'checkbox',checked:!!q.req,onchange:function(){q.req=this.checked;}}),'Required')),
         E('input',{class:'q-in',placeholder:'Explanation shown after submit (optional)',value:q.ex||'',oninput:function(){q.ex=this.value;}}),
         E('button',{class:'q-btn g',onclick:function(){if(n){Z.q.splice(n-1,0,Z.q.splice(n,1)[0]);draw();}}},'↑'),E('button',{class:'q-btn g',onclick:function(){if(n<Z.q.length-1){Z.q.splice(n+1,0,Z.q.splice(n,1)[0]);draw();}}},'↓'),
         E('button',{class:'q-btn g',onclick:function(){var cp=JSON.parse(JSON.stringify(q));cp.id=rid(6);Z.q.splice(n+1,0,cp);draw();}},'Duplicate'),E('button',{class:'q-btn r',onclick:function(){Z.q.splice(n,1);draw();}},'Delete'));
       list.append(c);});}
     draw();
+    if(kind==='scan'||kind==='paste')setTimeout(function(){smartSheet(Z,sync,function(n){ti.value=Z.title;tm.value=Z.s.tm;draw();toast(n+' questions added');},kind);},60);
     function save(){
       sync();
       if(!Z.q.length){alert('Add at least one question.');return;}if(JSON.stringify(Z.q).length>900000){alert('This quiz is too large because of its pictures. Remove or shrink some pictures.');return;}
@@ -835,7 +1116,7 @@ function hookPdf(){
   try{var oc=URL.createObjectURL;URL.createObjectURL=function(b){try{if(b&&b.type==='application/pdf'&&PQ.dest==='quiz')flushPdfLink();}catch(e){}return oc.apply(this,arguments);};}catch(e){}
   new MutationObserver(function(){var p=document.querySelector('.pdf-ov .vc-panel');if(p)pdfPanelAdmin(p);}).observe(document.body,{childList:true,subtree:true});
 }
-window.IQQUIZ={open:studio,_gen:{getSources:getSources,genSets:genSets,genN:genN},_pdf:{prep:prep,paperDoc:paperDoc,keyDoc:keyDoc,solutionDoc:solutionDoc,omrDoc:omrDoc,cardDoc:cardDoc,certDoc:certDoc,pdfBlob:pdfBlob},_pq:PQ};
+window.IQQUIZ={open:studio,_t:{omrGeom:omrGeom,omrScan:omrScan,grade:grade,skel:skel,sameShort:sameShort},_gen:{getSources:getSources,genSets:genSets,genN:genN},_pdf:{pdfPage:pdfPage,Doc:Doc,prep:prep,paperDoc:paperDoc,keyDoc:keyDoc,solutionDoc:solutionDoc,omrDoc:omrDoc,cardDoc:cardDoc,certDoc:certDoc,pdfBlob:pdfBlob},_pq:PQ};
 if(location.hostname===QH)gate();else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',hookPdf);else hookPdf();
 })();
 </script>
