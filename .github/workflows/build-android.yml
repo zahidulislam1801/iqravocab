@@ -249,6 +249,62 @@ jobs:
           print('In-app updater added, package', pk)
           PY
 
+      - name: Add screenshot block (FLAG_SECURE) for quizzes, optional and safe
+        run: |
+          python3 - <<'PY'
+          import glob, re, sys
+          mains = glob.glob('android/app/src/main/java/**/MainActivity.java', recursive=True)
+          if len(mains) != 1:
+              print('::warning::Screenshot block skipped: unexpected Android project layout')
+              sys.exit(0)
+          m = open(mains[0], encoding='utf-8').read()
+          pk = re.search(r'^package\s+([\w.]+);', m, re.M).group(1)
+          open(mains[0].replace('MainActivity.java', 'IqraSecurePlugin.java'), 'w', encoding='utf-8').write('''package __PKG__;
+
+          import android.view.WindowManager;
+          import com.getcapacitor.Plugin;
+          import com.getcapacitor.PluginCall;
+          import com.getcapacitor.PluginMethod;
+          import com.getcapacitor.annotation.CapacitorPlugin;
+
+          @CapacitorPlugin(name = "IqraSecure")
+          public class IqraSecurePlugin extends Plugin {
+              @PluginMethod
+              public void enable(final PluginCall call) {
+                  getActivity().runOnUiThread(new Runnable() {
+                      @Override
+                      public void run() {
+                          getActivity().getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
+                      }
+                  });
+                  call.resolve();
+              }
+
+              @PluginMethod
+              public void disable(final PluginCall call) {
+                  getActivity().runOnUiThread(new Runnable() {
+                      @Override
+                      public void run() {
+                          getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_SECURE);
+                      }
+                  });
+                  call.resolve();
+              }
+          }
+          '''.replace('__PKG__', pk))
+          if 'IqraSecurePlugin' not in m:
+              if 'registerPlugin(' in m:
+                  m = re.sub(r'^(\s*)registerPlugin\(', r'\1registerPlugin(IqraSecurePlugin.class);\n\1registerPlugin(', m, count=1, flags=re.M)
+              else:
+                  m = re.sub(r'public class MainActivity extends BridgeActivity\s*\{\s*\}', 'public class MainActivity extends BridgeActivity {\n    @Override\n    public void onCreate(android.os.Bundle savedInstanceState) {\n        registerPlugin(IqraSecurePlugin.class);\n        super.onCreate(savedInstanceState);\n    }\n}', m, count=1)
+              if 'IqraSecurePlugin' not in m:
+                  print('::warning::Screenshot block skipped: MainActivity has an unexpected shape')
+                  import os; os.remove(mains[0].replace('MainActivity.java', 'IqraSecurePlugin.java'))
+                  sys.exit(0)
+              open(mains[0], 'w', encoding='utf-8').write(m)
+          print('Screenshot block added, package', pk)
+          PY
+
       - name: Add fixed signing key
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
@@ -288,6 +344,7 @@ jobs:
               cp /tmp/iqbak/AndroidManifest.xml android/app/src/main/AndroidManifest.xml
               cp /tmp/iqbak/MainActivity.java "$(cat /tmp/iqbak/main_path)"
               rm -f "$(cat /tmp/iqbak/plugin_path)"
+              rm -f "$(dirname "$(cat /tmp/iqbak/main_path)")/IqraSecurePlugin.java"
               cd android
               ./gradlew assembleDebug
             else
